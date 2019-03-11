@@ -265,25 +265,25 @@ double TRK::findBestTangent(std::vector <double> params, double x_n, double y_n,
 
 // SCALE OPTIMIZATION ALGORITHMS
 
-std::vector <double> TRK::findCentroid(std::vector <std::vector <double> > vertices) {
-	int n = M + 2;
+std::vector <double> TRK::findCentroid(std::vector <std::vector <double> > nvertices) {
+	int n = nvertices.size();
 
-	std::vector <double> centroid(n, 0);
+	std::vector <double> centroid;
 
-	for (int i = 0; i < n; i++) {// for each param plus slop
+	for (int i = 0; i < n; i++) {// for each param
 		double sum = 0.0;
 		for (int j = 0; j < n; j++) { // for each vertex
-			sum += vertices[j][i];
+			sum += nvertices[j][i];
 		}
-		centroid[i] = sum/n;
+		centroid.push_back(sum/n);
 	}
 
 	return centroid;
 }
 
-std::vector <double> TRK::downhillSimplex() {
+std::vector <double> TRK::downhillSimplex(double(*f)(std::vector <double>), std::vector <double> allparams_guess) {
 
-	int n = params_guess.size() + 2; //number of model parameters plus two slop parameters
+	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
 
 	double rho = 1.0;
 	double chi = 2.0;
@@ -292,82 +292,172 @@ std::vector <double> TRK::downhillSimplex() {
 
 	// simplex initialization
 
-	std::vector <double> init_point = params_guess;
+	std::vector <double> init_point = allparams_guess;
 
-	init_point.push_back(slop_x_guess);
-	init_point.push_back(slop_y_guess);
+	std::vector <std::vector <double> > vertices(n+1, init_point);
 
-	std::vector <std::vector <double> > vertices = { init_point };
+	int i = 0;
+	for (int j = 1; j < n+1; j++) { //for each simplex node
 
-	for (int j = 0; j < n; j++) { //for each simplex node
-		init_point.clear();
-		for (int i = 0; i < M; i++) { //for each parameter (non slop)
-			init_point.push_back(params_guess[i] + params_guess[i]); //add initial "step size"
-		}
-		init_point.push_back(slop_x_guess + slop_x_guess);
-		init_point.push_back(slop_y_guess + slop_y_guess);
-
-		vertices.push_back(init_point);
+		vertices[j][i] = allparams_guess[i] + allparams_guess[i]; //add initial "step size"
+		i += 1;
 	}
 
 	std::vector <double> result;
-
 	while (true) {
-		// order
+		while (true) {
+			// order
 
-		std::vector <int> orderedindices;
-		std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
-		for (int i = 0; i < n + 1; i++) {
-			unorderedEvals.push_back(modifiedChiSquared(vertices[i]));
-		}
-		orderedindices = getSortedIndices(unorderedEvals);
+			std::vector <int> orderedindices;
+			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
+			for (int i = 0; i < n + 1; i++) {
+				unorderedEvals.push_back(f(vertices[i]));
+			}
+			orderedindices = getSortedIndices(unorderedEvals);
 
-		std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
-		for (int i = 1; i < n + 1; i++) {
-			orderedvertices.push_back(vertices[orderedindices[i]]);
-		}
+			std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
+			for (int i = 1; i < n + 1; i++) {
+				orderedvertices.push_back(vertices[orderedindices[i]]);
+			}
 
-		vertices = orderedvertices;
+			vertices = orderedvertices;
 
-		// reflect
-		std::vector <double> refpoint;
-		std::vector <double> centroid = findCentroid(vertices);
+			// reflect
+			std::vector <double> refpoint;
+			std::vector <std::vector <double> > nvertices;
+			for (int i = 0; i < n; i++) {
+				nvertices.push_back(vertices[i]);
+			}
 
-		for (int i = 0; i < n; i++) {
-			refpoint.push_back(centroid[i] + rho*(centroid[i] - vertices[n + 1][i]));
-		}
-
-		double fr = modifiedChiSquared(refpoint);
-		double f1 = modifiedChiSquared(vertices[0]);
-		double fn = modifiedChiSquared(vertices[n-1]);
-
-		if (f1 <= fr && fr < fn) {
-			result = refpoint;
-			break;
-		}
-
-		//expand
-		if (fr < f1) {
-			std::vector <double> exppoint;
+			std::vector <double> centroid = findCentroid(nvertices);
 
 			for (int i = 0; i < n; i++) {
-				exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
+				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
 			}
 
-			double fe = modifiedChiSquared(exppoint);
+			double fr = f(refpoint);
+			double f1 = f(vertices[0]);
+			double fn = f(vertices[n - 1]);
 
-			if (fe < fr) {
-				result = exppoint;
-				break;
-			}
-			else if (fe >= fr) {
+			if (f1 <= fr && fr < fn) {
 				result = refpoint;
 				break;
 			}
 
-		//contract
-		}
-	}
+			//expand
+			if (fr < f1) {
+				std::vector <double> exppoint;
 
+				for (int i = 0; i < n; i++) {
+					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
+				}
+
+				double fe = f(exppoint);
+
+				if (fe < fr) {
+					result = exppoint;
+					break;
+				}
+				else if (fe >= fr) {
+					result = refpoint;
+					break;
+				}
+			}
+
+			//contract
+
+			if (fr >= fn) {
+				//outside
+				double fnp1 = f(vertices[n]);
+
+				if (fn <= fr && fr < fnp1) {
+					std::vector <double> cpoint;
+
+					for (int i = 0; i < n; i++) {
+						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
+					}
+
+					double fc = f(cpoint);
+
+					if (fc <= fr) {
+						result = cpoint;
+						break;
+					}
+					else {
+						//shrink
+
+						std::vector < std::vector <double> > v = { vertices[0] };
+
+						for (int i = 1; i < n + 1; i++) {
+							std::vector <double> vi;
+							vi.clear();
+							for (int j = 0; j < n; j++) {
+								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+							}
+							v.push_back(vi);
+						}
+
+						vertices = v;
+					}
+				}
+				else if (fr >= fnp1) {
+					std::vector <double> ccpoint;
+
+					for (int i = 0; i < n; i++) {
+						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
+					}
+
+					double fcc = f(ccpoint);
+
+					if (fcc <= fnp1) {
+						result = ccpoint;
+						break;
+					}
+					else {
+						//shrink
+
+						std::vector < std::vector <double> > v = { vertices[0] };
+
+						for (int i = 1; i < n + 1; i++) {
+							std::vector <double> vi;
+							vi.clear();
+							for (int j = 0; j < n; j++) {
+								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+							}
+							v.push_back(vi);
+						}
+
+						vertices = v;
+					}
+
+
+				}
+
+			}
+
+			//shrink
+
+			std::vector < std::vector <double> > v = { vertices[0] };
+
+			for (int i = 1; i < n + 1; i++) {
+				std::vector <double> vi;
+				vi.clear();
+				for (int j = 0; j < n; j++) {
+					vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+				}
+				v.push_back(vi);
+			}
+
+			vertices = v;
+		}
+
+		std::vector <std::vector <double> > bettervertices;
+		for (int i = 0; i < n; i++) {
+			bettervertices.push_back(vertices[i]);
+		}
+		bettervertices.push_back(result);
+
+		vertices = bettervertices;
+	}
 	return result;
 }

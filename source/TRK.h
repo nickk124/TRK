@@ -7,8 +7,7 @@ const double PI = 3.1415926535897932384626434;
 class TRK
 {
 	public:
-
-		std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
+		std::vector <double> downhillSimplex(double(*f)(std::vector <double>), std::vector <double> allparams_guess);
 
 		//function pointers
 		double (*yc)(double, std::vector <double>);
@@ -44,5 +43,5 @@ class TRK
 		std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
 		double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec);
 		// SCALE OPTIMIZATION ALGORITHMS
-		std::vector <double> downhillSimplex();
+		std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
 };
