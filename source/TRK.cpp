@@ -30,6 +30,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->allparams_guess = allparams_guess;
 
 	this->whichExtrema = none;
+
+	this->s = 1.0;
 }
 //equal weights/unweighted
 TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
@@ -60,6 +62,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->allparams_guess = allparams_guess;
 
 	this->whichExtrema = none;
+
+	this->s = 1.0;
 }
 
 //default
@@ -108,7 +112,7 @@ double TRK::newtonRaphson(std::vector <double> params, double x_n, double y_n, d
 
 	double x1 = x0 - f / df;
 
-	double tol = 1e-9;
+	double tol = 1e-3;
 
 	while (std::abs(x1 - x0) > tol) {
 		x0 = x1;
@@ -117,18 +121,18 @@ double TRK::newtonRaphson(std::vector <double> params, double x_n, double y_n, d
 		df = (std::pow(dyc(x0, params), 2.0) + (yc(x0, params) - y_n)*ddyc(x0, params)) * Sig_xn2 + Sig_yn2; //derivative of above
 
 		x1 = x0 - f / df;
-		std::cout << x1 << std::endl;
+		//std::cout << x1 << std::endl;
 
 		itercount += 1;
 	}
 
-	std::cout << itercount << " iterations." << std::endl;
+	//std::cout << itercount << " iterations." << std::endl;
 	return x1;
 }
 
 double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1)
 {
-	double tol = 1e-9;
+	double tol = 1e-3;
 	double xkm1 = xguess;
 	//double xk = xguess + xguess / 100.0;
 	double xk = xguessp1;
@@ -149,7 +153,7 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 		r = 1.0 - ((yk / ykm1) * (((yk - ykm1) / (xk - xkm1)) / dyk));
 
 		xkp1 = (1.0 - 1.0 / r)*xkm1 + xk / r;
-		std::cout << xkp1 << std::endl;
+		//std::cout << xkp1 << std::endl;
 
 		xkm1 = xk;
 		xk = xkp1;
@@ -157,13 +161,13 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 		itercount += 1;
 	}
 
-	std::cout << itercount << " iterations." << std::endl;
+	//std::cout << itercount << " iterations." << std::endl;
 	return xkp1;
 }
 
 std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
 
-	double tol = 1e-6;
+	double tol = 1e-3;
 
 	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
 
@@ -341,6 +345,17 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 		vertices = bettervertices;
 
+		for (int i = 0; i < result.size(); i++) {
+			std::cout << result[i] << " ";
+		}
+		std::cout << "                        ";
+
+		for (int i = 0; i < 1; i++) {
+			std::cout << modifiedChiSquared(result) << " ";
+		}
+
+		std::cout << std::endl << std::endl;
+
 		//test for termination
 
 		std::vector <double> evals;
@@ -358,7 +373,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 std::vector <double> TRK::downhillSimplex(double(*f)(std::vector <double>), std::vector <double> allparams_guess) {
 
-	double tol = 1e-6;
+	double tol = 1e-3;
 
 	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
 
@@ -770,7 +785,7 @@ double TRK::findBestTangent(std::vector <double> params, double x_n, double y_n,
 	std::vector <double> posts;
 	int minindex;
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < x_tn_vec.size(); i++) {
 		posts.push_back(singlePointLnL(params, x_n, y_n, Sig_xn2, Sig_yn2, x_tn_vec[i]));
 	}
 
@@ -784,7 +799,7 @@ double TRK::findBestTangent(std::vector <double> params, double x_n, double y_n,
 double TRK::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
 	s = ss[0];
 
-	std::vector <double> allparams_s = downhillSimplex(modifiedChiSquared, allparams_guess);
+	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
 
 	iterative_allparams_guess = allparams_s;
 
@@ -794,7 +809,7 @@ double TRK::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> all
 double TRK::innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
 	s = ss[0];
 
-	std::vector <double> allparams_s = downhillSimplex(modifiedChiSquared, allparams_guess);
+	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
 
 	iterative_allparams_guess = allparams_s;
 
@@ -805,7 +820,7 @@ double TRK::innerR2_Simplex(std::vector <double> ss, std::vector <double> allpar
 	s = ss[0];
 
 	whichExtrema = S;
-	std::vector <double> allparams_s = downhillSimplex(modifiedChiSquared, allparams_guess);
+	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
 	whichExtrema = none;
 
 	iterative_allparams_guess = allparams_s;
@@ -815,7 +830,7 @@ double TRK::innerR2_Simplex(std::vector <double> ss, std::vector <double> allpar
 
 double TRK::optimize_s_SlopX() {
 
-	double tol = 1e-6;
+	double tol = 1e-3;
 
 	int n = 1; //only parameter is s
 
@@ -986,6 +1001,17 @@ double TRK::optimize_s_SlopX() {
 
 		vertices = bettervertices;
 
+		for (int i = 0; i < bettervertices.size(); i++){
+			std::cout << bettervertices[i][0] << " ";
+		}
+		std::cout << "                        ";
+
+		for (int i = 0; i < bettervertices.size(); i++) {
+			std::cout << innerSlopX_Simplex(bettervertices[i], iterative_allparams_guess) << " ";
+		}
+
+		std::cout << std::endl << std::endl;
+
 		//test for termination
 
 		std::vector <double> evals;
@@ -1011,7 +1037,7 @@ double TRK::optimize_s_SlopX() {
 
 double TRK::optimize_s_SlopY() {
 
-	double tol = 1e-6;
+	double tol = 1e-3;
 
 	int n = 1; //only parameter is s
 
@@ -1207,7 +1233,7 @@ double TRK::optimize_s_SlopY() {
 
 double TRK::optimize_s_R2() {
 	
-	double tol = 1e-6;
+	double tol = 1e-3;
 
 	int n = 1; //only parameter is s
 
@@ -1442,7 +1468,7 @@ double TRK::R2TRK_prime_sb() {
 }
 
 void TRK::optimizeScale() {
-	double tol = 1e-6;
+	double tol = 1e-3;
 
 	s = 1; //initially begin with s = 1
 	double s1;
