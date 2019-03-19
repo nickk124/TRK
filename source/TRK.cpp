@@ -132,7 +132,7 @@ double TRK::newtonRaphson(std::vector <double> params, double x_n, double y_n, d
 
 double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1)
 {
-	double tol = 1e-3;
+	double tol = 1e-9;
 	double xkm1 = xguess;
 	//double xk = xguess + xguess / 100.0;
 	double xk = xguessp1;
@@ -630,6 +630,14 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 		double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
 		double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
 
+		//std::cout << x[n] << " " << y[n] << std::endl;
+
+		/*
+		if (std::abs(x[n] - 0.015) < 1e-4 && std::abs(y[n] - 3.8727) < 1e-4 ){//&& std::abs(params[0] - 2.4855) < 1e-4 && std::abs(params[1] - 4.573) < 1e-4 && std::abs(params[2] - 2.2869) < 1e-4 && std::abs(params[3] - -1.3164) < 1e-4) {
+			std::cout << "stop" << std::endl;
+		}
+		*/
+
 		std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sig_xn2, Sig_yn2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
 		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
 
@@ -742,10 +750,35 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 
 	double xg1 = xg;
 
+	std::vector <double> xr1vec;
+	double xr1old;
+	
+	bool checkcheck = false;
+
 	while (true) {
 		result.clear();
 
-		double xr1 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg1, xg1 + std::sqrt(Sig_xn2));
+		double xr1 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg1, xg1 + std::sqrt(Sig_xn2)/10.0);
+
+		xr1vec.push_back(xr1);
+
+		if (checkcheck) { //different guess gives same root; only one root
+
+			if (std::abs(xr1 - xr1old) < 1e-3) {
+				result.push_back(xr1);
+				break;
+			}
+			if (xr1vec.size() >= 3){
+				if (std::abs(xr1vec[xr1vec.size() - 1] - xr1vec[xr1vec.size() - 3]) < 1e-3) {
+
+					std::cout << "oscillation!" << std::endl;
+
+					result.push_back(xr1);
+					break;
+				}
+			}
+		}
+
 		double xg2, xg3;
 
 		//Quadratic Approximation
@@ -757,7 +790,7 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			//grab to new roots 
 			for (int i = 0; i < 3; i++) {
 				double root = allRoots[i];
-				if (std::abs(root - xr1) >= 1e-9) { //checks if roots are (numerically) identical or not
+				if (std::abs(root - xr1) >= 1e-3) { //checks if roots are (numerically) identical or not
 					extraRoots.push_back(root);
 				}
 			}
@@ -769,8 +802,8 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			xg3 = extraRoots[1];
 
 			if (xg2 < xr1 && xr1 < xg3) {
-				xr2 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg2, xg2 - std::sqrt(Sig_xn2));
-				xr3 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg3, xg3 + std::sqrt(Sig_xn2));
+				xr2 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg2, xg2 - std::sqrt(Sig_xn2) / 10.0);
+				xr3 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg3, xg3 + std::sqrt(Sig_xn2) / 10.0);
 
 				result.push_back(xr2);
 				result.push_back(xr1);
@@ -783,6 +816,9 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 				std::sort(rootVec.begin(), rootVec.end());
 
 				xg1 = rootVec[1];
+				xr1old = xr1;
+
+				checkcheck = true;
 			}
 		} else if (extraRoots.size() == 0) { //if only have one root (the one initially found)
 			result.push_back(xr1);
