@@ -344,17 +344,22 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		bettervertices.push_back(result);
 
 		vertices = bettervertices;
-
+		/*
+		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
 		}
-		std::cout << "                        ";
+		*/
 
-		for (int i = 0; i < 1; i++) {
-			std::cout << modifiedChiSquared(result) << " ";
+		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
+		for (int j = 0; j < result.size() + 1; j++) {
+			for (int i = 0; i < result.size(); i++) {
+				std::cout << bettervertices[j][i] << " ";
+			}
+			double X = (this->*f)(bettervertices[j]);
+			std::cout << "          " << X << std::endl;
 		}
 
-		std::cout << std::endl << std::endl;
 
 		//test for termination
 
@@ -369,6 +374,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 	}
 	return vertices[n];
+
+	std::cout << std::endl << std::endl;
 }
 
 std::vector <double> TRK::downhillSimplex(double(*f)(std::vector <double>), std::vector <double> allparams_guess) {
@@ -598,8 +605,6 @@ double TRK::singlePointLnL(std::vector <double> params, double x_n, double y_n, 
 
 double TRK::modifiedChiSquared(std::vector <double> allparams)
 {
-	x_t_slopx.clear();
-	x_t_slopy.clear();
 
 	std::vector <double> all_x_t;
 
@@ -608,6 +613,12 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 
 	double slop_x = allparams[M];
 	double slop_y = allparams[M + 1];
+
+	/*
+	if (slop_x < 0 || slop_y < 0) {
+		return DBL_MAX;
+	}
+	*/
 
 	std::vector <double> params;
 
@@ -830,7 +841,7 @@ double TRK::innerR2_Simplex(std::vector <double> ss, std::vector <double> allpar
 
 double TRK::optimize_s_SlopX() {
 
-	double tol = 1e-3;
+	double tol = 1e-6;
 
 	int n = 1; //only parameter is s
 
@@ -876,6 +887,12 @@ double TRK::optimize_s_SlopX() {
 			for (int i = 0; i < n; i++) {
 				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
 			}
+
+			
+			if (refpoint[0] < 0) {
+				refpoint[0] = std::abs(refpoint[0]);
+			}
+			
 
 			double fr = innerSlopX_Simplex(refpoint, iterative_allparams_guess);
 			double f1 = innerSlopX_Simplex(vertices[0], iterative_allparams_guess);
@@ -1014,6 +1031,7 @@ double TRK::optimize_s_SlopX() {
 
 		//test for termination
 
+		/*
 		std::vector <double> evals;
 		for (int i = 0; i < n + 1; i++) {
 			evals.push_back(innerSlopX_Simplex(vertices[i], iterative_allparams_guess));
@@ -1022,7 +1040,14 @@ double TRK::optimize_s_SlopX() {
 		if (stDevUnweighted(evals) < tol) {
 			break;
 		}
+		*/
 
+		std::vector <double> sVals = { vertices[0][0], vertices[1][0] };
+
+		if (stDevUnweighted(sVals) < tol) {
+			break;
+		}
+		
 	}
 	std::vector <double> optimum_s = vertices[n];
 
@@ -1037,7 +1062,7 @@ double TRK::optimize_s_SlopX() {
 
 double TRK::optimize_s_SlopY() {
 
-	double tol = 1e-3;
+	double tol = 1e-6;
 
 	int n = 1; //only parameter is s
 
@@ -1083,6 +1108,11 @@ double TRK::optimize_s_SlopY() {
 			for (int i = 0; i < n; i++) {
 				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
 			}
+
+			if (refpoint[0] < 0) {
+				refpoint[0] = std::abs(refpoint[0]);
+			}
+
 
 			double fr = innerSlopY_Simplex(refpoint, iterative_allparams_guess);
 			double f1 = innerSlopY_Simplex(vertices[0], iterative_allparams_guess);
@@ -1210,6 +1240,7 @@ double TRK::optimize_s_SlopY() {
 
 		//test for termination
 
+		/*
 		std::vector <double> evals;
 		for (int i = 0; i < n + 1; i++) {
 			evals.push_back(innerSlopY_Simplex(vertices[i], iterative_allparams_guess));
@@ -1218,13 +1249,20 @@ double TRK::optimize_s_SlopY() {
 		if (stDevUnweighted(evals) < tol) {
 			break;
 		}
+		*/
+
+		std::vector <double> sVals = { vertices[0][0], vertices[1][0] };
+
+		if (stDevUnweighted(sVals) < tol) {
+			break;
+		}
 
 	}
 	std::vector <double> optimum_s = vertices[n];
 
 
 	whichExtrema = slopy;
-	innerSlopX_Simplex(optimum_s, iterative_allparams_guess); //runs this with optimum s to store tangest points associated with best fit parameters for this optimum s.
+	innerSlopY_Simplex(optimum_s, iterative_allparams_guess); //runs this with optimum s to store tangest points associated with best fit parameters for this optimum s.
 	whichExtrema = none;
 
 	return optimum_s[0];
@@ -1233,7 +1271,7 @@ double TRK::optimize_s_SlopY() {
 
 double TRK::optimize_s_R2() {
 	
-	double tol = 1e-3;
+	double tol = 1e-6;
 
 	int n = 1; //only parameter is s
 
@@ -1279,6 +1317,11 @@ double TRK::optimize_s_R2() {
 			for (int i = 0; i < n; i++) {
 				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
 			}
+
+			if (refpoint[0] < 0) {
+				refpoint[0] = std::abs(refpoint[0]);
+			}
+
 
 			double fr = innerR2_Simplex(refpoint, iterative_allparams_guess);
 			double f1 = innerR2_Simplex(vertices[0], iterative_allparams_guess);
@@ -1406,12 +1449,20 @@ double TRK::optimize_s_R2() {
 
 		//test for termination
 
+		/*
 		std::vector <double> evals;
 		for (int i = 0; i < n + 1; i++) {
 			evals.push_back(innerR2_Simplex(vertices[i], iterative_allparams_guess));
 		}
 
 		if (stDevUnweighted(evals) < tol) {
+			break;
+		}
+		*/
+
+		std::vector <double> sVals = { vertices[0][0], vertices[1][0] };
+
+		if (stDevUnweighted(sVals) < tol) {
 			break;
 		}
 
@@ -1471,9 +1522,11 @@ void TRK::optimizeScale() {
 	double tol = 1e-3;
 
 	s = 1; //initially begin with s = 1
-	double s1;
 
 	while (true) { //each loop is for a different s
+
+		double sOld = s;
+
 		std::vector <double> scale_extrema;
 
 		double s_slopx = optimize_s_SlopX(); //computes scale which minizes slop_x, and scale which minimizes slop_y
@@ -1509,7 +1562,7 @@ void TRK::optimizeScale() {
 
 		//makes new s the old one
 
-		if (std::abs(s - s1) < tol) {
+		if (std::abs(sOld - s1) < tol) {
 			s = s1;
 			break;
 		}

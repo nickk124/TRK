@@ -10,6 +10,8 @@ enum whichScaleExtrema{ S, slopx, slopy, none };
 class TRK
 {
 	public:
+		double s;
+
 		double modifiedChiSquared(std::vector <double> allparams);
 		std::vector <double> downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess);
 		void optimizeScale();
@@ -39,7 +41,7 @@ class TRK
 		double N, M;
 
 		//scaling
-		double s, a, b;
+		double a, b;
 		std::vector <double> x_t_slopx, x_t_slopy, x_t_a, x_t_b, x_t_s;
 		std::vector <double> params_slopx, params_slopy, params_a, params_b, params_s;
 
