@@ -72,6 +72,15 @@ TRK::TRK() {
 }
 
 // OTHER ALGORITHMS AND TOOLS
+std::vector <double> TRK::minMax(std::vector <double> vec) {
+
+	// Finding the smallest of all the numbers 
+	double min = *std::min_element(std::begin(vec), std::end(vec));
+	double max = *std::max_element(std::begin(vec), std::end(vec));
+
+	return { min, max };
+}
+
 std::vector <int> getSortedIndices(std::vector <double> x)
 {
 	std::vector<int> y(x.size());
@@ -159,6 +168,11 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 		xk = xkp1;
 
 		itercount += 1;
+
+		if (itercount > 10000) {
+			std::cout << " itercount of >10000 reached; exiting NR" << std::endl;
+			return NAN;
+		}
 	}
 
 	//std::cout << itercount << " iterations." << std::endl;
@@ -760,6 +774,10 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 
 		double xr1 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg1, xg1 + std::sqrt(Sig_xn2)/10.0);
 
+		if (std::isnan(xr1) && xr1vec.size() >= 1) { //is a NAN if RF did not converge
+			return { xr1vec[0] };
+		}
+
 		xr1vec.push_back(xr1);
 
 		if (checkcheck) { //different guess gives same root; only one root
@@ -773,7 +791,15 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 
 					std::cout << "oscillation!" << std::endl;
 
-					result.push_back(xr1);
+					std::vector <double> unorderedbrackets = { xr1vec[xr1vec.size() - 1], xr1vec[xr1vec.size() - 2] };
+
+					std::vector <double> orderedbrackets = minMax(unorderedbrackets);
+
+					double xg_mid = (orderedbrackets[1] - orderedbrackets[0]) / 2.0 + orderedbrackets[0];
+
+					double xr_mid = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg_mid, xg_mid + std::sqrt(Sig_xn2) / 10.0);
+
+					result = { orderedbrackets[0], xr_mid, orderedbrackets[1] };
 					break;
 				}
 			}

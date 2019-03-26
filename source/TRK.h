@@ -12,6 +12,8 @@ class TRK
 	public:
 		double s;
 
+		std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
+		double twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1);
 		double modifiedChiSquared(std::vector <double> allparams);
 		std::vector <double> downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess);
 		void optimizeScale();
@@ -51,9 +53,11 @@ class TRK
 		std::vector <double> allparams_guess;
 		std::vector <double> iterative_allparams_guess;
 
+		// OTHER TOOLS
+		std::vector <double> minMax(std::vector <double> vec);
+
 		// FITTING TOOLS
 		double newtonRaphson(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess);
-		double twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1);
 		std::vector <double> cubicSolver(double A, double B, double C, double D);
 		std::vector <double> downhillSimplex(double(*f)(std::vector <double>), std::vector <double> allparams_guess);
 		
@@ -64,7 +68,6 @@ class TRK
 		
 		// TANGENT_FINDING ALGORITHMS
 		std::vector <double> approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1);
-		std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
 		double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec);
 		
 		// SCALE OPTIMIZATION ALGORITHMS
