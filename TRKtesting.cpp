@@ -4,8 +4,13 @@
 #include <sstream>
 #include <string>
 
+//pivot points for smoothly broken line models
+
 double c2p1BH = -0.01413;
 double c2p2BH = 1.4087;
+
+double c2p1RV = -0.0708;
+double c2p2RV = 1.4953;
 
 double yC(double x, std::vector <double> params) {
 	double a0 = params[0];
@@ -60,6 +65,39 @@ double ddLin(double x, std::vector <double> params) {
 	return 0.0;
 }
 
+double bar = 0;
+
+double function_quadratic(double x, std::vector <double> params) {
+	double a0 = params[0];
+	double a1 = params[1];
+	double a2 = params[2];
+
+	return a0 + a1 * (x - bar) + a2 * std::pow((x - bar), 2.0);
+}
+
+double function_cubic(double x, std::vector <double> params) {
+	double a0 = params[0];
+	double a1 = params[1];
+	double a2 = params[2];
+	double a3 = params[3];
+
+	return a0 + a1 * (x - bar) + a2 * std::pow((x - bar), 2.0) + a3 * std::pow((x - bar), 3.0);
+}
+
+double function_powerlaw(double x, std::vector <double> params) {
+	double a0 = params[0];
+	double a1 = params[1];
+
+	return a0 * std::pow((x / std::pow(10, bar)), a1);
+}
+
+double function_exponential(double x, std::vector <double> params) {
+	double a0 = params[0];
+	double a1 = params[1];
+
+	return a0 * std::pow(10, a1*(x - bar));
+}
+
 //BH vs c2
 
 double bhc2(double c2, std::vector <double> params) {
@@ -99,6 +137,47 @@ double ddbhc2(double c2, std::vector <double> params) {
 	double bottom2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH));
 
 	return top1 / bottom1 - top2 / bottom2;
+}
+
+//RV vs c2
+
+double rvc2(double c2, std::vector <double> params) {
+	double b1RV = params[0];
+	double theta1RV = params[1];
+
+	double b2RV = params[2];
+	double theta2RV = params[3];
+
+	return std::log(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV)));
+}
+
+double drvc2(double c2, std::vector <double> params) {
+	double b1RV = params[0];
+	double theta1RV = params[1];
+
+	double b2RV = params[2];
+	double theta2RV = params[3];
+
+	double top = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::tan(theta2RV);
+	double bottom = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV));
+
+	return top / bottom;
+}
+
+double ddrvc2(double c2, std::vector <double> params) {
+	double b1RV = params[0];
+	double theta1RV = params[1];
+
+	double b2RV = params[2];
+	double theta2RV = params[3];
+
+	double top1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::tan(theta2RV), 2.0);
+	double bottom1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV)), 2.0);
+
+	double top2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::pow(std::tan(theta1RV), 2.0) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::pow(std::tan(theta2RV), 2.0);
+	double bottom2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV));
+
+	return -(top1 / bottom1) + top2 / bottom2;
 }
 
 std::vector <std::vector <double > > getData(std::string fileName) {
@@ -184,7 +263,7 @@ int main()
 	double slopy_guess = 1.0;
 	*/
 
-	std::vector <std::vector <double> > data = getData("bhc2_data.csv");
+	std::vector <std::vector <double> > data = getData("c1c2_data.csv");
 
 	std::vector <double> x, y, sx, sy, w;
 
@@ -219,29 +298,31 @@ int main()
 	//double r = TRKtest.modifiedChiSquared(ap_check);
 	*/
 
-	typedef double (TRK::*TRKMemFn)(std::vector <double> allparams); //here, TRKMemFn is the name of the type. A pointer of this type points to a member of a TRK object that has those specific input and output
+	typedef double (TRK::*TRKMemFn)(std::vector <double> params); //here, TRKMemFn is the name of the type. A pointer of this type points to a member of a TRK object that has those specific input and output
 
-	TRKMemFn p = &TRK::modifiedChiSquared;
+	TRKMemFn p = &TRK::regularChiSquared;
 
 	//TRKtest.s = 3.22e-11;
 
 	//
 	//std::vector <double> testS = { 0.1, 0.5, 0.75, 1.0, 1.5, 2.0 };
 
-	std::vector <double> params_guess = { 2.5, 4.6, 2.3, -1.1 };
+	std::vector <double> params_guess = { 2.5, -3.3 };
 
-	double slopx_guess = 0.14;
-	double slopy_guess = 0.48;
+	double slopx_guess = 0.10;
+	double slopy_guess = 0.30;
 
 
-	TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
+	TRK TRKtest = TRK(linearFunc, dLin, ddLin, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 
-	std::vector <double> test_params = { 2.5748697916666670 ,4.7377604166666671,2.3688802083333327,-1.0799479166666663 };
+	/*
+	std::vector <double> test_params = { 2.5748697916666670 , 4.7377604166666671, 2.3688802083333327, -1.0799479166666663 };
 	double test_xn = 1.0509999999999999;
 	double test_yn = 2.4969000000000001;
 	double test_Sxn2 = 0.032570622422960077;
 	double test_Syn2 = 0.38759320062500002;
 	double test_xg = -0.52036544980526345;
+	*/
 
 	//TRKtest.tangentsFinder(test_params, test_xn, test_yn, test_Sxn2, test_Syn2, test_xn);
 
@@ -250,12 +331,24 @@ int main()
 	allparams_guess.push_back(slopx_guess);
 	allparams_guess.push_back(slopy_guess);
 
+	std::vector <double> fit = TRKtest.downhillSimplex(p, params_guess);
+
+
+	for (int i = 0; i < fit.size(); i++) {
+		std::cout << fit[i] << std::endl;
+	}
+
+	/*
 
 	TRKtest.s = 0.32825;
 
 	std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess);
 
 	std::cout << "s = " << TRKtest.s << ":    " << fit[0] << "   " << fit[1] << "   " << fit[2] << "   " << fit[3] << "   " << fit[4] << "   " << fit[5] << std::endl;
+
+	*/
+
+	double best_s_x = TRKtest.optimize_s_SlopX();
 
 
 	return 0;
