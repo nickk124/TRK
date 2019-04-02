@@ -365,6 +365,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		}
 		*/
 
+		/*
+
 		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
 		for (int j = 0; j < result.size() + 1; j++) {
 			for (int i = 0; i < result.size(); i++) {
@@ -373,6 +375,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 			double X = (this->*f)(bettervertices[j]);
 			std::cout << "          " << X << std::endl;
 		}
+
+		*/
 
 
 		//test for termination
@@ -686,6 +690,17 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 	return sum1 - sum2;
 }
 
+double TRK::regularChiSquared(std::vector <double> params) {
+	int N = y.size();
+
+	double sum = 0.0;
+
+	for (int i = 0; i < N; i++) {
+		sum += w[i] * std::pow(y[i] - (*yc)(x[i], params), 2.0);
+	}
+	return sum;
+}
+
 double TRK::likelihood(std::vector <double> allparams) {
 	double L = 1.0;
 
@@ -816,7 +831,7 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			//grab to new roots 
 			for (int i = 0; i < 3; i++) {
 				double root = allRoots[i];
-				if (std::abs(root - xr1) >= 1e-3) { //checks if roots are (numerically) identical or not
+				if (std::abs(root - xr1) >= 1e-9) { //checks if roots are (numerically) identical or not
 					extraRoots.push_back(root);
 				}
 			}
@@ -927,6 +942,8 @@ double TRK::optimize_s_SlopX() {
 			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
 			for (int i = 0; i < n + 1; i++) {
 				unorderedEvals.push_back(innerSlopX_Simplex(vertices[i], iterative_allparams_guess));
+
+				std::cout << unorderedEvals[i] << "  " << vertices[i][0] << std::endl;
 			}
 			orderedindices = getSortedIndices(unorderedEvals);
 
@@ -1080,6 +1097,8 @@ double TRK::optimize_s_SlopX() {
 
 		vertices = bettervertices;
 
+		/*
+
 		for (int i = 0; i < bettervertices.size(); i++){
 			std::cout << bettervertices[i][0] << " ";
 		}
@@ -1090,6 +1109,8 @@ double TRK::optimize_s_SlopX() {
 		}
 
 		std::cout << std::endl << std::endl;
+
+		*/
 
 		//test for termination
 

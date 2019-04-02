@@ -17,6 +17,8 @@ class TRK
 		double modifiedChiSquared(std::vector <double> allparams);
 		std::vector <double> downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess);
 		void optimizeScale();
+		double optimize_s_SlopX();
+		double regularChiSquared(std::vector <double> params);
 
 		//function pointers
 		double (*yc)(double, std::vector <double>);
@@ -75,7 +77,7 @@ class TRK
 		double innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
 		double innerR2_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
 		std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
-		double optimize_s_SlopX(); //returns the scale s that minimizes slopx
+		//double optimize_s_SlopX(); //returns the scale s that minimizes slopx
 		double optimize_s_SlopY(); //"" slopy
 		double optimize_s_R2();
 		double R2TRK_prime_as();
