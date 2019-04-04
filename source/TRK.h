@@ -5,6 +5,8 @@
 
 const double PI = 3.1415926535897932384626434;
 
+const double PHI = (std::sqrt(5.0) + 1.0) / 2.0;
+
 enum whichScaleExtrema{ S, slopx, slopy, none };
 
 class TRK
@@ -18,6 +20,8 @@ class TRK
 		std::vector <double> downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess);
 		void optimizeScale();
 		double optimize_s_SlopX();
+		double optimize_s_SlopY();
+		double optimize_s_R2();
 		double regularChiSquared(std::vector <double> params);
 
 		//function pointers
@@ -78,8 +82,8 @@ class TRK
 		double innerR2_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
 		std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
 		//double optimize_s_SlopX(); //returns the scale s that minimizes slopx
-		double optimize_s_SlopY(); //"" slopy
-		double optimize_s_R2();
+		//double optimize_s_SlopY(); //"" slopy
+		//double optimize_s_R2();
 		double R2TRK_prime_as();
 		double R2TRK_prime_sb();
 };

@@ -62,8 +62,6 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->allparams_guess = allparams_guess;
 
 	this->whichExtrema = none;
-
-	this->s = 1.0;
 }
 
 //default
@@ -355,6 +353,231 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		for (int i = 0; i < n; i++) {
 			bettervertices.push_back(vertices[i]);
 		}
+
+		//check that new node does not have negative slops (fixes it if it does)
+		for (int k = 0; k < 2; k++) {
+			if (result[n - 2 + k] < 0) {
+				result[n - 2 + k] = 0.0;
+			}
+		}
+
+		bettervertices.push_back(result);
+
+		vertices = bettervertices;
+		/*
+		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
+		for (int i = 0; i < result.size(); i++) {
+			std::cout << result[i] << " ";
+		}
+		*/
+
+		/*
+
+		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
+		for (int j = 0; j < result.size() + 1; j++) {
+			for (int i = 0; i < result.size(); i++) {
+				std::cout << bettervertices[j][i] << " ";
+			}
+			double X = (this->*f)(bettervertices[j]);
+			std::cout << "          " << X << std::endl;
+		}
+
+		*/
+
+		//test for termination
+
+		std::vector <double> evals;
+		for (int i = 0; i < n + 1; i++) {
+			evals.push_back((this->*f)(vertices[i]));
+		}
+
+		if (stDevUnweighted(evals) < tol) {
+			break;
+		}
+
+	}
+	return vertices[n];
+
+	std::cout << std::endl << std::endl;
+}
+
+#if 0
+std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
+
+	double tol = 1e-3;
+
+	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
+
+	double rho = 1.0;
+	double chi = 2.0;
+	double gamma = 0.5;
+	double sigma = 0.5;
+
+	// simplex initialization
+
+	std::vector <double> init_point = allparams_guess;
+
+	std::vector <std::vector <double> > vertices(n + 1, init_point);
+
+	int i = 0;
+	for (int j = 1; j < n + 1; j++) { //for each simplex node
+
+		vertices[j][i] = allparams_guess[i] + allparams_guess[i]; //add initial "step size"
+		i += 1;
+	}
+
+	std::vector <double> result;
+	while (true) {
+		while (true) {
+			// order
+
+			std::vector <int> orderedindices;
+			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
+			for (int i = 0; i < n + 1; i++) {
+				unorderedEvals.push_back((this->*f)(vertices[i]));
+			}
+			orderedindices = getSortedIndices(unorderedEvals);
+
+			std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
+			for (int i = 1; i < n + 1; i++) {
+				orderedvertices.push_back(vertices[orderedindices[i]]);
+			}
+
+			vertices = orderedvertices;
+
+			// reflect
+			std::vector <double> refpoint;
+			std::vector <std::vector <double> > nvertices;
+			for (int i = 0; i < n; i++) {
+				nvertices.push_back(vertices[i]);
+			}
+
+			std::vector <double> centroid = findCentroid(nvertices);
+
+			for (int i = 0; i < n; i++) {
+				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
+			}
+
+			double fr = (this->*f)(refpoint);
+			double f1 = (this->*f)(vertices[0]);
+			double fn = (this->*f)(vertices[n - 1]);
+
+			if (f1 <= fr && fr < fn) {
+				result = refpoint;
+				break;
+			}
+
+			//expand
+			if (fr < f1) {
+				std::vector <double> exppoint;
+
+				for (int i = 0; i < n; i++) {
+					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
+				}
+
+				double fe = (this->*f)(exppoint);
+
+				if (fe < fr) {
+					result = exppoint;
+					break;
+				}
+				else if (fe >= fr) {
+					result = refpoint;
+					break;
+				}
+			}
+
+			//contract
+
+			if (fr >= fn) {
+				//outside
+				double fnp1 = (this->*f)(vertices[n]);
+
+				if (fn <= fr && fr < fnp1) {
+					std::vector <double> cpoint;
+
+					for (int i = 0; i < n; i++) {
+						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
+					}
+
+					double fc = (this->*f)(cpoint);
+
+					if (fc <= fr) {
+						result = cpoint;
+						break;
+					}
+					else {
+						//shrink
+
+						std::vector < std::vector <double> > v = { vertices[0] };
+
+						for (int i = 1; i < n + 1; i++) {
+							std::vector <double> vi;
+							vi.clear();
+							for (int j = 0; j < n; j++) {
+								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+							}
+							v.push_back(vi);
+						}
+
+						vertices = v;
+					}
+				}
+				else if (fr >= fnp1) {
+					std::vector <double> ccpoint;
+
+					for (int i = 0; i < n; i++) {
+						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
+					}
+
+					double fcc = (this->*f)(ccpoint);
+
+					if (fcc <= fnp1) {
+						result = ccpoint;
+						break;
+					}
+					else {
+						//shrink
+
+						std::vector < std::vector <double> > v = { vertices[0] };
+
+						for (int i = 1; i < n + 1; i++) {
+							std::vector <double> vi;
+							vi.clear();
+							for (int j = 0; j < n; j++) {
+								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+							}
+							v.push_back(vi);
+						}
+
+						vertices = v;
+					}
+
+
+				}
+
+			}
+
+			//shrink
+
+			std::vector < std::vector <double> > v = { vertices[0] };
+
+			for (int i = 1; i < n + 1; i++) {
+				std::vector <double> vi;
+				vi.clear();
+				for (int j = 0; j < n; j++) {
+					vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+				}
+				v.push_back(vi);
+			}
+
+			vertices = v;
+		}
+
+		std::vector <std::vector <double> > bettervertices;
+		for (int i = 0; i < n; i++) {
+			bettervertices.push_back(vertices[i]);
+		}
 		bettervertices.push_back(result);
 
 		vertices = bettervertices;
@@ -395,6 +618,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 	std::cout << std::endl << std::endl;
 }
+
+#endif
 
 std::vector <double> TRK::downhillSimplex(double(*f)(std::vector <double>), std::vector <double> allparams_guess) {
 
@@ -889,7 +1114,7 @@ double TRK::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> all
 
 	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
 
-	iterative_allparams_guess = allparams_s;
+	//iterative_allparams_guess = allparams_s;
 
 	return allparams_s[M];
 }
@@ -899,7 +1124,7 @@ double TRK::innerSlopY_Simplex(std::vector <double> ss, std::vector <double> all
 
 	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
 
-	iterative_allparams_guess = allparams_s;
+	//iterative_allparams_guess = allparams_s;
 
 	return allparams_s[M + 1];
 }
@@ -918,6 +1143,8 @@ double TRK::innerR2_Simplex(std::vector <double> ss, std::vector <double> allpar
 
 double TRK::optimize_s_SlopX() {
 
+	this->s = 1.0;
+
 	double tol = 1e-6;
 
 	int n = 1; //only parameter is s
@@ -929,7 +1156,7 @@ double TRK::optimize_s_SlopX() {
 
 	// simplex initialization
 
-	std::vector < std::vector <double> > vertices = { {s}, {s*1.1} }; //initial points are at s = 1 and s = 1.1
+	std::vector < std::vector <double> > vertices = { {s}, {s*0.9} }; //initial points are at s = 1 and s = 1.1
 
 	iterative_allparams_guess = allparams_guess;
 
@@ -1145,6 +1372,8 @@ double TRK::optimize_s_SlopX() {
 
 double TRK::optimize_s_SlopY() {
 
+	this->s = 1.0;
+
 	double tol = 1e-6;
 
 	int n = 1; //only parameter is s
@@ -1169,6 +1398,8 @@ double TRK::optimize_s_SlopY() {
 			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
 			for (int i = 0; i < n + 1; i++) {
 				unorderedEvals.push_back(innerSlopY_Simplex(vertices[i], iterative_allparams_guess));
+
+				std::cout << unorderedEvals[i] << "  " << vertices[i][0] << std::endl;
 			}
 			orderedindices = getSortedIndices(unorderedEvals);
 
@@ -1352,8 +1583,50 @@ double TRK::optimize_s_SlopY() {
 
 }
 
+double TRK::R2TRK_prime_as() {
+	double R2 = 1.0 / N;
+
+	double sum = 0.0;
+
+	for (int n = 0; n < N; n++) {
+		double m_tn_a = dyc(x_t_a[n], params_a);
+		double theta_t_a = std::atan(m_tn_a);
+
+		double m_tn_s = dyc(x_t_s[n], params_s);
+		double theta_t_s = std::atan(m_tn_s);
+
+		sum += std::pow(std::tan(PI/4.0 - std::abs(theta_t_a - theta_t_s)/ 2.0), 2.0);
+	}
+
+	R2 *= sum;
+
+	return R2;
+}
+
+double TRK::R2TRK_prime_sb() {
+	double R2 = 1.0 / N;
+
+	double sum = 0.0;
+
+	for (int n = 0; n < N; n++) {
+		double m_tn_s = dyc(x_t_s[n], params_s);
+		double theta_t_s = std::atan(m_tn_s);
+
+		double m_tn_b = dyc(x_t_b[n], params_b);
+		double theta_t_b = std::atan(m_tn_b);
+
+		sum += std::pow(std::tan(PI / 4.0 - std::abs(theta_t_s - theta_t_b) / 2.0), 2.0);
+	}
+
+	R2 *= sum;
+
+	return R2;
+}
+
 double TRK::optimize_s_R2() {
-	
+
+	this->s = 1.0;
+
 	double tol = 1e-6;
 
 	int n = 1; //only parameter is s
@@ -1378,6 +1651,8 @@ double TRK::optimize_s_R2() {
 			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
 			for (int i = 0; i < n + 1; i++) {
 				unorderedEvals.push_back(innerR2_Simplex(vertices[i], iterative_allparams_guess));
+
+				std::cout << unorderedEvals[i] << "  " << vertices[i][0] << std::endl;
 			}
 			orderedindices = getSortedIndices(unorderedEvals);
 
@@ -1559,46 +1834,6 @@ double TRK::optimize_s_R2() {
 
 	return optimum_s[0];
 
-}
-
-double TRK::R2TRK_prime_as() {
-	double R2 = 1.0 / N;
-
-	double sum = 0.0;
-
-	for (int n = 0; n < N; n++) {
-		double m_tn_a = dyc(x_t_a[n], params_a);
-		double theta_t_a = std::atan(m_tn_a);
-
-		double m_tn_s = dyc(x_t_s[n], params_s);
-		double theta_t_s = std::atan(m_tn_s);
-
-		sum += std::pow(std::tan(PI/4.0 - std::abs(theta_t_a - theta_t_s)/ 2.0), 2.0);
-	}
-
-	R2 *= sum;
-
-	return R2;
-}
-
-double TRK::R2TRK_prime_sb() {
-	double R2 = 1.0 / N;
-
-	double sum = 0.0;
-
-	for (int n = 0; n < N; n++) {
-		double m_tn_s = dyc(x_t_s[n], params_s);
-		double theta_t_s = std::atan(m_tn_s);
-
-		double m_tn_b = dyc(x_t_b[n], params_b);
-		double theta_t_b = std::atan(m_tn_b);
-
-		sum += std::pow(std::tan(PI / 4.0 - std::abs(theta_t_s - theta_t_b) / 2.0), 2.0);
-	}
-
-	R2 *= sum;
-
-	return R2;
 }
 
 void TRK::optimizeScale() {
