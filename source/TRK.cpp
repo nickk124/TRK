@@ -177,6 +177,17 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 	return xkp1;
 }
 
+std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex, double tol){
+	if (std::abs(vertex[M]) <= tol) {
+		vertex[M] = 0;
+	}
+	if (std::abs(vertex[M+1]) <= tol) {
+		vertex[M+1] = 0;
+	}
+
+	return vertex;
+}
+
 std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
 
 	double tol = 1e-3;
@@ -233,6 +244,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
 			}
 
+			refpoint = pegToZeroSlop(refpoint, tol);
+
 			double fr = (this->*f)(refpoint);
 			double f1 = (this->*f)(vertices[0]);
 			double fn = (this->*f)(vertices[n - 1]);
@@ -249,6 +262,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 				for (int i = 0; i < n; i++) {
 					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
 				}
+
+				exppoint = pegToZeroSlop(exppoint, tol);
 
 				double fe = (this->*f)(exppoint);
 
@@ -274,6 +289,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 					for (int i = 0; i < n; i++) {
 						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
 					}
+
+					cpoint = pegToZeroSlop(cpoint, tol);
 
 					double fc = (this->*f)(cpoint);
 
@@ -304,6 +321,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 					for (int i = 0; i < n; i++) {
 						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
 					}
+
+					ccpoint = pegToZeroSlop(ccpoint, tol);
 
 					double fcc = (this->*f)(ccpoint);
 
@@ -1009,6 +1028,8 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 	
 	bool checkcheck = false;
 
+	int itcount = 0;
+
 	while (true) {
 		result.clear();
 
@@ -1056,7 +1077,7 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			//grab to new roots 
 			for (int i = 0; i < 3; i++) {
 				double root = allRoots[i];
-				if (std::abs(root - xr1) >= 1e-9) { //checks if roots are (numerically) identical or not
+				if (std::abs(root - xr1) >= 1e-6) { //checks if roots are (numerically) identical or not
 					extraRoots.push_back(root);
 				}
 			}
@@ -1090,7 +1111,12 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			result.push_back(xr1);
 			break;
 		}
+
+		itcount += 1;
 	}
+
+	//std::cout << itcount << std::endl;
+
 	return result;
 }
 
@@ -1136,9 +1162,12 @@ double TRK::innerR2_Simplex(std::vector <double> ss, std::vector <double> allpar
 	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
 	whichExtrema = none;
 
-	iterative_allparams_guess = allparams_s;
+	//iterative_allparams_guess = allparams_s;
 
-	return R2TRK_prime_as() - R2TRK_prime_sb();
+	double R2as = R2TRK_prime_as();
+	double R2sb = R2TRK_prime_sb();
+
+	return std::abs(R2as - R2sb);
 }
 
 double TRK::optimize_s_SlopX() {
@@ -1625,7 +1654,7 @@ double TRK::R2TRK_prime_sb() {
 
 double TRK::optimize_s_R2() {
 
-	this->s = 1.0;
+	this->s = (b-a) / 2.0; //takes an initial guess of optimum scale as halfway between a and b
 
 	double tol = 1e-6;
 
@@ -1837,54 +1866,52 @@ double TRK::optimize_s_R2() {
 }
 
 void TRK::optimizeScale() {
-	double tol = 1e-3;
+	s = 1.0; //initially begin with s = 1
 
-	s = 1; //initially begin with s = 1
+	std::vector <double> scale_extrema;
 
-	while (true) { //each loop is for a different s
+	std::cout << "minimizing slop x" << std::endl;
 
-		double sOld = s;
+	double s_slopx = optimize_s_SlopX(); //computes scale which minizes slop_x, and scale which minimizes slop_y
 
-		std::vector <double> scale_extrema;
+	std::cout << "minimizing slop y" << std::endl;
 
-		double s_slopx = optimize_s_SlopX(); //computes scale which minizes slop_x, and scale which minimizes slop_y
-		double s_slopy = optimize_s_SlopY();
+	double s_slopy = optimize_s_SlopY();
 
 
-		scale_extrema.push_back(s_slopx); //scale_extrema = {s_slopx, s_slopy}
+	scale_extrema.push_back(s_slopx); //scale_extrema = {s_slopx, s_slopy}
 
-		scale_extrema.push_back(s_slopy);
+	scale_extrema.push_back(s_slopy);
 
-		std::vector <int> sortedindices = getSortedIndices(scale_extrema);
+	std::vector <int> sortedindices = getSortedIndices(scale_extrema);
 
-		double a = scale_extrema[sortedindices[0]]; //figures out which scale is a, and which is b, as well as storing the associated best-fit parameters and their associated tangent points for those two extreme scales
-		double b = scale_extrema[sortedindices[1]];
+	a = scale_extrema[sortedindices[0]]; //figures out which scale is a, and which is b, as well as storing the associated best-fit parameters and their associated tangent points for those two extreme scales
+	b = scale_extrema[sortedindices[1]];
 
-		if (a == s_slopx) {
-			x_t_a = x_t_slopx;
-			x_t_b = x_t_slopy;
+	if (a == s_slopx) {
+		x_t_a = x_t_slopx;
+		x_t_b = x_t_slopy;
 
-			params_a = params_slopx;
-			params_b = params_slopy;
-		}
-		else if (a == s_slopy) {
-			x_t_a = x_t_slopy;
-			x_t_b = x_t_slopx;
-
-			params_a = params_slopy;
-			params_b = params_slopx;
-		}
-
-		//determine best s1 (new s) to satistfy R2TRKp(a,s) = R2TRKp(s,b)
-		double s1 = optimize_s_R2();
-
-		//makes new s the old one
-
-		if (std::abs(sOld - s1) < tol) {
-			s = s1;
-			break;
-		}
-		s = s1;
+		params_a = params_slopx;
+		params_b = params_slopy;
 	}
+	else if (a == s_slopy) {
+		x_t_a = x_t_slopy;
+		x_t_b = x_t_slopx;
+
+		params_a = params_slopy;
+		params_b = params_slopx;
+	}
+
+	//determine best s1 (new s) to satistfy R2TRKp(a,s) = R2TRKp(s,b)
+
+	std::cout << "finding optimum scale" << std::endl;
+
+	double s1 = optimize_s_R2();
+
+	s = s1;
+
+	std::cout << "optimum s = " << s << std::endl;
+
 	return;
 }

@@ -12,6 +12,9 @@ enum whichScaleExtrema{ S, slopx, slopy, none };
 class TRK
 {
 	public:
+
+		//public only for testing
+		std::vector <double> pegToZeroSlop(std::vector <double> vertex, double tol);
 		double s;
 
 		std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
