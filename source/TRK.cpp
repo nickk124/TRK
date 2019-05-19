@@ -1210,6 +1210,71 @@ double TRK::optimize_s_SlopX() {
 
 			vertices = orderedvertices;
 
+			// before doing any standard simplex movement, here it checks whether the simplex is within the zero "plateau", and if so, it moves it to the boundary.
+			// for slop x: move to right until it hits the boundary
+
+			if (unorderedEvals[0] == 0 && unorderedEvals[1] == 0) {
+				double diff = vertices[1][0] - vertices[0][0];
+
+				a;
+				b; //brackets for bisection; [a,b] is interval of interest
+
+				if (diff > 0) {
+					a = vertices[1][0];
+				}
+				else if (diff < 0) {
+					a = vertices[0][0];
+
+					diff *= -1;
+					}
+
+				double trial_b = vertices[1][0] + diff;  //attempt to get a scale high enough to jump over that boundary
+
+				while (true) {
+					double trial_Slop = innerSlopX_Simplex({ trial_b }, iterative_allparams_guess); //if this slop is still zero, extend the trial guess. If non zero, continue, and use this as right bound for bisection
+
+					if (trial_Slop > 0) {
+						b = trial_b;
+						break;
+					}
+					else if (trial_Slop = 0) {
+						trial_b = trial_b + diff;
+					}
+				}
+
+				//bisection
+
+				std::cout << "beginning bisection \n";
+
+				double c, slop_c;
+				double tol_bisect = 2e-3;
+
+				while (true) {
+					c = (a + b) / 2;
+					slop_c = innerSlopX_Simplex({c}, iterative_allparams_guess);
+
+					std::cout << "s_c = " << c << "\t slop_x_c = " << slop_c << "\n";
+
+					if (slop_c <= tol_bisect && slop_c > 0) { //convergence criterion
+						break;
+					}
+
+					if (slop_c > 0) {
+						b = c;
+					}
+					else if (slop_c = 0) {
+						a = c;
+					}
+				}
+
+				whichExtrema = slopx;
+				innerSlopX_Simplex({ c }, iterative_allparams_guess); //runs this with optimum s to store tangest points associated with best fit parameters for this optimum s.
+				whichExtrema = none;
+
+				return c;
+			}
+
+
 			// reflect
 			std::vector <double> refpoint;
 			std::vector <std::vector <double> > nvertices;
@@ -1389,7 +1454,6 @@ double TRK::optimize_s_SlopX() {
 		
 	}
 	std::vector <double> optimum_s = vertices[n];
-
 
 	whichExtrema = slopx;
 	innerSlopX_Simplex(optimum_s, iterative_allparams_guess); //runs this with optimum s to store tangest points associated with best fit parameters for this optimum s.
