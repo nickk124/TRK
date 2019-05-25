@@ -32,6 +32,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->whichExtrema = none;
 
 	this->s = 1.0;
+
+	getDataWidth();
 }
 //equal weights/unweighted
 TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
@@ -62,6 +64,10 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->allparams_guess = allparams_guess;
 
 	this->whichExtrema = none;
+
+	this->s = 1.0;
+
+	getDataWidth();
 }
 
 //default
@@ -106,6 +112,12 @@ std::vector <double> TRK::findCentroid(std::vector <std::vector <double> > nvert
 	}
 
 	return centroid;
+}
+
+void TRK::getDataWidth() {
+	std::vector <double> bounds = minMax(x);
+
+	datawidth = std::abs(bounds[1] - bounds[0]);
 }
 
 // FITTING TOOLS
@@ -177,7 +189,10 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 	return xkp1;
 }
 
-std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex, double tol){
+std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex){
+
+	double tol = 0.005;
+
 	if (std::abs(vertex[M]) <= tol) {
 		vertex[M] = 0;
 	}
@@ -244,7 +259,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
 			}
 
-			refpoint = pegToZeroSlop(refpoint, tol);
+			refpoint = pegToZeroSlop(refpoint);
 
 			double fr = (this->*f)(refpoint);
 			double f1 = (this->*f)(vertices[0]);
@@ -263,7 +278,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
 				}
 
-				exppoint = pegToZeroSlop(exppoint, tol);
+				exppoint = pegToZeroSlop(exppoint);
 
 				double fe = (this->*f)(exppoint);
 
@@ -290,7 +305,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
 					}
 
-					cpoint = pegToZeroSlop(cpoint, tol);
+					cpoint = pegToZeroSlop(cpoint);
 
 					double fc = (this->*f)(cpoint);
 
@@ -322,7 +337,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
 					}
 
-					ccpoint = pegToZeroSlop(ccpoint, tol);
+					ccpoint = pegToZeroSlop(ccpoint);
 
 					double fcc = (this->*f)(ccpoint);
 
@@ -383,15 +398,17 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		bettervertices.push_back(result);
 
 		vertices = bettervertices;
-		/*
-		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
+		
+		
+		std::cout << "chi-square minimized parameters at s = " << s << " ";
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
 		}
-		*/
+		std::cout << "\n";
+		
 
+		
 		/*
-
 		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
 		for (int j = 0; j < result.size() + 1; j++) {
 			for (int i = 0; i < result.size(); i++) {
@@ -400,8 +417,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 			double X = (this->*f)(bettervertices[j]);
 			std::cout << "          " << X << std::endl;
 		}
-
 		*/
+		
 
 		//test for termination
 
@@ -418,427 +435,10 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 	return vertices[n];
 
 	std::cout << std::endl << std::endl;
-}
-
-#if 0
-std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
-
-	double tol = 1e-3;
-
-	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
-
-	double rho = 1.0;
-	double chi = 2.0;
-	double gamma = 0.5;
-	double sigma = 0.5;
-
-	// simplex initialization
-
-	std::vector <double> init_point = allparams_guess;
-
-	std::vector <std::vector <double> > vertices(n + 1, init_point);
-
-	int i = 0;
-	for (int j = 1; j < n + 1; j++) { //for each simplex node
-
-		vertices[j][i] = allparams_guess[i] + allparams_guess[i]; //add initial "step size"
-		i += 1;
-	}
-
-	std::vector <double> result;
-	while (true) {
-		while (true) {
-			// order
-
-			std::vector <int> orderedindices;
-			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
-			for (int i = 0; i < n + 1; i++) {
-				unorderedEvals.push_back((this->*f)(vertices[i]));
-			}
-			orderedindices = getSortedIndices(unorderedEvals);
-
-			std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
-			for (int i = 1; i < n + 1; i++) {
-				orderedvertices.push_back(vertices[orderedindices[i]]);
-			}
-
-			vertices = orderedvertices;
-
-			// reflect
-			std::vector <double> refpoint;
-			std::vector <std::vector <double> > nvertices;
-			for (int i = 0; i < n; i++) {
-				nvertices.push_back(vertices[i]);
-			}
-
-			std::vector <double> centroid = findCentroid(nvertices);
-
-			for (int i = 0; i < n; i++) {
-				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
-			}
-
-			double fr = (this->*f)(refpoint);
-			double f1 = (this->*f)(vertices[0]);
-			double fn = (this->*f)(vertices[n - 1]);
-
-			if (f1 <= fr && fr < fn) {
-				result = refpoint;
-				break;
-			}
-
-			//expand
-			if (fr < f1) {
-				std::vector <double> exppoint;
-
-				for (int i = 0; i < n; i++) {
-					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
-				}
-
-				double fe = (this->*f)(exppoint);
-
-				if (fe < fr) {
-					result = exppoint;
-					break;
-				}
-				else if (fe >= fr) {
-					result = refpoint;
-					break;
-				}
-			}
-
-			//contract
-
-			if (fr >= fn) {
-				//outside
-				double fnp1 = (this->*f)(vertices[n]);
-
-				if (fn <= fr && fr < fnp1) {
-					std::vector <double> cpoint;
-
-					for (int i = 0; i < n; i++) {
-						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
-					}
-
-					double fc = (this->*f)(cpoint);
-
-					if (fc <= fr) {
-						result = cpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-				}
-				else if (fr >= fnp1) {
-					std::vector <double> ccpoint;
-
-					for (int i = 0; i < n; i++) {
-						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
-					}
-
-					double fcc = (this->*f)(ccpoint);
-
-					if (fcc <= fnp1) {
-						result = ccpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-
-
-				}
-
-			}
-
-			//shrink
-
-			std::vector < std::vector <double> > v = { vertices[0] };
-
-			for (int i = 1; i < n + 1; i++) {
-				std::vector <double> vi;
-				vi.clear();
-				for (int j = 0; j < n; j++) {
-					vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-				}
-				v.push_back(vi);
-			}
-
-			vertices = v;
-		}
-
-		std::vector <std::vector <double> > bettervertices;
-		for (int i = 0; i < n; i++) {
-			bettervertices.push_back(vertices[i]);
-		}
-		bettervertices.push_back(result);
-
-		vertices = bettervertices;
-		/*
-		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
-		for (int i = 0; i < result.size(); i++) {
-			std::cout << result[i] << " ";
-		}
-		*/
-
-		/*
-
-		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
-		for (int j = 0; j < result.size() + 1; j++) {
-			for (int i = 0; i < result.size(); i++) {
-				std::cout << bettervertices[j][i] << " ";
-			}
-			double X = (this->*f)(bettervertices[j]);
-			std::cout << "          " << X << std::endl;
-		}
-
-		*/
-
-
-		//test for termination
-
-		std::vector <double> evals;
-		for (int i = 0; i < n + 1; i++) {
-			evals.push_back((this->*f)(vertices[i]));
-		}
-
-		if (stDevUnweighted(evals) < tol) {
-			break;
-		}
-
-	}
-	return vertices[n];
-
-	std::cout << std::endl << std::endl;
-}
-
-#endif
-
-std::vector <double> TRK::downhillSimplex(double(*f)(std::vector <double>), std::vector <double> allparams_guess) {
-
-	double tol = 1e-3;
-
-	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
-
-	double rho = 1.0;
-	double chi = 2.0;
-	double gamma = 0.5;
-	double sigma = 0.5;
-
-	// simplex initialization
-
-	std::vector <double> init_point = allparams_guess;
-
-	std::vector <std::vector <double> > vertices(n + 1, init_point);
-
-	int i = 0;
-	for (int j = 1; j < n + 1; j++) { //for each simplex node
-
-		vertices[j][i] = allparams_guess[i] + allparams_guess[i]; //add initial "step size"
-		i += 1;
-	}
-
-	std::vector <double> result;
-	while (true) {
-		while (true) {
-			// order
-
-			std::vector <int> orderedindices;
-			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
-			for (int i = 0; i < n + 1; i++) {
-				unorderedEvals.push_back(f(vertices[i]));
-			}
-			orderedindices = getSortedIndices(unorderedEvals);
-
-			std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
-			for (int i = 1; i < n + 1; i++) {
-				orderedvertices.push_back(vertices[orderedindices[i]]);
-			}
-
-			vertices = orderedvertices;
-
-			// reflect
-			std::vector <double> refpoint;
-			std::vector <std::vector <double> > nvertices;
-			for (int i = 0; i < n; i++) {
-				nvertices.push_back(vertices[i]);
-			}
-
-			std::vector <double> centroid = findCentroid(nvertices);
-
-			for (int i = 0; i < n; i++) {
-				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
-			}
-
-			double fr = f(refpoint);
-			double f1 = f(vertices[0]);
-			double fn = f(vertices[n - 1]);
-
-			if (f1 <= fr && fr < fn) {
-				result = refpoint;
-				break;
-			}
-
-			//expand
-			if (fr < f1) {
-				std::vector <double> exppoint;
-
-				for (int i = 0; i < n; i++) {
-					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
-				}
-
-				double fe = f(exppoint);
-
-				if (fe < fr) {
-					result = exppoint;
-					break;
-				}
-				else if (fe >= fr) {
-					result = refpoint;
-					break;
-				}
-			}
-
-			//contract
-
-			if (fr >= fn) {
-				//outside
-				double fnp1 = f(vertices[n]);
-
-				if (fn <= fr && fr < fnp1) {
-					std::vector <double> cpoint;
-
-					for (int i = 0; i < n; i++) {
-						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
-					}
-
-					double fc = f(cpoint);
-
-					if (fc <= fr) {
-						result = cpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-				}
-				else if (fr >= fnp1) {
-					std::vector <double> ccpoint;
-
-					for (int i = 0; i < n; i++) {
-						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
-					}
-
-					double fcc = f(ccpoint);
-
-					if (fcc <= fnp1) {
-						result = ccpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-
-
-				}
-
-			}
-
-			//shrink
-
-			std::vector < std::vector <double> > v = { vertices[0] };
-
-			for (int i = 1; i < n + 1; i++) {
-				std::vector <double> vi;
-				vi.clear();
-				for (int j = 0; j < n; j++) {
-					vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-				}
-				v.push_back(vi);
-			}
-
-			vertices = v;
-		}
-
-		std::vector <std::vector <double> > bettervertices;
-		for (int i = 0; i < n; i++) {
-			bettervertices.push_back(vertices[i]);
-		}
-		bettervertices.push_back(result);
-
-		vertices = bettervertices;
-
-		//test for termination
-
-		std::vector <double> evals;
-		for (int i = 0; i < n + 1; i++) {
-			evals.push_back(f(vertices[i]));
-		}
-
-		if (stDevUnweighted(evals) < tol) {
-			break;
-		}
-
-	}
-	return vertices[n];
 }
 
 std::vector <double> TRK::cubicSolver(double A, double B, double C, double D) {
 	//cubic solver for three real and distinct roots
-	std::vector <double> roots;
-
 	double a1 = B / A;
 	double a2 = C / A;
 	double a3 = D / A;
@@ -850,11 +450,26 @@ std::vector <double> TRK::cubicSolver(double A, double B, double C, double D) {
 
 	double theta = std::acos(R / sqrt(Qc));
 
-	roots.push_back( -2 * std::sqrt(Q) * std::cos(theta / 3) - a1 / 3 );
-	roots.push_back(-2 * std::sqrt(Q) * std::cos((theta + 2 * PI) / 3) - a1 / 3 );
-	roots.push_back(-2 * std::sqrt(Q) * std::cos((theta + 4 * PI) / 3) - a1 / 3 );
+	double r1 =  -2 * std::sqrt(Q) * std::cos(theta / 3) - a1 / 3;
+	double r2 = -2 * std::sqrt(Q) * std::cos((theta + 2 * PI) / 3) - a1 / 3;
+	double r3 = -2 * std::sqrt(Q) * std::cos((theta + 4 * PI) / 3) - a1 / 3;
 
-	return roots;
+	std::vector <double> roots = { r1, r2, r3 };
+	std::vector <double> goodroots;
+
+	for (int i = 0; i < 3; i++) {
+		if (std::abs(roots[i]) < (root_bound * datawidth)) {
+			goodroots.push_back(roots[i]);
+		}
+	}
+
+	/*
+	if (goodroots.size() < 3) {
+		std::cout << "some roots out of reasonable boundary";
+	}
+	*/
+
+	return goodroots;
 }
 
 // STATISTICS
@@ -875,12 +490,6 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 
 	double slop_x = allparams[M];
 	double slop_y = allparams[M + 1];
-
-	/*
-	if (slop_x < 0 || slop_y < 0) {
-		return DBL_MAX;
-	}
-	*/
 
 	std::vector <double> params;
 
@@ -1050,7 +659,7 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			if (xr1vec.size() >= 3){
 				if (std::abs(xr1vec[xr1vec.size() - 1] - xr1vec[xr1vec.size() - 3]) < 1e-3) {
 
-					std::cout << "oscillation!" << std::endl;
+					//std::cout << "oscillation!" << std::endl;
 
 					std::vector <double> unorderedbrackets = { xr1vec[xr1vec.size() - 1], xr1vec[xr1vec.size() - 2] };
 
@@ -1073,11 +682,18 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 		std::vector <double> allRoots = approxQuadraticRoots(params, x_n, y_n, Sig_xn2, Sig_yn2, xr1); //get approx. roots from quadratic taylor approximation
 		std::vector <double> extraRoots;
 
+		//std::cout << stDevUnweighted(allRoots) << "\n";
+
+		double ident_roots_tol = 1e-8;
+
 		if (allRoots.size() == 3) { //either add the two other roots, or no more roots (depending on discriminant of cubic equation)
 			//grab to new roots 
 			for (int i = 0; i < 3; i++) {
 				double root = allRoots[i];
-				if (std::abs(root - xr1) >= 1e-6) { //checks if roots are (numerically) identical or not
+				if (std::abs(root - xr1) <= ident_roots_tol) { //checks if roots are (numerically) identical or not
+					continue;
+				}
+				else if (std::abs(root - xr1) > ident_roots_tol){
 					extraRoots.push_back(root);
 				}
 			}
@@ -1142,6 +758,8 @@ double TRK::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> all
 
 	//iterative_allparams_guess = allparams_s;
 
+	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
+
 	return allparams_s[M];
 }
 
@@ -1151,6 +769,8 @@ double TRK::innerSlopY_Simplex(std::vector <double> ss, std::vector <double> all
 	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
 
 	//iterative_allparams_guess = allparams_s;
+
+	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
 
 	return allparams_s[M + 1];
 }
@@ -1164,516 +784,218 @@ double TRK::innerR2_Simplex(std::vector <double> ss, std::vector <double> allpar
 
 	//iterative_allparams_guess = allparams_s;
 
+	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
+
 	double R2as = R2TRK_prime_as();
 	double R2sb = R2TRK_prime_sb();
 
-	return std::abs(R2as - R2sb);
+	return R2as - R2sb;
+}
+
+double TRK::innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> allparams_guess, double s0) {
+	s = ss[0];
+
+	whichExtrema = S;
+	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
+	whichExtrema = none;
+
+	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
+
+	//iterative_allparams_guess = allparams_s;
+
+	double R2as = R2TRK_prime_as0(s0, x_t_s, params_s);
+	double R2sb = R2TRK_prime_s0b(s0, x_t_s, params_s);
+
+	return R2as - R2sb;
 }
 
 double TRK::optimize_s_SlopX() {
 
-	this->s = 1.0;
-
-	double tol = 1e-6;
-
-	int n = 1; //only parameter is s
-
-	double rho = 1.0;
-	double chi = 2.0;
-	double gamma = 0.5;
-	double sigma = 0.5;
-
-	// simplex initialization
-
-	std::vector < std::vector <double> > vertices = { {s}, {s*0.9} }; //initial points are at s = 1 and s = 1.1
-
 	iterative_allparams_guess = allparams_guess;
 
-	std::vector <double> result;
-	while (true) {
+	// before doing any standard simplex movement, here it checks whether the simplex is within the zero "plateau", and if so, it moves it to the boundary.
+	// for slop x: move to right until it hits the boundary
+
+
+	//bracket finding
+
+	double a, b;
+	double trial_s = 1.0;
+	double slop_trial_s = innerSlopX_Simplex({ trial_s }, iterative_allparams_guess);
+
+	double inc = trial_s * 0.5;
+
+	if (slop_trial_s > 0) {
+		b = trial_s;
+
+		double trial_a = trial_s;
+
 		while (true) {
-			// order
+			trial_a -= inc;
+			std::cout << "trial a: " << trial_a << std::endl;
 
-			std::vector <int> orderedindices;
-			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
-			for (int i = 0; i < n + 1; i++) {
-				unorderedEvals.push_back(innerSlopX_Simplex(vertices[i], iterative_allparams_guess));
+			double slop_trial_a = innerSlopX_Simplex({ trial_a }, iterative_allparams_guess);
 
-				std::cout << unorderedEvals[i] << "  " << vertices[i][0] << std::endl;
-			}
-			orderedindices = getSortedIndices(unorderedEvals);
-
-			std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
-			for (int i = 1; i < n + 1; i++) {
-				orderedvertices.push_back(vertices[orderedindices[i]]);
-			}
-
-			vertices = orderedvertices;
-
-			// before doing any standard simplex movement, here it checks whether the simplex is within the zero "plateau", and if so, it moves it to the boundary.
-			// for slop x: move to right until it hits the boundary
-
-			if (unorderedEvals[0] == 0 && unorderedEvals[1] == 0) {
-				double diff = vertices[1][0] - vertices[0][0];
-
-				a;
-				b; //brackets for bisection; [a,b] is interval of interest
-
-				if (diff > 0) {
-					a = vertices[1][0];
-				}
-				else if (diff < 0) {
-					a = vertices[0][0];
-
-					diff *= -1;
-					}
-
-				double trial_b = vertices[1][0] + diff;  //attempt to get a scale high enough to jump over that boundary
-
-				while (true) {
-					double trial_Slop = innerSlopX_Simplex({ trial_b }, iterative_allparams_guess); //if this slop is still zero, extend the trial guess. If non zero, continue, and use this as right bound for bisection
-
-					if (trial_Slop > 0) {
-						b = trial_b;
-						break;
-					}
-					else if (trial_Slop = 0) {
-						trial_b = trial_b + diff;
-					}
-				}
-
-				//bisection
-
-				std::cout << "beginning bisection \n";
-
-				double c, slop_c;
-				double tol_bisect = 2e-3;
-
-				while (true) {
-					c = (a + b) / 2;
-					slop_c = innerSlopX_Simplex({c}, iterative_allparams_guess);
-
-					std::cout << "s_c = " << c << "\t slop_x_c = " << slop_c << "\n";
-
-					if (slop_c <= tol_bisect && slop_c > 0) { //convergence criterion
-						break;
-					}
-
-					if (slop_c > 0) {
-						b = c;
-					}
-					else if (slop_c = 0) {
-						a = c;
-					}
-				}
-
-				whichExtrema = slopx;
-				innerSlopX_Simplex({ c }, iterative_allparams_guess); //runs this with optimum s to store tangest points associated with best fit parameters for this optimum s.
-				whichExtrema = none;
-
-				return c;
-			}
-
-
-			// reflect
-			std::vector <double> refpoint;
-			std::vector <std::vector <double> > nvertices;
-			for (int i = 0; i < n; i++) {
-				nvertices.push_back(vertices[i]);
-			}
-
-			std::vector <double> centroid = findCentroid(nvertices);
-
-			for (int i = 0; i < n; i++) {
-				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
-			}
-
-			
-			if (refpoint[0] < 0) {
-				refpoint[0] = std::abs(refpoint[0]);
-			}
-			
-
-			double fr = innerSlopX_Simplex(refpoint, iterative_allparams_guess);
-			double f1 = innerSlopX_Simplex(vertices[0], iterative_allparams_guess);
-			double fn = innerSlopX_Simplex(vertices[n - 1], iterative_allparams_guess);
-
-			if (f1 <= fr && fr < fn) {
-				result = refpoint;
+			if (slop_trial_a == 0) {
+				a = trial_a;
 				break;
 			}
-
-			//expand
-			if (fr < f1) {
-				std::vector <double> exppoint;
-
-				for (int i = 0; i < n; i++) {
-					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
-				}
-
-				double fe = innerSlopX_Simplex(exppoint, iterative_allparams_guess);
-
-				if (fe < fr) {
-					result = exppoint;
-					break;
-				}
-				else if (fe >= fr) {
-					result = refpoint;
-					break;
-				}
+			else if (slop_trial_a > 0) {
+				inc *= 0.5;
 			}
-
-			//contract
-
-			if (fr >= fn) {
-				//outside
-				double fnp1 = innerSlopX_Simplex(vertices[n], iterative_allparams_guess);
-
-				if (fn <= fr && fr < fnp1) {
-					std::vector <double> cpoint;
-
-					for (int i = 0; i < n; i++) {
-						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
-					}
-
-					double fc = innerSlopX_Simplex(cpoint, iterative_allparams_guess);;
-
-					if (fc <= fr) {
-						result = cpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-				}
-				else if (fr >= fnp1) {
-					std::vector <double> ccpoint;
-
-					for (int i = 0; i < n; i++) {
-						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
-					}
-
-					double fcc = innerSlopX_Simplex(ccpoint, iterative_allparams_guess);;
-
-					if (fcc <= fnp1) {
-						result = ccpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-
-
-				}
-
-			}
-
-			//shrink
-
-			std::vector < std::vector <double> > v = { vertices[0] };
-
-			for (int i = 1; i < n + 1; i++) {
-				std::vector <double> vi;
-				vi.clear();
-				for (int j = 0; j < n; j++) {
-					vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-				}
-				v.push_back(vi);
-			}
-
-			vertices = v;
 		}
-
-		std::vector <std::vector <double> > bettervertices;
-		for (int i = 0; i < n; i++) {
-			bettervertices.push_back(vertices[i]);
-		}
-		bettervertices.push_back(result);
-
-		vertices = bettervertices;
-
-		/*
-
-		for (int i = 0; i < bettervertices.size(); i++){
-			std::cout << bettervertices[i][0] << " ";
-		}
-		std::cout << "                        ";
-
-		for (int i = 0; i < bettervertices.size(); i++) {
-			std::cout << innerSlopX_Simplex(bettervertices[i], iterative_allparams_guess) << " ";
-		}
-
-		std::cout << std::endl << std::endl;
-
-		*/
-
-		//test for termination
-
-		/*
-		std::vector <double> evals;
-		for (int i = 0; i < n + 1; i++) {
-			evals.push_back(innerSlopX_Simplex(vertices[i], iterative_allparams_guess));
-		}
-
-		if (stDevUnweighted(evals) < tol) {
-			break;
-		}
-		*/
-
-		std::vector <double> sVals = { vertices[0][0], vertices[1][0] };
-
-		if (stDevUnweighted(sVals) < tol) {
-			break;
-		}
-		
 	}
-	std::vector <double> optimum_s = vertices[n];
+	else if (slop_trial_s == 0) {
+		a = trial_s;
 
-	whichExtrema = slopx;
-	innerSlopX_Simplex(optimum_s, iterative_allparams_guess); //runs this with optimum s to store tangest points associated with best fit parameters for this optimum s.
-	whichExtrema = none;
+		double trial_b = trial_s;
 
-	return optimum_s[0];
+		while (true) {
+			trial_b += inc;
+			std::cout << "trial b: " << trial_b << std::endl;
 
+			double slop_trial_b = innerSlopX_Simplex({ trial_b }, iterative_allparams_guess);
+
+			if (slop_trial_b > 0) {
+				b = trial_b;
+				break;
+			}
+			else if (slop_trial_b == 0) {
+				inc *= 0.5;
+			}
+		}
+	}
+
+	//bisection, now that we have brackets [a,b]
+
+	std::cout << "beginning bisection (slop x) \n";
+
+	double c, slop_c;
+	double tol_bisect = 2e-3;
+	double tol_brackets = 1e-3;
+
+	while (true) {
+		std::cout << "a = " << a << "\t b = " << b << std::endl;
+		c = (a + b) / 2;
+
+		whichExtrema = slopx;
+		slop_c = innerSlopX_Simplex({ c }, iterative_allparams_guess);
+		whichExtrema = none;
+
+		std::cout << "c = " << c << "\t slop_x_c = " << slop_c << "\n";
+
+		if (slop_c <= tol_bisect && slop_c > 0) { //convergence criterion
+			break;
+		}
+
+		if (slop_c > 0) {
+			b = c;
+		}
+		else if (slop_c == 0) {
+			a = c;
+		}
+
+		if (std::abs(a - b) <= tol_brackets) { //secondary convergence criterion (bracket width)
+			break;
+		}
+	}
+
+	return c;
 }
 
 double TRK::optimize_s_SlopY() {
 
-	this->s = 1.0;
-
-	double tol = 1e-6;
-
-	int n = 1; //only parameter is s
-
-	double rho = 1.0;
-	double chi = 2.0;
-	double gamma = 0.5;
-	double sigma = 0.5;
-
-	// simplex initialization
-
-	std::vector < std::vector <double> > vertices = { {s}, {s*1.1} }; //initial points are at s = 1 and s = 1.1
-
 	iterative_allparams_guess = allparams_guess;
 
-	std::vector <double> result;
-	while (true) {
+	// before doing any standard simplex movement, here it checks whether the simplex is within the zero "plateau", and if so, it moves it to the boundary.
+	// for slop x: move to right until it hits the boundary
+
+		//bracket finding
+
+	double a, b;
+	double trial_s = 1.0;
+	double slop_trial_s = innerSlopY_Simplex({ trial_s }, iterative_allparams_guess);
+
+	double inc = trial_s * 0.5;
+
+	if (slop_trial_s > 0) {
+		a = trial_s;
+
+		double trial_b = trial_s;
+
 		while (true) {
-			// order
+			trial_b += inc;
+			std::cout << "trial b: " << trial_b << std::endl;
 
-			std::vector <int> orderedindices;
-			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
-			for (int i = 0; i < n + 1; i++) {
-				unorderedEvals.push_back(innerSlopY_Simplex(vertices[i], iterative_allparams_guess));
+			double slop_trial_b = innerSlopY_Simplex({ trial_b }, iterative_allparams_guess);
 
-				std::cout << unorderedEvals[i] << "  " << vertices[i][0] << std::endl;
-			}
-			orderedindices = getSortedIndices(unorderedEvals);
-
-			std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
-			for (int i = 1; i < n + 1; i++) {
-				orderedvertices.push_back(vertices[orderedindices[i]]);
-			}
-
-			vertices = orderedvertices;
-
-			// reflect
-			std::vector <double> refpoint;
-			std::vector <std::vector <double> > nvertices;
-			for (int i = 0; i < n; i++) {
-				nvertices.push_back(vertices[i]);
-			}
-
-			std::vector <double> centroid = findCentroid(nvertices);
-
-			for (int i = 0; i < n; i++) {
-				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
-			}
-
-			if (refpoint[0] < 0) {
-				refpoint[0] = std::abs(refpoint[0]);
-			}
-
-
-			double fr = innerSlopY_Simplex(refpoint, iterative_allparams_guess);
-			double f1 = innerSlopY_Simplex(vertices[0], iterative_allparams_guess);
-			double fn = innerSlopY_Simplex(vertices[n - 1], iterative_allparams_guess);
-
-			if (f1 <= fr && fr < fn) {
-				result = refpoint;
+			if (slop_trial_b == 0) {
+				b = trial_b;
 				break;
 			}
-
-			//expand
-			if (fr < f1) {
-				std::vector <double> exppoint;
-
-				for (int i = 0; i < n; i++) {
-					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
-				}
-
-				double fe = innerSlopY_Simplex(exppoint, iterative_allparams_guess);
-
-				if (fe < fr) {
-					result = exppoint;
-					break;
-				}
-				else if (fe >= fr) {
-					result = refpoint;
-					break;
-				}
+			else if (slop_trial_b > 0) {
+				inc *= 0.5;
 			}
-
-			//contract
-
-			if (fr >= fn) {
-				//outside
-				double fnp1 = innerSlopY_Simplex(vertices[n], iterative_allparams_guess);
-
-				if (fn <= fr && fr < fnp1) {
-					std::vector <double> cpoint;
-
-					for (int i = 0; i < n; i++) {
-						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
-					}
-
-					double fc = innerSlopY_Simplex(cpoint, iterative_allparams_guess);;
-
-					if (fc <= fr) {
-						result = cpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-				}
-				else if (fr >= fnp1) {
-					std::vector <double> ccpoint;
-
-					for (int i = 0; i < n; i++) {
-						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
-					}
-
-					double fcc = innerSlopY_Simplex(ccpoint, iterative_allparams_guess);;
-
-					if (fcc <= fnp1) {
-						result = ccpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-
-
-				}
-
-			}
-
-			//shrink
-
-			std::vector < std::vector <double> > v = { vertices[0] };
-
-			for (int i = 1; i < n + 1; i++) {
-				std::vector <double> vi;
-				vi.clear();
-				for (int j = 0; j < n; j++) {
-					vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-				}
-				v.push_back(vi);
-			}
-
-			vertices = v;
 		}
-
-		std::vector <std::vector <double> > bettervertices;
-		for (int i = 0; i < n; i++) {
-			bettervertices.push_back(vertices[i]);
-		}
-		bettervertices.push_back(result);
-
-		vertices = bettervertices;
-
-		//test for termination
-
-		/*
-		std::vector <double> evals;
-		for (int i = 0; i < n + 1; i++) {
-			evals.push_back(innerSlopY_Simplex(vertices[i], iterative_allparams_guess));
-		}
-
-		if (stDevUnweighted(evals) < tol) {
-			break;
-		}
-		*/
-
-		std::vector <double> sVals = { vertices[0][0], vertices[1][0] };
-
-		if (stDevUnweighted(sVals) < tol) {
-			break;
-		}
-
 	}
-	std::vector <double> optimum_s = vertices[n];
+	else if (slop_trial_s == 0) {
+		b = trial_s;
+
+		double trial_a = trial_s;
+
+		while (true) {
+			trial_a -= inc;
+			std::cout << "trial a: " << trial_a << std::endl;
+
+			double slop_trial_a = innerSlopY_Simplex({ trial_a }, iterative_allparams_guess);
+
+			if (slop_trial_a > 0) {
+				a = trial_a;
+				break;
+			}
+			else if (slop_trial_a == 0) {
+				inc *= 0.5;
+			}
+		}
+	}
+
+	//bisection, now that we have brackets [a,b]
+
+	std::cout << "beginning bisection (slop y) \n";
+
+	double c, slop_c;
+	double tol_bisect = 2e-3;
+	double tol_brackets = 1e-3;
+
+	while (true) {
+		std::cout << "a = " << a << "\t b = " << b << std::endl;
+		c = (a + b) / 2;
+
+		whichExtrema = slopy;
+		slop_c = innerSlopY_Simplex({ c }, iterative_allparams_guess);
+		whichExtrema = none;
+
+		std::cout << "c = " << c << "\t slop_y_c = " << slop_c << "\n";
+
+		if ((slop_c <= tol_bisect && slop_c > 0)) { //convergence criterion
+			break;
+		}
+
+		if (slop_c > 0) {
+			a = c;
+		}
+		else if (slop_c == 0) {
+			b = c;
+		}
+
+		if (std::abs(a - b) <= tol_brackets) { //secondary convergence criterion (bracket width)
+			break;
+		}
+	}
 
 
-	whichExtrema = slopy;
-	innerSlopY_Simplex(optimum_s, iterative_allparams_guess); //runs this with optimum s to store tangest points associated with best fit parameters for this optimum s.
-	whichExtrema = none;
 
-	return optimum_s[0];
-
+	return c;
 }
 
 double TRK::R2TRK_prime_as() {
@@ -1716,217 +1038,161 @@ double TRK::R2TRK_prime_sb() {
 	return R2;
 }
 
-double TRK::optimize_s_R2() {
+double TRK::R2TRK_prime_as0(double s0, std::vector <double> x_t_s1, std::vector <double> params_s1) {
+	double R2 = 1.0 / N;
 
-	this->s = (b-a) / 2.0; //takes an initial guess of optimum scale as halfway between a and b
+	double sum = 0.0;
 
-	double tol = 1e-6;
+	for (int n = 0; n < N; n++) {
+		double m_tn_a = dyc(x_t_a[n], params_a);
+		double theta_t_a = std::atan(m_tn_a);
 
-	int n = 1; //only parameter is s
+		double m_tn_s1 = dyc(x_t_s1[n], params_s1);
+		double theta_t_s1 = std::atan(m_tn_s1);
 
-	double rho = 1.0;
-	double chi = 2.0;
-	double gamma = 0.5;
-	double sigma = 0.5;
+		sum += std::pow(std::tan(PI / 4.0 - std::abs(std::atan(s0*std::tan(theta_t_a)) - std::atan(s0*std::tan(theta_t_s1))) / 2.0), 2.0);
+	}
 
-	// simplex initialization
+	R2 *= sum;
 
-	std::vector < std::vector <double> > vertices = { {s}, {s*1.1} }; //initial points are at s = 1 and s = 1.1
+	return R2;
+}
+
+double TRK::R2TRK_prime_s0b(double s0, std::vector <double> x_t_s1, std::vector <double> params_s1) {
+	double R2 = 1.0 / N;
+
+	double sum = 0.0;
+
+	for (int n = 0; n < N; n++) {
+		double m_tn_b = dyc(x_t_b[n], params_b);
+		double theta_t_b = std::atan(m_tn_b);
+
+		double m_tn_s1 = dyc(x_t_s1[n], params_s1);
+		double theta_t_s1 = std::atan(m_tn_s1);
+
+		sum += std::pow(std::tan(PI / 4.0 - std::abs(std::atan(s0*std::tan(theta_t_s1)) - std::atan(s0*std::tan(theta_t_b))) / 2.0), 2.0);
+	}
+
+	R2 *= sum;
+
+	return R2;
+}
+
+double TRK::optimize_s0_R2() {
 
 	iterative_allparams_guess = allparams_guess;
 
-	std::vector <double> result;
+	//bracket finding
+
+	double left, right;
+	
+	//bisection, now that we have brackets [left,right]
+
+	left = a;
+	right = b;
+
+	std::cout << "beginning bisection (optimum scale finder) \n";
+
+	double c, f_c;
+	double tol_bisect = 1e-4;
+	double tol_brackets = 1e-3;
+
 	while (true) {
-		while (true) {
-			// order
+		std::cout << "left = " << left << "\t right = " << right << std::endl;
+		c = (left + right) / 2;
 
-			std::vector <int> orderedindices;
-			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
-			for (int i = 0; i < n + 1; i++) {
-				unorderedEvals.push_back(innerR2_Simplex(vertices[i], iterative_allparams_guess));
+		whichExtrema = S;
+		f_c = innerR2_Simplex({ c }, iterative_allparams_guess);
+		whichExtrema = none;
 
-				std::cout << unorderedEvals[i] << "  " << vertices[i][0] << std::endl;
-			}
-			orderedindices = getSortedIndices(unorderedEvals);
+		std::cout << "c = " << c << "\t R2(a,s) - R2(s,b)  = " << f_c << "\n";
 
-			std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
-			for (int i = 1; i < n + 1; i++) {
-				orderedvertices.push_back(vertices[orderedindices[i]]);
-			}
-
-			vertices = orderedvertices;
-
-			// reflect
-			std::vector <double> refpoint;
-			std::vector <std::vector <double> > nvertices;
-			for (int i = 0; i < n; i++) {
-				nvertices.push_back(vertices[i]);
-			}
-
-			std::vector <double> centroid = findCentroid(nvertices);
-
-			for (int i = 0; i < n; i++) {
-				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
-			}
-
-			if (refpoint[0] < 0) {
-				refpoint[0] = std::abs(refpoint[0]);
-			}
-
-
-			double fr = innerR2_Simplex(refpoint, iterative_allparams_guess);
-			double f1 = innerR2_Simplex(vertices[0], iterative_allparams_guess);
-			double fn = innerR2_Simplex(vertices[n - 1], iterative_allparams_guess);
-
-			if (f1 <= fr && fr < fn) {
-				result = refpoint;
-				break;
-			}
-
-			//expand
-			if (fr < f1) {
-				std::vector <double> exppoint;
-
-				for (int i = 0; i < n; i++) {
-					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
-				}
-
-				double fe = innerR2_Simplex(exppoint, iterative_allparams_guess);
-
-				if (fe < fr) {
-					result = exppoint;
-					break;
-				}
-				else if (fe >= fr) {
-					result = refpoint;
-					break;
-				}
-			}
-
-			//contract
-
-			if (fr >= fn) {
-				//outside
-				double fnp1 = innerR2_Simplex(vertices[n], iterative_allparams_guess);
-
-				if (fn <= fr && fr < fnp1) {
-					std::vector <double> cpoint;
-
-					for (int i = 0; i < n; i++) {
-						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
-					}
-
-					double fc = innerR2_Simplex(cpoint, iterative_allparams_guess);;
-
-					if (fc <= fr) {
-						result = cpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-				}
-				else if (fr >= fnp1) {
-					std::vector <double> ccpoint;
-
-					for (int i = 0; i < n; i++) {
-						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
-					}
-
-					double fcc = innerR2_Simplex(ccpoint, iterative_allparams_guess);;
-
-					if (fcc <= fnp1) {
-						result = ccpoint;
-						break;
-					}
-					else {
-						//shrink
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-
-
-				}
-
-			}
-
-			//shrink
-
-			std::vector < std::vector <double> > v = { vertices[0] };
-
-			for (int i = 1; i < n + 1; i++) {
-				std::vector <double> vi;
-				vi.clear();
-				for (int j = 0; j < n; j++) {
-					vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-				}
-				v.push_back(vi);
-			}
-
-			vertices = v;
-		}
-
-		std::vector <std::vector <double> > bettervertices;
-		for (int i = 0; i < n; i++) {
-			bettervertices.push_back(vertices[i]);
-		}
-		bettervertices.push_back(result);
-
-		vertices = bettervertices;
-
-		//test for termination
-
-		/*
-		std::vector <double> evals;
-		for (int i = 0; i < n + 1; i++) {
-			evals.push_back(innerR2_Simplex(vertices[i], iterative_allparams_guess));
-		}
-
-		if (stDevUnweighted(evals) < tol) {
-			break;
-		}
-		*/
-
-		std::vector <double> sVals = { vertices[0][0], vertices[1][0] };
-
-		if (stDevUnweighted(sVals) < tol) {
+		if (std::abs(f_c) <= tol_bisect) { //convergence criterion
 			break;
 		}
 
+		if (f_c > 0) {
+			left = c;
+		}
+		else if (f_c < 0) {
+			right = c;
+		}
+
+		if (std::abs(left - right) <= tol_brackets) { //secondary convergence criterion (bracket width)
+			break;
+		}
 	}
-	std::vector <double> optimum_s = vertices[n];
 
+	return c;
 
-	whichExtrema = S;
-	innerSlopX_Simplex(optimum_s, iterative_allparams_guess); //runs this with optimum s to store tangent points associated with best fit parameters for this optimum s.
-	whichExtrema = none;
+}
 
-	return optimum_s[0];
+double TRK::optimize_s_prime_R2(double s0) {
 
+	iterative_allparams_guess = allparams_guess;
+
+	//bracket finding
+
+	double left, right;
+
+	//bisection, now that we have brackets [left,right]
+
+	left = a;
+	right = b;
+
+	std::cout << "beginning bisection (optimum scale finder, iterative step) \n";
+
+	double c, f_c;
+	double tol_bisect = 1e-4;
+	double tol_brackets = 1e-3;
+
+	while (true) {
+		std::cout << "left = " << left << "\t right = " << right << std::endl;
+		c = (left + right) / 2;
+
+		whichExtrema = S;
+		f_c = innerR2_iter_Simplex({ c }, iterative_allparams_guess, s0);
+		whichExtrema = none;
+
+		std::cout << "s0 = " << s0 << "\t c = " << c << "\t R2(a,s) - R2(s,b)  = " << f_c << "\n";
+
+		if (std::abs(f_c) <= tol_bisect) { //convergence criterion
+			break;
+		}
+
+		if (f_c > 0) {
+			left = c;
+		}
+		else if (f_c < 0) {
+			right = c;
+		}
+
+		if (std::abs(left - right) <= tol_brackets) { //secondary convergence criterion (bracket width)
+			break;
+		}
+	}
+
+	return c;
+
+}
+
+double TRK::iterateR2_OptimumScale(double s0) {
+	double tol_scale = 1e-3;
+
+	double s1;
+
+	bool tolcheck = false;
+
+	while (!tolcheck) {
+		s1 = optimize_s_prime_R2(s0);
+		if (std::abs(s1-s0) <= tol_scale) {
+			tolcheck = true;
+		}
+		std::printf("new s0: %f", s1);
+		s0 = s1;
+	}
+
+	return s1;
 }
 
 void TRK::optimizeScale() {
@@ -1971,11 +1237,45 @@ void TRK::optimizeScale() {
 
 	std::cout << "finding optimum scale" << std::endl;
 
-	double s1 = optimize_s_R2();
+	double s0 = optimize_s0_R2();
 
-	s = s1;
+	s = s0;
+
+	double s_final = iterateR2_OptimumScale(s0);
+
+	s = s_final;
 
 	std::cout << "optimum s = " << s << std::endl;
 
 	return;
+}
+
+//testing purposes only
+
+clock_t startTimer() {
+	std::cout << "starting timer... \n";
+
+	clock_t t_i = clock();
+	return t_i;
+}
+
+double secElapsed(clock_t t_i) {
+	clock_t t_f = clock() - t_i;
+	double sec_elapsed = ((float)t_f) / CLOCKS_PER_SEC;
+
+	printf("%f seconds elapsed \n", sec_elapsed);
+	return sec_elapsed;
+}
+
+void writeResults(TRK TRKobj, double t_sec, std::string filename) {
+
+	std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKresults.txt", std::ofstream::app);
+	if (myfile.is_open())
+	{	
+		// filename    a     b     optimum scale    total computation time (s)
+		myfile << filename << "\t" <<  TRKobj.a << "\t" << TRKobj.b << "\t" << TRKobj.s << "\t" << t_sec << "\n";
+		myfile.close();
+	}
+	else std::cout << "Unable to open file";
+
 }
