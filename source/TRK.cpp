@@ -4,7 +4,7 @@
 // CONSTRUCTORS
 
 //weighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -34,9 +34,11 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->s = 1.0;
 
 	getDataWidth();
+
+	this->simplex_size = simplex_size;
 }
 //equal weights/unweighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -68,6 +70,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->s = 1.0;
 
 	getDataWidth();
+
+	this->simplex_size = simplex_size;
 }
 
 //default
@@ -164,7 +168,10 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 
 	int itercount = 0;
 
-	while (std::abs(xk - xkm1) > tol) {
+	while (true) {
+		if (std::isnan(xk) || std::isnan(xkm1)) {
+			printf("stop");
+		}
 		ykm1 = (yc(xkm1, params) - y_n) * dyc(xkm1, params) * Sig_xn2 + (xkm1 - x_n) * Sig_yn2;
 		yk = (yc(xk, params) - y_n) * dyc(xk, params) * Sig_xn2 + (xk - x_n) * Sig_yn2;  //function we're finding zero of
 		dyk = (std::pow(dyc(xk, params), 2.0) + (yc(xk, params) - y_n)*ddyc(xk, params)) * Sig_xn2 + Sig_yn2; //derivative of above
@@ -172,16 +179,75 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 		r = 1.0 - ((yk / ykm1) * (((yk - ykm1) / (xk - xkm1)) / dyk));
 
 		xkp1 = (1.0 - 1.0 / r)*xkm1 + xk / r;
+
+		if (std::abs(xkp1) > root_bound * datawidth) {
+			while (std::abs(xkp1) > root_bound * datawidth) {
+				xkp1 = xkp1 / 2.0;
+			}
+		}
 		//std::cout << xkp1 << std::endl;
+
+
+		//bisection?
+		
+		if (yk * ykm1 < 0) { //checks if xk and xkm1 can be used as bisection brackets
+
+			//std::cout << "beginning bisection (tangent point finder) \n";
+
+			double c, f_c, f_left, left, right;
+			double tol_brackets = 1e-9;
+
+			if (xk < xkm1) {
+				left = xk;
+				right = xkm1;
+			}
+			else if (xkm1 < xk) {
+				left = xkm1;
+				right = xk;
+			}
+
+			while (true) {
+				c = (left + right) / 2;
+
+				f_c = (yc(c, params) - y_n) * dyc(c, params) * Sig_xn2 + (c - x_n) * Sig_yn2;
+
+				if (std::abs((left - right) / 2.0) <= tol_brackets) { //secondary convergence criterion (bracket width)
+					break;
+				}
+
+				f_left = (yc(left, params) - y_n) * dyc(left, params) * Sig_xn2 + (left - x_n) * Sig_yn2;
+
+				if (f_c * f_left > 0){ //same sign
+					left = c;
+				}
+				else if (f_c * f_left < 0) {
+					right = c;
+				}
+			}
+
+			return c;
+		}
+		
+		if (std::isnan(xkp1) || std::isnan(xk) || std::isnan(xkm1)) {
+			printf("stop");
+		}
 
 		xkm1 = xk;
 		xk = xkp1;
 
 		itercount += 1;
 
+		if (std::isnan(xkp1) || std::isnan(xk) || std::isnan(xkm1)) {
+			printf("stop");
+		}
+
 		if (itercount > 10000) {
 			std::cout << " itercount of >10000 reached; exiting NR" << std::endl;
 			return NAN;
+		}
+
+		if (std::abs(xk - xkm1) <= tol || std::isnan(xk) || std::abs(yk) <= tol) {
+			break;
 		}
 	}
 
@@ -223,7 +289,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 	int i = 0;
 	for (int j = 1; j < n + 1; j++) { //for each simplex node
 
-		vertices[j][i] = allparams_guess[i] + allparams_guess[i]; //add initial "step size"
+		vertices[j][i] = allparams_guess[i] + simplex_size*allparams_guess[i]; //add initial "step size"
 		i += 1;
 	}
 
@@ -400,11 +466,11 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		vertices = bettervertices;
 		
 		
-		std::cout << "chi-square minimized parameters at s = " << s << " ";
+		std::cout << "chi-square parameters at s = " << s << " ";
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
 		}
-		std::cout << "\n";
+		std::cout << "fitness = " << (this->*f)(vertices[i]) << "\n";
 		
 
 		
@@ -498,6 +564,18 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 	}
 
 	for (int n = 0; n < N; n++) {
+		
+		/*
+		if (n == 282) {
+			test += 1;
+			printf("stop 282 \t %i \n", test);
+		}
+		
+		if (test == 37) {
+			printf("STOP \n");
+		}
+		*/
+
 		double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
 		double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
 
@@ -510,7 +588,31 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 		*/
 
 		std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sig_xn2, Sig_yn2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+
+		int ck = 0;
+
+		for (int i = 0; i < x_tn_vec.size(); i++) {
+			if (std::isnan(x_tn_vec[i])) {
+				ck += 1;
+			}
+		}
+
+		if (ck > 0) {
+			printf("STOP\n");
+		}
+
 		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
+
+		std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKtangents.txt", std::ofstream::app);
+		if (myfile.is_open())
+		{
+			// filename    a     b     optimum scale    total computation time (s)
+			myfile << params[0] << " " << params[1] << " " << params[2] << " " << params[3] << " " << Sig_xn2 << " " << Sig_yn2 << " " << x[n] << " " << y[n] << " " << x_t << "\n";
+			myfile.close();
+		}
+		else std::cout << "Unable to open file";
+
+		//printf("%f  %f  %f  %f  %f  %f  %f  %f  %f \n", params[0], params[1], params[2], params[3], Sig_xn2, Sig_yn2, x[n], y[n], x_t);
 
 		double m_tn = dyc(x_t, params);
 		double y_tn = yc(x_t, params);
@@ -519,6 +621,18 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 
 		sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2);
 		sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
+
+		//printf("%f \t %f \n", add1, add2);
+
+		/*
+		if (add1 > 1000 || add2 > 1000) {
+			printf("stop\n");
+		}
+		*/
+
+		if (std::isnan(sum1) || std::isnan(sum1)) {
+			printf("stop \n");
+		}
 	}
 
 	switch (whichExtrema) {
@@ -1278,4 +1392,12 @@ void writeResults(TRK TRKobj, double t_sec, std::string filename) {
 	}
 	else std::cout << "Unable to open file";
 
+}
+
+double toRad(double deg) {
+	return deg * (PI / 180);
+}
+
+double toDeg(double rad) {
+	return rad * (180 / PI);
 }

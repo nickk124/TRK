@@ -17,6 +17,8 @@ class TRK
 	public:
 
 		//public only for testing
+		int test;
+
 		std::vector <double> pegToZeroSlop(std::vector <double> vertex);
 		double s;
 		double a, b;
@@ -42,6 +44,8 @@ class TRK
 		double optimize_s_prime_R2(double s0);
 		double regularChiSquared(std::vector <double> params);
 
+		double simplex_size;
+
 		//function pointers
 		double (*yc)(double, std::vector <double>);
 		double (*dyc)(double, std::vector <double>);
@@ -51,15 +55,15 @@ class TRK
 		std::vector <double> x, y, sx, sy, w; //datapoints; errorbars
 		double datawidth;
 		void getDataWidth();
-		double root_bound = 1000;
+		double root_bound = 10;
 
 		//parameter guesses
 		std::vector <double> params_guess;
 		double slop_x_guess, slop_y_guess;
 
 		//constructors
-		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess);
-		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess);
+		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size);
+		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size);
 		
 		//default constructor:
 		TRK();
@@ -86,6 +90,7 @@ class TRK
 		// FITTING TOOLS
 		double newtonRaphson(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess);
 		std::vector <double> cubicSolver(double A, double B, double C, double D);
+
 		
 		// STATISTICS
 		double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn);
@@ -115,3 +120,7 @@ clock_t startTimer();
 double secElapsed(clock_t t_i);
 
 void writeResults(TRK TRKobj, double t_sec, std::string filename);
+
+double toRad(double deg);
+
+double toDeg(double rad);
