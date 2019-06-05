@@ -12,6 +12,23 @@ const double PHI = (std::sqrt(5.0) + 1.0) / 2.0;
 
 enum whichScaleExtrema{ S, slopx, slopy, none };
 
+enum priorTypes { CUSTOM, GAUSSIAN, CONSTRAINED, MIXED};
+
+class Priors
+{
+public:
+	//constructors:
+	//Priors(priorTypes priorType, std::vector <double>(*p)(std::vector <double>, std::vector <double>)); //custom priors
+	Priors(priorTypes priorType, std::vector < std::vector <double> > params); //Only Gaussian or only bounded/constrained
+	Priors(priorTypes priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds); //mixed
+	Priors();
+
+	priorTypes priorType;
+	std::vector < std::vector <double> > gaussianParams; // a vector that contains a vector of mu and sigma for the guassian prior of each param. If no prior, then just use NANs.
+	std::vector < std::vector <double> > paramBounds; // a vector that contains vectors of the bounds of each param. If not bounded, use NANs, and if there's only one bound, use NAN for the other "bound".
+
+};
+
 class TRK
 {
 	public:
@@ -20,6 +37,8 @@ class TRK
 		int test;
 
 		std::vector <double> pegToZeroSlop(std::vector <double> vertex);
+		double evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <double> vertex);
+
 		double s;
 		double a, b;
 		whichScaleExtrema whichExtrema;
@@ -44,6 +63,8 @@ class TRK
 		double optimize_s_prime_R2(double s0);
 		double regularChiSquared(std::vector <double> params);
 
+		bool hasPriors;
+
 		double simplex_size;
 
 		//function pointers
@@ -64,9 +85,16 @@ class TRK
 		//constructors
 		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size);
 		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size);
+
+		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size, Priors priorsObject);
+		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size, Priors priorsObject);
 		
 		//default constructor:
 		TRK();
+
+		//priors:
+
+		Priors priorsObject;
 
 	private:
 

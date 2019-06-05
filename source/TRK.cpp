@@ -1,9 +1,41 @@
 #include "pch.h"
 #include "TRK.h"
 
+// PRIORS
+
+// Constructors
+
+/*
+Priors::Priors(priorTypes priorType, std::vector <double>(*p)(std::vector <double>, std::vector <double>)) { //custom priors
+	this->priorType = priorType;
+	this->p = (*p);
+};
+*/
+
+Priors::Priors(priorTypes priorType, std::vector < std::vector <double> > params) { //Gaussian or bounded priors only
+	this->priorType = priorType;
+	if (priorType == GAUSSIAN) {
+		this->gaussianParams = params;
+	}
+	else if (priorType == CONSTRAINED) {
+		this->paramBounds = params;
+	}
+};
+
+Priors::Priors(priorTypes priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds) { //mixed
+	this->priorType = priorType;
+	this->paramBounds = paramBounds;
+	this->gaussianParams = gaussianParams;
+};
+
+//default constructor
+Priors::Priors() {
+
+};
+
+
 // CONSTRUCTORS
 
-//weighted
 TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
@@ -36,6 +68,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	getDataWidth();
 
 	this->simplex_size = simplex_size;
+
+	this->hasPriors = false;
 }
 //equal weights/unweighted
 TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size) {
@@ -72,6 +106,89 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	getDataWidth();
 
 	this->simplex_size = simplex_size;
+
+	this->hasPriors = false;
+}
+
+
+//priors:
+//weighted
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size, Priors priorsObject) {
+	this->yc = (*yc);
+	this->dyc = (*dyc);
+	this->ddyc = (*ddyc);
+
+	this->x = x;
+	this->y = y;
+	this->w = w;
+	this->sx = sx;
+	this->sy = sy;
+
+	this->params_guess = params_guess;
+	this->slop_x_guess = slop_x_guess;
+	this->slop_y_guess = slop_y_guess;
+
+	this->N = x.size();
+	this->M = params_guess.size();
+
+	std::vector <double> allparams_guess = params_guess;
+
+	allparams_guess.push_back(slop_x_guess);
+	allparams_guess.push_back(slop_y_guess);
+
+	this->allparams_guess = allparams_guess;
+
+	this->whichExtrema = none;
+
+	this->s = 1.0;
+
+	getDataWidth();
+
+	this->simplex_size = simplex_size;
+
+	this->priorsObject = priorsObject;
+
+	this->hasPriors = true;
+}
+//equal weights/unweighted
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size, Priors priorsObject) {
+	this->yc = (*yc);
+	this->dyc = (*dyc);
+	this->ddyc = (*ddyc);
+
+	this->x = x;
+	this->y = y;
+	this->sx = sx;
+	this->sy = sy;
+
+	this->params_guess = params_guess;
+	this->slop_x_guess = slop_x_guess;
+	this->slop_y_guess = slop_y_guess;
+
+	this->N = x.size();
+	this->M = params_guess.size();
+
+	std::vector <double> w(N, 1.0); //no weights === equal weights
+	this->w = w;
+
+	std::vector <double> allparams_guess = params_guess;
+
+	allparams_guess.push_back(slop_x_guess);
+	allparams_guess.push_back(slop_y_guess);
+
+	this->allparams_guess = allparams_guess;
+
+	this->whichExtrema = none;
+
+	this->s = 1.0;
+
+	getDataWidth();
+
+	this->simplex_size = simplex_size;
+
+	this->priorsObject = priorsObject;
+
+	this->hasPriors = true;
 }
 
 //default
@@ -228,18 +345,22 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 			return c;
 		}
 		
+		/*
 		if (std::isnan(xkp1) || std::isnan(xk) || std::isnan(xkm1)) {
 			printf("stop");
 		}
+		*/
 
 		xkm1 = xk;
 		xk = xkp1;
 
 		itercount += 1;
 
+		/*
 		if (std::isnan(xkp1) || std::isnan(xk) || std::isnan(xkm1)) {
 			printf("stop");
 		}
+		*/
 
 		if (itercount > 10000) {
 			std::cout << " itercount of >10000 reached; exiting NR" << std::endl;
@@ -267,6 +388,43 @@ std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex){
 	}
 
 	return vertex;
+}
+
+
+double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <double> vertex) {
+	double f_test = (this->*f)(vertex);
+
+	if (hasPriors) {
+		switch (priorsObject.priorType) {
+
+		case CONSTRAINED:
+			bool exclude = false;
+
+			for (int i = 0; i < M; i++) { //check upper bound
+				double ub = priorsObject.paramBounds[i][1];
+				double lb = priorsObject.paramBounds[i][0];
+
+				if (vertex[i] >= ub && !std::isnan(ub)) {
+					exclude = true;
+				}
+
+				if (vertex[i] <= lb && !std::isnan(lb)) {
+					exclude = true;
+				}
+			}
+
+			if (exclude) {
+				return DBL_MAX;
+			}
+			else {
+				return f_test;
+			}
+		}
+	}
+	else {
+		return f_test;
+	}
+
 }
 
 std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
@@ -301,7 +459,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 			std::vector <int> orderedindices;
 			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
 			for (int i = 0; i < n + 1; i++) {
-				unorderedEvals.push_back((this->*f)(vertices[i]));
+				unorderedEvals.push_back(evalWPriors(f, vertices[i]));
 			}
 			orderedindices = getSortedIndices(unorderedEvals);
 
@@ -327,9 +485,9 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 			refpoint = pegToZeroSlop(refpoint);
 
-			double fr = (this->*f)(refpoint);
-			double f1 = (this->*f)(vertices[0]);
-			double fn = (this->*f)(vertices[n - 1]);
+			double fr = evalWPriors(f, refpoint);
+			double f1 = evalWPriors(f, vertices[0]);
+			double fn = evalWPriors(f, vertices[n - 1]);
 
 			if (f1 <= fr && fr < fn) {
 				result = refpoint;
@@ -346,7 +504,8 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 				exppoint = pegToZeroSlop(exppoint);
 
-				double fe = (this->*f)(exppoint);
+				double fe = evalWPriors(f, exppoint);
+
 
 				if (fe < fr) {
 					result = exppoint;
@@ -362,7 +521,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 			if (fr >= fn) {
 				//outside
-				double fnp1 = (this->*f)(vertices[n]);
+				double fnp1 = evalWPriors(f, vertices[n]);
 
 				if (fn <= fr && fr < fnp1) {
 					std::vector <double> cpoint;
@@ -373,7 +532,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 					cpoint = pegToZeroSlop(cpoint);
 
-					double fc = (this->*f)(cpoint);
+					double fc = evalWPriors(f, cpoint);
 
 					if (fc <= fr) {
 						result = cpoint;
@@ -405,7 +564,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 					ccpoint = pegToZeroSlop(ccpoint);
 
-					double fcc = (this->*f)(ccpoint);
+					double fcc = evalWPriors(f, ccpoint);
 
 					if (fcc <= fnp1) {
 						result = ccpoint;
@@ -470,7 +629,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
 		}
-		std::cout << "fitness = " << (this->*f)(vertices[i]) << "\n";
+		std::cout << "fitness = " << evalWPriors(f, vertices[i]) << "\n";
 		
 
 		
@@ -480,7 +639,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 			for (int i = 0; i < result.size(); i++) {
 				std::cout << bettervertices[j][i] << " ";
 			}
-			double X = (this->*f)(bettervertices[j]);
+			double X = evalWPriors(f, bettervertices[j]);
 			std::cout << "          " << X << std::endl;
 		}
 		*/
@@ -490,7 +649,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 		std::vector <double> evals;
 		for (int i = 0; i < n + 1; i++) {
-			evals.push_back((this->*f)(vertices[i]));
+			evals.push_back(evalWPriors(f, vertices[i]));
 		}
 
 		if (stDevUnweighted(evals) < tol) {
@@ -566,12 +725,14 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 	for (int n = 0; n < N; n++) {
 		
 		/*
-		if (n == 282) {
+		if (n == 3) {
 			test += 1;
-			printf("stop 282 \t %i \n", test);
+			printf("stopp \t %i \n", test);
 		}
+		*/
+		/*
 		
-		if (test == 37) {
+		if (test == 291) {
 			printf("STOP \n");
 		}
 		*/
@@ -603,14 +764,21 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 
 		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
 
+
+		/*
 		std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKtangents.txt", std::ofstream::app);
 		if (myfile.is_open())
 		{
 			// filename    a     b     optimum scale    total computation time (s)
-			myfile << params[0] << " " << params[1] << " " << params[2] << " " << params[3] << " " << Sig_xn2 << " " << Sig_yn2 << " " << x[n] << " " << y[n] << " " << x_t << "\n";
+			myfile << params[0] << " " << params[1] << " " << params[2] << " " << params[3] << " " << Sig_xn2 << " " << Sig_yn2 << " " << x[n] << " " << y[n] << " " << x_t << " " <<  x_tn_vec.size() << " ";
+			for (int i = 0; i < x_tn_vec.size(); i++) {
+				myfile << x_tn_vec[i] << " ";
+			}
+			myfile << std::endl;
 			myfile.close();
 		}
 		else std::cout << "Unable to open file";
+		*/
 
 		//printf("%f  %f  %f  %f  %f  %f  %f  %f  %f \n", params[0], params[1], params[2], params[3], Sig_xn2, Sig_yn2, x[n], y[n], x_t);
 
@@ -837,8 +1005,12 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 
 				checkcheck = true;
 			}
-		} else if (extraRoots.size() == 0) { //if only have one root (the one initially found)
+		} else if (extraRoots.size() == 0 && xr1vec.size() == 1) { //if only have one root (the one initially found)
 			result.push_back(xr1);
+			break;
+		}
+		else if (extraRoots.size() == 0 && xr1vec.size() == 2) { //found two roots but can't find a third
+			result = xr1vec;
 			break;
 		}
 
