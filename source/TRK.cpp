@@ -239,6 +239,9 @@ void TRK::getDataWidth() {
 	std::vector <double> bounds = minMax(x);
 
 	datawidth = std::abs(bounds[1] - bounds[0]);
+
+	x_min = bounds[0];
+	x_max = bounds[1];
 }
 
 // FITTING TOOLS
@@ -286,9 +289,11 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 	int itercount = 0;
 
 	while (true) {
+		/*
 		if (std::isnan(xk) || std::isnan(xkm1)) {
 			printf("stop");
 		}
+		*/
 		ykm1 = (yc(xkm1, params) - y_n) * dyc(xkm1, params) * Sig_xn2 + (xkm1 - x_n) * Sig_yn2;
 		yk = (yc(xk, params) - y_n) * dyc(xk, params) * Sig_xn2 + (xk - x_n) * Sig_yn2;  //function we're finding zero of
 		dyk = (std::pow(dyc(xk, params), 2.0) + (yc(xk, params) - y_n)*ddyc(xk, params)) * Sig_xn2 + Sig_yn2; //derivative of above
@@ -390,7 +395,6 @@ std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex){
 	return vertex;
 }
 
-
 double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <double> vertex) {
 	double f_test = (this->*f)(vertex);
 
@@ -429,7 +433,7 @@ double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <doub
 
 std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
 
-	double tol = 1e-3;
+	double tol = 1e-6;
 
 	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
 
@@ -624,13 +628,13 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 		vertices = bettervertices;
 		
-		
+		/*
 		std::cout << "chi-square parameters at s = " << s << " ";
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
 		}
 		std::cout << "fitness = " << evalWPriors(f, vertices[i]) << "\n";
-		
+		*/
 
 		
 		/*
@@ -725,11 +729,12 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 	for (int n = 0; n < N; n++) {
 		
 		/*
-		if (n == 3) {
+		if (n == 43) {
 			test += 1;
 			printf("stopp \t %i \n", test);
 		}
 		*/
+		
 		/*
 		
 		if (test == 291) {
@@ -758,27 +763,13 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 			}
 		}
 
+		/*
 		if (ck > 0) {
 			printf("STOP\n");
 		}
-
-		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
-
-
-		/*
-		std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKtangents.txt", std::ofstream::app);
-		if (myfile.is_open())
-		{
-			// filename    a     b     optimum scale    total computation time (s)
-			myfile << params[0] << " " << params[1] << " " << params[2] << " " << params[3] << " " << Sig_xn2 << " " << Sig_yn2 << " " << x[n] << " " << y[n] << " " << x_t << " " <<  x_tn_vec.size() << " ";
-			for (int i = 0; i < x_tn_vec.size(); i++) {
-				myfile << x_tn_vec[i] << " ";
-			}
-			myfile << std::endl;
-			myfile.close();
-		}
-		else std::cout << "Unable to open file";
 		*/
+		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
+		
 
 		//printf("%f  %f  %f  %f  %f  %f  %f  %f  %f \n", params[0], params[1], params[2], params[3], Sig_xn2, Sig_yn2, x[n], y[n], x_t);
 
@@ -797,10 +788,27 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 			printf("stop\n");
 		}
 		*/
-
+		/*
 		if (std::isnan(sum1) || std::isnan(sum1)) {
 			printf("stop \n");
 		}
+		*/
+		/*
+		std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKtangents.txt", std::ofstream::app);
+		if (myfile.is_open())
+		{
+			// filename    a     b     optimum scale    total computation time (s)
+			double fit_contrib = w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) - w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
+
+			myfile << params[0] << " " << params[1] << " " << params[2] << " " << params[3] << " " << Sig_xn2 << " " << Sig_yn2 << " " << x[n] << " " << y[n] << " " << x_t << " " << fit_contrib << " " << x_tn_vec.size() << " ";
+			for (int i = 0; i < x_tn_vec.size(); i++) {
+				myfile << x_tn_vec[i] << " ";
+			}
+			myfile << std::endl;
+			myfile.close();
+		}
+		else std::cout << "Unable to open file";
+		*/
 	}
 
 	switch (whichExtrema) {
@@ -1006,7 +1014,15 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 				checkcheck = true;
 			}
 		} else if (extraRoots.size() == 0 && xr1vec.size() == 1) { //if only have one root (the one initially found)
+
+			//if initial quadratic approximation didn't yield any more guesses, try to find roots with guesses of leftmost and rightmost x values
+			double xr_left = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_min, x_min - std::sqrt(Sig_xn2) / 10.0);
+			double xr_right = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_max, x_max + std::sqrt(Sig_xn2) / 10.0);
+
 			result.push_back(xr1);
+			result.push_back(xr_left);
+			result.push_back(xr_right);
+
 			break;
 		}
 		else if (extraRoots.size() == 0 && xr1vec.size() == 2) { //found two roots but can't find a third

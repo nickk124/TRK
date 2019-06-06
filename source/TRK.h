@@ -63,6 +63,9 @@ class TRK
 		double optimize_s_prime_R2(double s0);
 		double regularChiSquared(std::vector <double> params);
 
+		double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec);
+		std::vector <double> approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1);
+
 		bool hasPriors;
 
 		double simplex_size;
@@ -74,7 +77,7 @@ class TRK
 
 		//dataset
 		std::vector <double> x, y, sx, sy, w; //datapoints; errorbars
-		double datawidth;
+		double datawidth, x_min, x_max;
 		void getDataWidth();
 		double root_bound = 10;
 
@@ -126,8 +129,7 @@ class TRK
 		double stDevUnweighted(std::vector <double> x);
 		
 		// TANGENT_FINDING ALGORITHMS
-		std::vector <double> approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1);
-		double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec);
+		
 		
 		// SCALE OPTIMIZATION ALGORITHMS
 		
