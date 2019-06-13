@@ -36,7 +36,7 @@ Priors::Priors() {
 
 // CONSTRUCTORS
 
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -67,12 +67,10 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 
 	getDataWidth();
 
-	this->simplex_size = simplex_size;
-
 	this->hasPriors = false;
 }
 //equal weights/unweighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -104,8 +102,6 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->s = 1.0;
 
 	getDataWidth();
-
-	this->simplex_size = simplex_size;
 
 	this->hasPriors = false;
 }
@@ -113,7 +109,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 
 //priors:
 //weighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size, Priors priorsObject) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -144,14 +140,12 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 
 	getDataWidth();
 
-	this->simplex_size = simplex_size;
-
 	this->priorsObject = priorsObject;
 
 	this->hasPriors = true;
 }
 //equal weights/unweighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, double simplex_size, Priors priorsObject) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -183,8 +177,6 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->s = 1.0;
 
 	getDataWidth();
-
-	this->simplex_size = simplex_size;
 
 	this->priorsObject = priorsObject;
 
@@ -368,7 +360,7 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 		*/
 
 		if (itercount > 10000) {
-			std::cout << " itercount of >10000 reached; exiting NR" << std::endl;
+			//std::cout << " itercount of >10000 reached; exiting NR" << std::endl;
 			return NAN;
 		}
 
@@ -383,7 +375,7 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 
 std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex){
 
-	double tol = 0.005;
+	double tol = 0.004;
 
 	if (std::abs(vertex[M]) <= tol) {
 		vertex[M] = 0;
@@ -391,6 +383,18 @@ std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex){
 	if (std::abs(vertex[M+1]) <= tol) {
 		vertex[M+1] = 0;
 	}
+	
+	return vertex;
+}
+
+std::vector <double> TRK::avoidNegativeSlop(std::vector <double> vertex, int n) {
+
+	for (int k = 0; k < 2; k++) {
+		if (vertex[n - 2 + k] < 0) {
+			vertex[n - 2 + k] = std::abs(vertex[n - 2 + k]);
+		}
+	}
+	
 
 	return vertex;
 }
@@ -447,6 +451,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 	std::vector <double> init_point = allparams_guess;
 
 	std::vector <std::vector <double> > vertices(n + 1, init_point);
+	std::vector <double> fitted_params;
 
 	int i = 0;
 	for (int j = 1; j < n + 1; j++) { //for each simplex node
@@ -487,7 +492,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
 			}
 
-			refpoint = pegToZeroSlop(refpoint);
+			//refpoint = pegToZeroSlop(refpoint);
 
 			double fr = evalWPriors(f, refpoint);
 			double f1 = evalWPriors(f, vertices[0]);
@@ -506,7 +511,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
 				}
 
-				exppoint = pegToZeroSlop(exppoint);
+				//exppoint = pegToZeroSlop(exppoint);
 
 				double fe = evalWPriors(f, exppoint);
 
@@ -534,7 +539,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
 					}
 
-					cpoint = pegToZeroSlop(cpoint);
+					//cpoint = pegToZeroSlop(cpoint);
 
 					double fc = evalWPriors(f, cpoint);
 
@@ -566,7 +571,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
 					}
 
-					ccpoint = pegToZeroSlop(ccpoint);
+					//ccpoint = pegToZeroSlop(ccpoint);
 
 					double fcc = evalWPriors(f, ccpoint);
 
@@ -618,17 +623,14 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		}
 
 		//check that new node does not have negative slops (fixes it if it does)
-		for (int k = 0; k < 2; k++) {
-			if (result[n - 2 + k] < 0) {
-				result[n - 2 + k] = 0.0;
-			}
-		}
+		//result = avoidNegativeSlop(result, n);
 
 		bettervertices.push_back(result);
 
 		vertices = bettervertices;
 		
 		/*
+		
 		std::cout << "chi-square parameters at s = " << s << " ";
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
@@ -648,6 +650,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		}
 		*/
 		
+		
 
 		//test for termination
 
@@ -661,7 +664,13 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		}
 
 	}
-	return vertices[n];
+
+	fitted_params = vertices[n];
+
+	fitted_params = pegToZeroSlop(fitted_params);
+	fitted_params = avoidNegativeSlop(fitted_params, n);
+
+	return fitted_params;
 
 	std::cout << std::endl << std::endl;
 }
@@ -1134,7 +1143,7 @@ double TRK::optimize_s_SlopX() {
 
 		while (true) {
 			trial_a -= inc;
-			std::cout << "trial a: " << trial_a << std::endl;
+			//std::cout << "trial a: " << trial_a << std::endl;
 
 			double slop_trial_a = innerSlopX_Simplex({ trial_a }, iterative_allparams_guess);
 
@@ -1154,7 +1163,7 @@ double TRK::optimize_s_SlopX() {
 
 		while (true) {
 			trial_b += inc;
-			std::cout << "trial b: " << trial_b << std::endl;
+			//std::cout << "trial b: " << trial_b << std::endl;
 
 			double slop_trial_b = innerSlopX_Simplex({ trial_b }, iterative_allparams_guess);
 
@@ -1170,21 +1179,21 @@ double TRK::optimize_s_SlopX() {
 
 	//bisection, now that we have brackets [a,b]
 
-	std::cout << "beginning bisection (slop x) \n";
+	//std::cout << "beginning bisection (slop x) \n";
 
 	double c, slop_c;
 	double tol_bisect = 2e-3;
 	double tol_brackets = 1e-3;
 
 	while (true) {
-		std::cout << "a = " << a << "\t b = " << b << std::endl;
+		//std::cout << "a = " << a << "\t b = " << b << std::endl;
 		c = (a + b) / 2;
 
 		whichExtrema = slopx;
 		slop_c = innerSlopX_Simplex({ c }, iterative_allparams_guess);
 		whichExtrema = none;
 
-		std::cout << "c = " << c << "\t slop_x_c = " << slop_c << "\n";
+		//std::cout << "c = " << c << "\t slop_x_c = " << slop_c << "\n";
 
 		if (slop_c <= tol_bisect && slop_c > 0) { //convergence criterion
 			break;
@@ -1227,7 +1236,7 @@ double TRK::optimize_s_SlopY() {
 
 		while (true) {
 			trial_b += inc;
-			std::cout << "trial b: " << trial_b << std::endl;
+			//std::cout << "trial b: " << trial_b << std::endl;
 
 			double slop_trial_b = innerSlopY_Simplex({ trial_b }, iterative_allparams_guess);
 
@@ -1247,7 +1256,7 @@ double TRK::optimize_s_SlopY() {
 
 		while (true) {
 			trial_a -= inc;
-			std::cout << "trial a: " << trial_a << std::endl;
+			//std::cout << "trial a: " << trial_a << std::endl;
 
 			double slop_trial_a = innerSlopY_Simplex({ trial_a }, iterative_allparams_guess);
 
@@ -1263,21 +1272,21 @@ double TRK::optimize_s_SlopY() {
 
 	//bisection, now that we have brackets [a,b]
 
-	std::cout << "beginning bisection (slop y) \n";
+	//std::cout << "beginning bisection (slop y) \n";
 
 	double c, slop_c;
 	double tol_bisect = 2e-3;
 	double tol_brackets = 1e-3;
 
 	while (true) {
-		std::cout << "a = " << a << "\t b = " << b << std::endl;
+		//std::cout << "a = " << a << "\t b = " << b << std::endl;
 		c = (a + b) / 2;
 
 		whichExtrema = slopy;
 		slop_c = innerSlopY_Simplex({ c }, iterative_allparams_guess);
 		whichExtrema = none;
 
-		std::cout << "c = " << c << "\t slop_y_c = " << slop_c << "\n";
+		//std::cout << "c = " << c << "\t slop_y_c = " << slop_c << "\n";
 
 		if ((slop_c <= tol_bisect && slop_c > 0)) { //convergence criterion
 			break;
@@ -1393,21 +1402,21 @@ double TRK::optimize_s0_R2() {
 	left = a;
 	right = b;
 
-	std::cout << "beginning bisection (optimum scale finder) \n";
+	//std::cout << "beginning bisection (optimum scale finder) \n";
 
 	double c, f_c;
 	double tol_bisect = 1e-4;
 	double tol_brackets = 1e-3;
 
 	while (true) {
-		std::cout << "left = " << left << "\t right = " << right << std::endl;
+		//std::cout << "left = " << left << "\t right = " << right << std::endl;
 		c = (left + right) / 2;
 
 		whichExtrema = S;
 		f_c = innerR2_Simplex({ c }, iterative_allparams_guess);
 		whichExtrema = none;
 
-		std::cout << "c = " << c << "\t R2(a,s) - R2(s,b)  = " << f_c << "\n";
+		//std::cout << "c = " << c << "\t R2(a,s) - R2(s,b)  = " << f_c << "\n";
 
 		if (std::abs(f_c) <= tol_bisect) { //convergence criterion
 			break;
@@ -1442,21 +1451,21 @@ double TRK::optimize_s_prime_R2(double s0) {
 	left = a;
 	right = b;
 
-	std::cout << "beginning bisection (optimum scale finder, iterative step) \n";
+	//std::cout << "beginning bisection (optimum scale finder, iterative step) \n";
 
 	double c, f_c;
 	double tol_bisect = 1e-4;
 	double tol_brackets = 1e-3;
 
 	while (true) {
-		std::cout << "left = " << left << "\t right = " << right << std::endl;
+		//std::cout << "left = " << left << "\t right = " << right << std::endl;
 		c = (left + right) / 2;
 
 		whichExtrema = S;
 		f_c = innerR2_iter_Simplex({ c }, iterative_allparams_guess, s0);
 		whichExtrema = none;
 
-		std::cout << "s0 = " << s0 << "\t c = " << c << "\t R2(a,s) - R2(s,b)  = " << f_c << "\n";
+		//std::cout << "s0 = " << s0 << "\t c = " << c << "\t R2(a,s) - R2(s,b)  = " << f_c << "\n";
 
 		if (std::abs(f_c) <= tol_bisect) { //convergence criterion
 			break;
@@ -1486,6 +1495,8 @@ double TRK::iterateR2_OptimumScale(double s0) {
 	bool tolcheck = false;
 
 	while (!tolcheck) {
+		printf("next s0: %f", s0);
+
 		s1 = optimize_s_prime_R2(s0);
 		if (std::abs(s1-s0) <= tol_scale) {
 			tolcheck = true;
@@ -1519,6 +1530,9 @@ void TRK::optimizeScale() {
 
 	a = scale_extrema[sortedindices[0]]; //figures out which scale is a, and which is b, as well as storing the associated best-fit parameters and their associated tangent points for those two extreme scales
 	b = scale_extrema[sortedindices[1]];
+
+	printf("extrema: \t a \t b:");
+	printf(" \t %f \t %f", a, b);
 
 	if (a == s_slopx) {
 		x_t_a = x_t_slopx;
