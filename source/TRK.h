@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <time.h>
 #include <string>
+#include <random>
 
 const double PI = 3.1415926535897932384626434;
 
@@ -21,11 +22,13 @@ public:
 	//Priors(priorTypes priorType, std::vector <double>(*p)(std::vector <double>, std::vector <double>)); //custom priors
 	Priors(priorTypes priorType, std::vector < std::vector <double> > params); //Only Gaussian or only bounded/constrained
 	Priors(priorTypes priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds); //mixed
+	Priors(priorTypes priorType, std::vector <double(*)(double)> priorsPDFs); //custom
 	Priors();
 
 	priorTypes priorType;
-	std::vector < std::vector <double> > gaussianParams; // a vector that contains a vector of mu and sigma for the guassian prior of each param. If no prior, then just use NANs.
+	std::vector < std::vector <double> > gaussianParams; // a vector that contains a vector of mu and sigma for the guassian prior of each param. If no prior, then just use NANs for one or both mu and sigma
 	std::vector < std::vector <double> > paramBounds; // a vector that contains vectors of the bounds of each param. If not bounded, use NANs, and if there's only one bound, use NAN for the other "bound".
+	std::vector <double(*)(double)> priorsPDFs; //a vector that contains (pointers to) the custom prior probability distribution functions for each parameter. If no prior (uninformative) for a parameter, use the function noPrior()
 
 };
 
@@ -47,6 +50,8 @@ class TRK
 
 		std::vector <double> x_t_slopx, x_t_slopy, x_t_a, x_t_b, x_t_s;
 		std::vector <double> params_slopx, params_slopy, params_a, params_b, params_s;
+
+		double normal(double x, double mu, double sig);
 
 		double innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
 		double innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
@@ -100,6 +105,11 @@ class TRK
 
 		Priors priorsObject;
 
+		// MCMC
+		std::vector <std::vector <double >> methastPosterior(int R, std::vector <double> delta, int burncount);
+		double rnorm(double mu, double sig);
+		double runiform(double a, double b);
+
 	private:
 
 		// dataset
@@ -127,6 +137,8 @@ class TRK
 		// STATISTICS
 		double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn);
 		double likelihood(std::vector <double> allparams);
+		double priors(std::vector <double> allparams);
+		double posterior(std::vector <double> allparams);
 		double stDevUnweighted(std::vector <double> x);
 		
 		// TANGENT_FINDING ALGORITHMS
@@ -143,6 +155,7 @@ class TRK
 		double R2TRK_prime_s0b(double s0, std::vector <double> x_t_s0, std::vector <double> params_s0);
 };
 
+double noPrior(double param);
 
 //for testing only
 

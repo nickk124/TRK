@@ -28,6 +28,11 @@ Priors::Priors(priorTypes priorType, std::vector < std::vector <double> > gaussi
 	this->gaussianParams = gaussianParams;
 };
 
+Priors::Priors(priorTypes priorType, std::vector <double(*)(double)> priorsPDFs) { //custom priors
+	this->priorType = priorType;
+	this->priorsPDFs = priorsPDFs;
+};
+
 //default constructor
 Priors::Priors() {
 
@@ -405,33 +410,27 @@ double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <doub
 	if (hasPriors) {
 		switch (priorsObject.priorType) {
 
-		case CONSTRAINED:
-			bool exclude = false;
+		case CONSTRAINED || MIXED:
 
 			for (int i = 0; i < M; i++) { //check upper bound
 				double ub = priorsObject.paramBounds[i][1];
 				double lb = priorsObject.paramBounds[i][0];
 
 				if (vertex[i] >= ub && !std::isnan(ub)) {
-					exclude = true;
+					f_test =  DBL_MAX;
+					break;
 				}
 
 				if (vertex[i] <= lb && !std::isnan(lb)) {
-					exclude = true;
+					f_test =  DBL_MAX;
+					break;
 				}
 			}
 
-			if (exclude) {
-				return DBL_MAX;
-			}
-			else {
-				return f_test;
-			}
 		}
 	}
-	else {
-		return f_test;
-	}
+	
+	return f_test;
 
 }
 
@@ -711,6 +710,11 @@ std::vector <double> TRK::cubicSolver(double A, double B, double C, double D) {
 }
 
 // STATISTICS
+
+double TRK::normal(double x, double mu, double sig) {
+	return (std::exp((-0.5) * (std::pow((x - mu), 2.0) / (2.0 * std::pow(sig, 2.0)))) / std::sqrt(2.0*PI*std::pow(sig, 2.0)));
+}
+
 double TRK::singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn) {
 	double m_tn = dyc(x_tn, params);
 	double y_tn = yc(x_tn, params);
@@ -879,6 +883,82 @@ double TRK::likelihood(std::vector <double> allparams) {
 		L *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2)));
 	}
 	return L;
+}
+
+double TRK::priors(std::vector <double> allparams) {
+	double jointPrior = 1.0; //uninformative prior by default
+
+	switch (priorsObject.priorType){
+		case CONSTRAINED:
+
+			for (int i = 0; i < M + 2; i++) { //check upper bound
+				double ub = priorsObject.paramBounds[i][1];
+				double lb = priorsObject.paramBounds[i][0];
+
+				if (allparams[i] >= ub && !std::isnan(ub)) {
+					jointPrior = 0.0;
+					break;
+				}
+
+				if (allparams[i] <= lb && !std::isnan(lb)) {
+					jointPrior = 0.0;
+					break;
+				}
+			}
+
+		case GAUSSIAN:
+
+			for (int i = 0; i < M + 2; i++) { //check upper bound
+				double mu = priorsObject.gaussianParams[i][0];
+				double sig = priorsObject.gaussianParams[i][1];
+
+				if (std::isnan(mu) || std::isnan(sig)) { //no prior for this parameter
+					return 1.0;
+				} else {
+					jointPrior *= normal(allparams[i], mu, sig);
+				}
+			}
+
+		case MIXED:
+
+			for (int i = 0; i < M + 2; i++) { //check upper bound
+				double ub = priorsObject.paramBounds[i][1];
+				double lb = priorsObject.paramBounds[i][0];
+				double mu = priorsObject.gaussianParams[i][0];
+				double sig = priorsObject.gaussianParams[i][1];
+
+				if (allparams[i] >= ub && !std::isnan(ub)) {
+					jointPrior = 0.0;
+					break;
+				}
+
+				if (allparams[i] <= lb && !std::isnan(lb)) {
+					jointPrior = 0.0;
+					break;
+				}
+
+				if (!std::isnan(mu) && !std::isnan(sig)) { //gaussian prior for this parameter
+					jointPrior *= normal(allparams[i], mu, sig);
+				}
+
+			}
+
+		case CUSTOM:
+			for (int i = 0; i < M + 2; i++) {
+				jointPrior *= priorsObject.priorsPDFs[i](allparams[i]);
+			}
+	}
+
+	return jointPrior;
+}
+
+double TRK::posterior(std::vector <double> allparams) {
+	if (hasPriors) {
+		return likelihood(allparams) * priors(allparams);
+	}
+	else {
+		return likelihood(allparams);
+	}
 }
 
 double TRK::stDevUnweighted(std::vector <double> x) {
@@ -1564,6 +1644,89 @@ void TRK::optimizeScale() {
 	std::cout << "optimum s = " << s << std::endl;
 
 	return;
+}
+
+
+//MCMC
+
+// R is the count of samples wanted AFTER burn in
+std::vector <std::vector <double >> TRK::methastPosterior(int R, std::vector <double> delta, int burncount) {
+	
+	std::vector < std::vector <double > > result, result_final;
+	std::vector <double> allparams_trial, allparams_0; //allparams_0 is the previous step
+	double a, rand_unif;
+
+	int good_count = 0; //count of successfully drawn points
+
+	allparams_0 = allparams_guess;
+
+	while (good_count < R + burncount) {
+		//create trial
+
+		allparams_trial.clear();
+
+		for (int j = 0; j < M + 2; j++) {
+			allparams_trial.push_back(delta[j] * rnorm(0.0, 1.0) + allparams_0[j]);
+			//printf("%f \t ", allparams_0[j]);
+		}
+		//std::cout << std::endl;
+
+		a = posterior(allparams_trial) / posterior(allparams_0);
+		rand_unif = runiform(0.0, 1.0);
+
+		if (a >= 1) {
+			allparams_0 = allparams_trial;
+			good_count += 1;
+			result.push_back(allparams_0);
+		}
+		else if (rand_unif <= a) {
+			allparams_0 = allparams_trial;
+			good_count += 1;
+			result.push_back(allparams_0);
+		}
+		else {
+			good_count += 1;
+			result.push_back(allparams_0);
+		}
+
+
+	}
+
+
+	//cut off burn-in
+
+	for (int i = 0; i < R; i++) {
+		result_final.push_back(result[i + burncount]);
+	}
+
+	return result_final;
+}
+
+double TRK::rnorm(double mu, double sig) {
+
+	double rand;
+
+	std::random_device dev;
+	std::mt19937 generator(dev());
+
+	std::normal_distribution <double> dist(mu, sig);
+	rand = dist(generator);
+	return rand;
+}
+
+double TRK::runiform(double a, double b) {
+	double rand;
+
+	std::random_device dev;
+	std::mt19937 generator(dev());
+
+	std::uniform_real_distribution <double> dist(a, b);
+	rand = dist(generator);
+	return rand;
+}
+
+double noPrior(double param) {
+	return 1.0;
 }
 
 //testing purposes only
