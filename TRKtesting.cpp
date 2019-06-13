@@ -311,8 +311,8 @@ int main()
 
 	x = { 1.7, 2.1, 2.56, 5.65, 4.83, 6.56, 7.71, 8.18, 7.74 };
 	y = { 2.64, 3.59, 4.58, 4.53, 4.47, 7.28, 8.57, 8.74, 9.57};
-	
-	
+
+
 
 	std::vector <double> params_guess = {0.8, 1.1 };
 	double slopx_guess = 1.0;
@@ -320,13 +320,13 @@ int main()
 	*/
 
 	std::string filename;
-	
-	filename = "bhc2_data.csv";
-	//filename = "c1c2_data.csv";
-	std::vector <std::vector <double> > data = getData(filename, 441);
 
-	//filename = "simplelinear_data.csv";
-	//std::vector <std::vector <double> > data = getData(filename, 9);
+	//filename = "rvc2_data.csv";
+	//filename = "c1c2_data.csv";																									//**********
+	//std::vector <std::vector <double> > data = getData(filename, 441);
+
+	filename = "simplelinear_data.csv";
+	std::vector <std::vector <double> > data = getData(filename, 9);
 
 	std::vector <double> x, y, sx, sy, w;
 
@@ -369,89 +369,139 @@ int main()
 
 	//pivot points for smoothly broken line models
 
-	//c2p1BH = -0.01413;
-	//c2p2BH = 1.4087;
+	c2p1BH = -0.01413;
+	c2p2BH = 1.4087;
 
-	c2p1BH = 0.2;
-	c2p2BH = 1.7;
+	//c2p1BH = 0.2;
+	//c2p2BH = 1.7;
 
 	c2p1RV = -0.0708;
 	c2p2RV = 1.4953;
 
-	//c2pc1 = 1.2403;
+	c2pc1 = 1.2403;
 
-	c2pc1 = 1.1;
+	//c2pc1 = 1.1;
 
 	//
 	//std::vector <double> testS = { 0.1, 0.5, 0.75, 1.0, 1.5, 2.0 };
 
-	std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 }; //bhc2
-    //std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
-	//std::vector <double> params_guess = { 0.8, 1.0 };     //test lin
 
-	//std::vector <double> params_guess = { 2.4845, 262.749 * PI/180.0, 2.2511, -64.803 * PI / 180.0 };
+	std::vector <std::vector <double> > bhc2prior_params = { {NAN, NAN}, {PI, 1.5*PI}, {NAN, NAN}, {-0.5*PI, 0} };
+	std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0, PI}, {NAN, NAN}, {-0.5*PI, 0} };
 
-	double slopx_guess = 0.1;
-	double slopy_guess = 0.1;
+	Priors bhc2Priors = Priors(CONSTRAINED, bhc2prior_params);
+	Priors rvc2Priors = Priors(CONSTRAINED, rvc2prior_params);
 
-	double simplex_size = 1.0;
+	//std::vector <double> params_guess = { 5.0, 4.6, 2.5, -0.3 };	//rvc2	
+	//std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };				//bhc2																					//**********
+	//std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
+	std::vector <double> params_guess = { 0.8, 1.0 };     //test lin
 
 
-	//TRK TRKtest = TRK(linearFunc, dLin, ddLin, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, simplex_size);
-	//TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, simplex_size);
-	TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, simplex_size);
 
-	/*
-	std::vector <double> test_params = { 2.5748697916666670 , 4.7377604166666671, 2.3688802083333327, -1.0799479166666663 };
-	double test_xn = 1.0509999999999999;
-	double test_yn = 2.4969000000000001;
-	double test_Sxn2 = 0.032570622422960077;
-	double test_Syn2 = 0.38759320062500002;
-	double test_xg = -0.52036544980526345;
-	*/
+	double slopx_guess = 0.3;																									//**********
+	double slopy_guess = 0.3;
 
+	TRK TRKtest = TRK(linearFunc, dLin, ddLin, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
+	//TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, simplex_size);															//**********
+	//TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, rvc2_params_guess, slopx_guess, slopy_guess, simplex_size, bhc2Priors);
+	//TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, rvc2Priors);
 
 	std::vector <double> allparams_guess = params_guess;
 
 	allparams_guess.push_back(slopx_guess);
 	allparams_guess.push_back(slopy_guess);
 
-	//TRKtest.s = 0.32825; //s0 for bh c2 /
-	
-	//TRKtest.s = 0.25767; //s0 for c1 c2
-
-	//TRKtest.s = 0.398107171;
-
-	
-	TRKtest.s = 0.977237221;
-	//TRKtest.s = 0.974428550075478;
-
-	//TRKtest.s = 0.2871746;
-
-
-	std::vector <double> adamParams_all = {4.464338, toRad(265.360311), 1.604414, toRad(-67.731367), 0.214908, 0.0};
-	//std::vector <double> adamParams_all = { 4.46089, toRad(265.351828), 1.604557, toRad(-67.728029), 0.214803, 0.016699};
-
-
-	//double testFitness = TRKtest.modifiedChiSquared(adamParams_all);
-
-	TRKtest.test = 0;
-
-	std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess);
-
-	std::cout << "s = " << TRKtest.s << ":    " << fit[0] << "   " << fit[1] << "   " << fit[2] << "   " << fit[3] << "   " << fit[4] << "   " << fit[5] << std::endl;
-	printf("simplex size: %f \n", simplex_size);
-
-
+	TRKtest.s = 0.418573;
 
 	clock_t time = startTimer();
 
-	//TRKtest.optimize_s_SlopY();
+	double testlin_R = 100000;
+	double testlin_burn = 0.1*testlin_R;
 
+	std::vector <double> testlin_delta = { 0.1, 0.1, 0.05, 0.05 };
+
+	std::vector <std::vector <double > > test_drawn = TRKtest.methastPosterior(testlin_R, testlin_delta, testlin_burn);
+
+	std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKMCMC.txt", std::ofstream::app);
+	if (myfile.is_open())
+	{
+		// filename    a     b     optimum scale    total computation time (s)
+		for (int i = 0; i < test_drawn.size(); i++) {
+			for (int j = 0; j < allparams_guess.size(); j++) {
+				myfile << test_drawn[i][j] << " ";
+			}
+			myfile << std::endl;
+		}
+
+		myfile.close();
+	}
+	else std::cout << "Unable to open file";
+
+
+	//TRKtest.optimizeScale();
+
+	/*
+	TRKtest.s = 0.05;
+
+	std::vector <double> fit;
+
+	for (int i = 0; i < 30; i++) {
+
+		fit = TRKtest.downhillSimplex(p, allparams_guess);
+		std::cout << "s = " << TRKtest.s << ":    " << fit[0] << "   " << fit[1] << "   " << fit[2] << "   " << fit[3] << "   " << fit[4] << "   " << fit[5] << std::endl;
+
+		TRKtest.s += 0.05;
+	}
+
+	*/
+	/*
+	TRKtest.s = 1.0; //initially begin with s = 1
+
+
+	TRKtest.a = 0.129272; //figures out which scale is a, and which is b, as well as storing the associated best-fit parameters and their associated tangent points for those two extreme scales
+	TRKtest.b = 0.979492;
+
+
+	TRKtest.s = TRKtest.a;
+	TRKtest.whichExtrema = slopx;
+	std::vector <double> allparams_a = TRKtest.downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
+	TRKtest.whichExtrema = none;
+
+	TRKtest.s = TRKtest.b;
+	TRKtest.whichExtrema = slopy;
+	std::vector <double> allparams_b = TRKtest.downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
+	TRKtest.whichExtrema = none;
+
+	for (int i = 0; i < allparams_a.size() - 2; i++) {
+		TRKtest.params_a.push_back(allparams_a[i]);
+		TRKtest.params_b.push_back(allparams_b[i]);
+	}
+	for (int i = 0; i < TRKtest.params_a.size(); i++) {
+		printf("%f \t %f \n", TRKtest.params_a[i], TRKtest.params_b[i]);
+	}
+
+	//determine best s1 (new s) to satistfy R2TRKp(a,s) = R2TRKp(s,b)
+
+
+	TRKtest.x_t_a = TRKtest.x_t_slopx;
+	TRKtest.x_t_b = TRKtest.x_t_slopy;
+
+	std::cout << "finding optimum scale" << std::endl;
+
+	double s0 = TRKtest.optimize_s0_R2();
+
+	printf("s0 = %f \n", s0);
+
+	double sfinal = TRKtest.iterateR2_OptimumScale(s0);
+
+	printf("sfinal = %f \n", s0);
+
+	*/
 	double sec_elapsed = secElapsed(time);
 
 	writeResults(TRKtest, sec_elapsed, filename);
-
+	
 	/*
 
 	TRKtest.a = 0.175415;
