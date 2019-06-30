@@ -427,6 +427,8 @@ double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <doub
 				}
 			}
 
+			break;
+
 		}
 	}
 	
@@ -890,8 +892,7 @@ double TRK::priors(std::vector <double> allparams) {
 
 	switch (priorsObject.priorType){
 		case CONSTRAINED:
-
-			for (int i = 0; i < M + 2; i++) { //check upper bound
+			for (int i = 0; i < M; i++) { //check upper bound
 				double ub = priorsObject.paramBounds[i][1];
 				double lb = priorsObject.paramBounds[i][0];
 
@@ -906,8 +907,9 @@ double TRK::priors(std::vector <double> allparams) {
 				}
 			}
 
-		case GAUSSIAN:
+			break;
 
+		case GAUSSIAN:
 			for (int i = 0; i < M + 2; i++) { //check upper bound
 				double mu = priorsObject.gaussianParams[i][0];
 				double sig = priorsObject.gaussianParams[i][1];
@@ -918,6 +920,8 @@ double TRK::priors(std::vector <double> allparams) {
 					jointPrior *= normal(allparams[i], mu, sig);
 				}
 			}
+
+			break;
 
 		case MIXED:
 
@@ -943,10 +947,14 @@ double TRK::priors(std::vector <double> allparams) {
 
 			}
 
+			break;
+
 		case CUSTOM:
 			for (int i = 0; i < M + 2; i++) {
 				jointPrior *= priorsObject.priorsPDFs[i](allparams[i]);
 			}
+
+			break;
 	}
 
 	return jointPrior;
@@ -1650,17 +1658,36 @@ void TRK::optimizeScale() {
 //MCMC
 
 // R is the count of samples wanted AFTER burn in
-std::vector <std::vector <double >> TRK::methastPosterior(int R, std::vector <double> delta, int burncount) {
+std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount) {
 	
+	//initialization of adaptive delta
+	std::vector <double> delta;
+	printf("initial delta:");
+
+	for (int j = 0; j < M + 2 ; j++) {
+		delta.push_back(0.1*std::abs(allparams_guess[j]));
+
+		printf("%f ", delta[j]);
+	}
+	std::cout << std::endl;
+
+	delta[M] *= 2.0; //modify slop deltas (arbitrarily)
+	delta[M + 1] *= 2.0;
+
 	std::vector < std::vector <double > > result, result_final;
 	std::vector <double> allparams_trial, allparams_0; //allparams_0 is the previous step
-	double a, rand_unif;
+	double a, rand_unif, accept_frac;
 
 	int good_count = 0; //count of successfully drawn points
+	int accept_count = 0;
+	int delta_count = 0;
+	double deltafactor = 1.0;
+	int down_count = 0;
+	int up_count = 0;
 
 	allparams_0 = allparams_guess;
 
-	while (good_count < R + burncount) {
+	while (delta_count < R + burncount) {
 		//create trial
 
 		allparams_trial.clear();
@@ -1677,27 +1704,101 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, std::vector <do
 		if (a >= 1) {
 			allparams_0 = allparams_trial;
 			good_count += 1;
+			delta_count += 1;
 			result.push_back(allparams_0);
+			accept_count += 1;
 		}
 		else if (rand_unif <= a) {
 			allparams_0 = allparams_trial;
 			good_count += 1;
+			delta_count += 1;
 			result.push_back(allparams_0);
+			accept_count += 1;
 		}
 		else {
 			good_count += 1;
+			delta_count += 1;
 			result.push_back(allparams_0);
 		}
 
+		accept_frac = (double) accept_count / (double)delta_count;
+		//printf("acceptance ratio: %f \t total: %i \n", accept_frac, delta_count);
+
+		if (delta_count > 500 && accept_frac < 0.40) {//deltas are too big
+			down_count += 1;
+
+			if (up_count >= 1) {
+				deltafactor *= 2.0;
+
+				if (deltafactor >= 10.0) {
+					deltafactor = 9.0;
+				}
+			}
+
+			printf("acceptance ratio: %f \t total: %i \n", accept_frac, delta_count);
+			delta_count = 0; //resets so that these big changes are only made after a number of drawn so that only large scale changes are analyzed
+			accept_count = 0;
+
+			for (int j = 0; j < M + 2; j++) {
+				delta[j] *= (0.1 * deltafactor);
+			}
+
+
+			printf("new delta:");
+			for (int j = 0; j < M + 2; j++) {
+				printf("%f ", delta[j]);
+			}
+			std::cout << std::endl;
+
+			
+
+			result.clear(); //clears the result since before the sampling was bad
+		}
+
+		else if (delta_count > 500 && accept_frac > 0.5) {//deltas are too small
+			up_count += 1;
+
+			if (down_count >= 1) {
+				deltafactor *= 2.0;
+
+				if (deltafactor >= 10.0) {
+					deltafactor = 9.0;
+				}
+			}
+
+			printf("acceptance ratio: %f \t total: %i \n", accept_frac, delta_count);
+			delta_count = 0; //resets so that these big changes are only made after a number of drawn so that only large scale changes are analyzed
+			accept_count = 0;
+
+			for (int j = 0; j < M + 2; j++) {
+				delta[j] *= (10.0 / deltafactor);
+			}
+
+			printf("new delta:");
+			for (int j = 0; j < M + 2; j++) {
+				printf("%f ", delta[j]);
+			}
+			std::cout << std::endl;
+
+			//deltafactor *= 2.0;
+
+			result.clear(); //clears the result since before the sampling was bad
+		}
 
 	}
-
 
 	//cut off burn-in
 
 	for (int i = 0; i < R; i++) {
 		result_final.push_back(result[i + burncount]);
 	}
+
+	printf("number of delta changes: %i \n", up_count + down_count);
+	printf("final delta:");
+	for (int j = 0; j < M + 2; j++) {
+		printf("%f ", delta[j]);
+	}
+	printf("\t final acceptance ratio: %f \n", accept_frac);
 
 	return result_final;
 }

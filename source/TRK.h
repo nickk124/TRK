@@ -106,7 +106,7 @@ class TRK
 		Priors priorsObject;
 
 		// MCMC
-		std::vector <std::vector <double >> methastPosterior(int R, std::vector <double> delta, int burncount);
+		std::vector <std::vector <double >> methastPosterior(int R, int burncount);
 		double rnorm(double mu, double sig);
 		double runiform(double a, double b);
 
