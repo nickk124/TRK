@@ -106,7 +106,10 @@ class TRK
 		Priors priorsObject;
 
 		// MCMC
-		std::vector <std::vector <double >> methastPosterior(int R, int burncount);
+		std::vector <std::vector <double >> methastPosterior(int R, int burncount, std::vector <double> sigmas_guess);
+		std::vector <std::vector <double >> checkSlopSignMCMC(std::vector <std::vector <double >> result_final);
+		std::vector <double> optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess);
+		double innerMetHastSimplex(int burncount, std::vector <double> delta, double best_ratio);
 		double rnorm(double mu, double sig);
 		double runiform(double a, double b);
 

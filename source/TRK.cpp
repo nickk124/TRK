@@ -1657,28 +1657,364 @@ void TRK::optimizeScale() {
 
 //MCMC
 
+std::vector <std::vector <double >> TRK::checkSlopSignMCMC(std::vector <std::vector <double >> result_final) {
+
+	std::vector <std::vector <double >> result_final_fixed;
+	std::vector <double> inner;
+
+	for (int i = 0; i < result_final.size(); i++) {
+		inner.clear();
+
+		for (int j = 0; j < M; j++) {
+			inner.push_back(result_final[i][j]);
+		}
+		inner.push_back(std::abs(result_final[i][M]));
+		inner.push_back(std::abs(result_final[i][M+1]));
+
+		result_final_fixed.push_back(inner);
+	}
+
+	return result_final_fixed;
+}
+
+double TRK::innerMetHastSimplex(int burncount, std::vector <double> delta, double best_ratio) { //does burn in + (1000) MCMC samples with given deltas and returns the acceptance ratio
+	int sampleCount = 1000;
+
+	std::vector < std::vector <double > > result, result_final;
+	std::vector <double> allparams_trial, allparams_0; //allparams_0 is the previous step
+	double a, rand_unif, accept_frac;
+
+	int accept_count = 0;
+	int delta_count = 0;
+
+	allparams_0 = allparams_guess;
+
+
+	while (delta_count < sampleCount + burncount) {
+		//create trial
+
+		allparams_trial.clear();
+
+		for (int j = 0; j < M + 2; j++) {
+			allparams_trial.push_back(delta[j] * rnorm(0.0, 1.0) + allparams_0[j]);
+			//printf("%f \t ", allparams_0[j]);
+		}
+		//std::cout << std::endl;
+
+		a = posterior(allparams_trial) / posterior(allparams_0);
+		rand_unif = runiform(0.0, 1.0);
+
+		if (a >= 1) {
+			allparams_0 = allparams_trial;
+			delta_count += 1;
+			result.push_back(allparams_0);
+			accept_count += 1;
+		}
+		else if (rand_unif <= a) {
+			allparams_0 = allparams_trial;
+			delta_count += 1;
+			result.push_back(allparams_0);
+			accept_count += 1;
+		}
+		else {
+			delta_count += 1;
+			result.push_back(allparams_0);
+		}
+	}
+
+	accept_frac = (double)accept_count / (double)delta_count;
+
+	printf("inner simplex acceptance ratio: %f    with deltas: ", accept_frac);
+
+	for (int j = 0; j < M + 2; j++) {
+		printf("%f ", delta[j]);
+	}
+	std::cout << std::endl;
+
+	return std::abs(accept_frac - best_ratio);
+}
+
+std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess) {
+	double tol = 0.05;
+	double optRatio = 0.45;
+
+	int n = delta_guess.size(); //number of model parameters plus two slop parameters
+
+	double rho = 1.0;
+	double chi = 2.0;
+	double gamma = 0.5;
+	double sigma = 0.5;
+
+	// simplex initialization
+
+	std::vector <double> init_point = delta_guess;
+
+	std::vector <std::vector <double> > vertices(n + 1, init_point);
+	std::vector <double> best_delta;
+
+	int i = 0;
+	for (int j = 1; j < n + 1; j++) { //for each simplex node
+
+		vertices[j][i] = delta_guess[i] +  delta_guess[i]; //add initial "step size"
+		i += 1;
+	}
+
+	std::vector <double> result;
+	while (true) {
+		while (true) {
+			// order
+
+			std::vector <int> orderedindices;
+			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
+			for (int i = 0; i < n + 1; i++) {
+				unorderedEvals.push_back(innerMetHastSimplex(burncount, vertices[i], optRatio));
+				if (unorderedEvals[i] < tol) {
+					return vertices[i];
+				}
+			}
+			orderedindices = getSortedIndices(unorderedEvals);
+
+			std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
+			for (int i = 1; i < n + 1; i++) {
+				orderedvertices.push_back(vertices[orderedindices[i]]);
+			}
+
+			vertices = orderedvertices;
+
+			// reflect
+			std::vector <double> refpoint;
+			std::vector <std::vector <double> > nvertices;
+			for (int i = 0; i < n; i++) {
+				nvertices.push_back(vertices[i]);
+			}
+
+			std::vector <double> centroid = findCentroid(nvertices);
+
+			for (int i = 0; i < n; i++) {
+				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
+			}
+
+			//refpoint = pegToZeroSlop(refpoint);
+
+			double fr = innerMetHastSimplex(burncount, refpoint, optRatio);
+			if (fr < tol) {
+				return refpoint;
+			}
+			double f1 = innerMetHastSimplex(burncount, vertices[0], optRatio);
+			if (f1 < tol) {
+				return vertices[0];
+			}
+			double fn = innerMetHastSimplex(burncount, vertices[n - 1], optRatio);
+			if (fn < tol) {
+				return vertices[n - 1];
+			}
+
+			if (f1 <= fr && fr < fn) {
+				result = refpoint;
+				break;
+			}
+
+			//expand
+			if (fr < f1) {
+				std::vector <double> exppoint;
+
+				for (int i = 0; i < n; i++) {
+					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
+				}
+
+				//exppoint = pegToZeroSlop(exppoint);
+
+				double fe = innerMetHastSimplex(burncount, exppoint, optRatio);
+				if (fe < tol) {
+					return exppoint;
+				}
+
+
+				if (fe < fr) {
+					result = exppoint;
+					break;
+				}
+				else if (fe >= fr) {
+					result = refpoint;
+					break;
+				}
+			}
+
+			//contract
+
+			if (fr >= fn) {
+				//outside
+				double fnp1 = innerMetHastSimplex(burncount, vertices[n], optRatio);
+				if (fnp1 < tol) {
+					return vertices[n];
+				}
+
+				if (fn <= fr && fr < fnp1) {
+					std::vector <double> cpoint;
+
+					for (int i = 0; i < n; i++) {
+						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
+					}
+
+					//cpoint = pegToZeroSlop(cpoint);
+
+					double fc = innerMetHastSimplex(burncount, cpoint, optRatio);
+					if (fc < tol) {
+						return cpoint;
+					}
+
+					if (fc <= fr) {
+						result = cpoint;
+						break;
+					}
+					else {
+						//shrink
+
+						std::vector < std::vector <double> > v = { vertices[0] };
+
+						for (int i = 1; i < n + 1; i++) {
+							std::vector <double> vi;
+							vi.clear();
+							for (int j = 0; j < n; j++) {
+								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+							}
+							v.push_back(vi);
+						}
+
+						vertices = v;
+					}
+				}
+				else if (fr >= fnp1) {
+					std::vector <double> ccpoint;
+
+					for (int i = 0; i < n; i++) {
+						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
+					}
+
+					//ccpoint = pegToZeroSlop(ccpoint);
+
+					double fcc = innerMetHastSimplex(burncount, ccpoint, optRatio);
+					if (fcc < tol) {
+						return ccpoint;
+					}
+
+					if (fcc <= fnp1) {
+						result = ccpoint;
+						break;
+					}
+					else {
+						//shrink
+
+						std::vector < std::vector <double> > v = { vertices[0] };
+
+						for (int i = 1; i < n + 1; i++) {
+							std::vector <double> vi;
+							vi.clear();
+							for (int j = 0; j < n; j++) {
+								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+							}
+							v.push_back(vi);
+						}
+
+						vertices = v;
+					}
+
+
+				}
+
+			}
+
+			//shrink
+
+			std::vector < std::vector <double> > v = { vertices[0] };
+
+			for (int i = 1; i < n + 1; i++) {
+				std::vector <double> vi;
+				vi.clear();
+				for (int j = 0; j < n; j++) {
+					vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+				}
+				v.push_back(vi);
+			}
+
+			vertices = v;
+		}
+
+		std::vector <std::vector <double> > bettervertices;
+		for (int i = 0; i < n; i++) {
+			bettervertices.push_back(vertices[i]);
+		}
+
+		//check that new node does not have negative slops (fixes it if it does)
+		//result = avoidNegativeSlop(result, n);
+
+		bettervertices.push_back(result);
+
+		vertices = bettervertices;
+
+		/*
+
+		std::cout << "chi-square parameters at s = " << s << " ";
+		for (int i = 0; i < result.size(); i++) {
+			std::cout << result[i] << " ";
+		}
+		std::cout << "fitness = " << evalWPriors(f, vertices[i]) << "\n";
+		*/
+
+
+		/*
+		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
+		for (int j = 0; j < result.size() + 1; j++) {
+			for (int i = 0; i < result.size(); i++) {
+				std::cout << bettervertices[j][i] << " ";
+			}
+			double X = evalWPriors(f, bettervertices[j]);
+			std::cout << "          " << X << std::endl;
+		}
+		*/
+
+
+
+		//test for termination
+
+		if (innerMetHastSimplex(burncount, vertices[n], optRatio) < tol) {
+			break;
+		}
+
+	}
+
+	best_delta = vertices[n];
+
+	return best_delta;
+}
+
 // R is the count of samples wanted AFTER burn in
-std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount) {
+std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, std::vector <double> sigmas_guess) {
 	
 	//initialization of adaptive delta
 	std::vector <double> delta;
 	printf("initial delta:");
 
 	for (int j = 0; j < M + 2 ; j++) {
-		delta.push_back(0.1*std::abs(allparams_guess[j]));
-
-		printf("%f ", delta[j]);
+		printf("%f ", sigmas_guess[j]);
 	}
 	std::cout << std::endl;
 
-	delta[M] *= 2.0; //modify slop deltas (arbitrarily)
-	delta[M + 1] *= 2.0;
+	//optimize deltas
+
+	delta = optimizeMetHastDeltas(burncount, sigmas_guess);
+
+	printf("final delta:");
+
+	for (int j = 0; j < M + 2; j++) {
+		printf("%f ", delta[j]);
+	}
+	std::cout << std::endl;
 
 	std::vector < std::vector <double > > result, result_final;
 	std::vector <double> allparams_trial, allparams_0; //allparams_0 is the previous step
 	double a, rand_unif, accept_frac;
 
-	int good_count = 0; //count of successfully drawn points
 	int accept_count = 0;
 	int delta_count = 0;
 	double deltafactor = 1.0;
@@ -1703,27 +2039,59 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount) 
 
 		if (a >= 1) {
 			allparams_0 = allparams_trial;
-			good_count += 1;
 			delta_count += 1;
 			result.push_back(allparams_0);
 			accept_count += 1;
 		}
 		else if (rand_unif <= a) {
 			allparams_0 = allparams_trial;
-			good_count += 1;
 			delta_count += 1;
 			result.push_back(allparams_0);
 			accept_count += 1;
 		}
 		else {
-			good_count += 1;
 			delta_count += 1;
 			result.push_back(allparams_0);
 		}
 
 		accept_frac = (double) accept_count / (double)delta_count;
 		//printf("acceptance ratio: %f \t total: %i \n", accept_frac, delta_count);
+		
+		                                                                                                                                                                                        /*
+		if ((delta_count > 1000 + burncount) && (std::abs(accept_frac - 0.44) > 0.06)) {//tries new step sizes if acceptance frac is bad
 
+			delta_count = 0; //resets so that these big changes are only made after a number of drawn so that only large scale changes are analyzed
+			accept_count = 0;
+
+			//measure standard deviations from post-burn in data
+			std::vector <double> dev_data, devs;
+
+			for (int j = 0; j < M + 2; j++) {
+				for (int i = 0; i < 1000; i++) {
+					dev_data.push_back(result[burncount + i][j]);
+				}
+				//devs.push_back(2.38*stDevUnweighted(dev_data) / (M + 2));
+				devs.push_back(stDevUnweighted(dev_data)); 
+				dev_data.clear();
+			}
+
+			delta = devs; //make new delta based off of stdev of drawn data
+
+
+			printf("new delta:");
+			for (int j = 0; j < M + 2; j++) {
+				printf("%f ", delta[j]);
+			}
+			printf("acceptance ratio: %f", accept_frac);
+			std::cout << std::endl;
+
+
+
+			result.clear(); //clears the result since before the sampling was bad
+		}
+		*/
+
+		/*
 		if (delta_count > 500 && accept_frac < 0.40) {//deltas are too big
 			down_count += 1;
 
@@ -1785,6 +2153,7 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount) 
 			result.clear(); //clears the result since before the sampling was bad
 		}
 
+		*/
 	}
 
 	//cut off burn-in
@@ -1799,6 +2168,8 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount) 
 		printf("%f ", delta[j]);
 	}
 	printf("\t final acceptance ratio: %f \n", accept_frac);
+
+	result_final = checkSlopSignMCMC(result_final);
 
 	return result_final;
 }
