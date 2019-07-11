@@ -5,13 +5,6 @@
 
 // Constructors
 
-/*
-Priors::Priors(priorTypes priorType, std::vector <double>(*p)(std::vector <double>, std::vector <double>)) { //custom priors
-	this->priorType = priorType;
-	this->p = (*p);
-};
-*/
-
 Priors::Priors(priorTypes priorType, std::vector < std::vector <double> > params) { //Gaussian or bounded priors only
 	this->priorType = priorType;
 	if (priorType == GAUSSIAN) {
@@ -41,7 +34,7 @@ Priors::Priors() {
 
 // CONSTRUCTORS
 
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -73,9 +66,20 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	getDataWidth();
 
 	this->hasPriors = false;
+
+	this->params_sigmas_guess = params_sigmas_guess; 
+	this->slop_x_sigma_guess = slop_x_sigma_guess; 
+	this->slop_y_sigma_guess = slop_y_sigma_guess;
+
+	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
+
+	allparams_sigmas_guess.push_back(slop_x_sigma_guess);
+	allparams_sigmas_guess.push_back(slop_y_sigma_guess);
+
+	this->allparams_sigmas_guess = allparams_sigmas_guess;
 }
 //equal weights/unweighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -109,12 +113,23 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	getDataWidth();
 
 	this->hasPriors = false;
+
+	this->params_sigmas_guess = params_sigmas_guess;
+	this->slop_x_sigma_guess = slop_x_sigma_guess;
+	this->slop_y_sigma_guess = slop_y_sigma_guess;
+
+	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
+
+	allparams_sigmas_guess.push_back(slop_x_sigma_guess);
+	allparams_sigmas_guess.push_back(slop_y_sigma_guess);
+
+	this->allparams_sigmas_guess = allparams_sigmas_guess;
 }
 
 
 //priors:
 //weighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess, Priors priorsObject) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -148,9 +163,20 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->priorsObject = priorsObject;
 
 	this->hasPriors = true;
+
+	this->params_sigmas_guess = params_sigmas_guess;
+	this->slop_x_sigma_guess = slop_x_sigma_guess;
+	this->slop_y_sigma_guess = slop_y_sigma_guess;
+
+	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
+
+	allparams_sigmas_guess.push_back(slop_x_sigma_guess);
+	allparams_sigmas_guess.push_back(slop_y_sigma_guess);
+
+	this->allparams_sigmas_guess = allparams_sigmas_guess;
 }
 //equal weights/unweighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess, Priors priorsObject) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -186,6 +212,17 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->priorsObject = priorsObject;
 
 	this->hasPriors = true;
+
+	this->params_sigmas_guess = params_sigmas_guess;
+	this->slop_x_sigma_guess = slop_x_sigma_guess;
+	this->slop_y_sigma_guess = slop_y_sigma_guess;
+
+	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
+
+	allparams_sigmas_guess.push_back(slop_x_sigma_guess);
+	allparams_sigmas_guess.push_back(slop_y_sigma_guess);
+
+	this->allparams_sigmas_guess = allparams_sigmas_guess;
 }
 
 //default
@@ -201,6 +238,17 @@ std::vector <double> TRK::minMax(std::vector <double> vec) {
 	double max = *std::max_element(std::begin(vec), std::end(vec));
 
 	return { min, max };
+}
+
+std::vector <double> TRK::slice(std::vector <double> vec, int begin, int end) {
+	std::vector <double> x;
+	int len = end - begin;
+
+	for (int i = 0; i < len; i++) {
+		x.push_back(vec[begin + i]);
+	}
+
+	return x;
 }
 
 std::vector <int> getSortedIndices(std::vector <double> x)
@@ -239,6 +287,17 @@ void TRK::getDataWidth() {
 
 	x_min = bounds[0];
 	x_max = bounds[1];
+}
+
+double TRK::getAverage(std::vector <double> x) {
+	double top = 0.0;
+	N = x.size();
+
+	for (int i = 0; i < N; i++) {
+		top += x[i];
+	}
+
+	return top / N;
 }
 
 // FITTING TOOLS
@@ -1195,7 +1254,7 @@ double TRK::innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> a
 	s = ss[0];
 
 	whichExtrema = S;
-	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
+	allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
 	whichExtrema = none;
 
 	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
@@ -1651,6 +1710,17 @@ void TRK::optimizeScale() {
 
 	std::cout << "optimum s = " << s << std::endl;
 
+	results.bestFitParams.clear();
+
+	for (int j = 0; j < M; j++) {
+		results.bestFitParams.push_back(allparams_s[j]);
+	}
+
+	results.slop_x = allparams_s[M];
+	results.slop_y = allparams_s[M + 1];
+
+	results.optimumScale = s;
+
 	return;
 }
 
@@ -1690,7 +1760,7 @@ double TRK::innerMetHastSimplex(int burncount, std::vector <double> delta, doubl
 	allparams_0 = allparams_guess;
 
 
-	while (delta_count < sampleCount + burncount) {
+	while (delta_count < sampleCount){// + burncount) {
 		//create trial
 
 		allparams_trial.clear();
@@ -1736,7 +1806,7 @@ double TRK::innerMetHastSimplex(int burncount, std::vector <double> delta, doubl
 
 std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess) {
 	double tol = 0.05;
-	double optRatio = 0.45;
+	double optRatio = 0.44;
 
 	int n = delta_guess.size(); //number of model parameters plus two slop parameters
 
@@ -1988,7 +2058,6 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 	return best_delta;
 }
 
-// R is the count of samples wanted AFTER burn in
 std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, std::vector <double> sigmas_guess) {
 	
 	//initialization of adaptive delta
@@ -2200,6 +2269,193 @@ double TRK::runiform(double a, double b) {
 double noPrior(double param) {
 	return 1.0;
 }
+
+std::vector <std::vector <double> > TRK::getHistogram(std::vector <double> data) {
+	int dataSize = data.size();
+
+	int bincount = std::round(std::sqrt(data.size()));
+	std::vector <double> hist; // each element in this is the number of data points in the associated bin. contains arrays
+	std::vector <std::vector <double> > bins; // each array is a bin which contains the datapoints
+
+	std::vector <double> extrema = minMax(data);
+
+	double binwidth = std::abs(extrema[0] - extrema[1]) / bincount;
+
+	std::vector <double> edges = { extrema[0] };
+
+	for (int i = 0; i < bincount; i++) {
+		edges.push_back(edges[i] + binwidth);
+	}
+
+	//making sure first bin starts at slightly below min (to go against rounding errors);
+	edges[0] = extrema[0] - extrema[0] *1e-9;
+	//making sure last bin goes to slightly above max
+	edges[bincount] = extrema[1] + extrema[1] *1e-9;
+
+	//std::vector <double> left = slice(edges, 0, edges.size() - 1);
+	//std::vector <double> right = slice(edges, 1, edges.size());
+
+	std::vector <double> bintemp;
+
+	for (int i = 0; i < bincount; i++) {
+		bintemp.clear();
+		for (int j = 0; j < dataSize - 1; j++) {
+			if ((data[j] >= edges[i]) && (data[j] < edges[i + 1])) {
+				bintemp.push_back(data[j]); //adds data to the bin if it is between the bounds of the bin
+			}
+		}
+		if ((data[dataSize - 1] > edges[i]) && (data[dataSize - 1] <= edges[i + 1])) {
+			bintemp.push_back(data[dataSize - 1]); //adds data to the bin if it is between the bounds of the bin
+		}
+		bins.push_back(bintemp); //adds an array of data for that bin to bins, the 2D array.
+	}
+
+	for (int i = 0; i < bincount; i++) {
+		hist.push_back((double) bins[i].size());
+	}
+
+
+	return { hist, edges };
+}
+
+std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <std::vector <double> > allparam_samples) { //method used to estimate uncertainty of a sampled distribution
+	std::vector <double> data, hist, edges, minusSigmas, plusSigmas;
+	std::vector <std::vector <std::vector <double> > > allparam_uncertainties;
+	std::vector <std::vector <double> > histResults;
+	int totalCount = allparam_samples.size();
+	double bar;
+	double tolBar = 1e-6;
+
+	for (int j = 0; j < M + 2; j++) { //for each model param plus slop
+		data.clear();
+
+		for (int i = 0; i < totalCount; i++) {
+			data.push_back(allparam_samples[i][j]);
+		}
+
+		histResults = getHistogram(data); 
+		hist = histResults[0]; // each number in this is the number of samples within each bin
+		edges = histResults[1];
+
+		double mean = getAverage(data);
+
+		//bar lowering iteration (essentially a bisection algo)
+
+		double low = 0.0;
+		double high = minMax(hist)[1];
+		double bar, leftBound, rightBound, minusSig, plusSig;
+		int aboveCount, K; // number of SAMPLES within the bins above bar
+
+		double ratioIn = 0.0;
+
+		std::vector <int> indicesIn;
+
+		minusSigmas.clear();
+		plusSigmas.clear();
+
+		for (int sigNum = 1; sigNum < 4; sigNum++) { //for all of 1, 2 and 3 sigma
+			while (std::abs(ratioIn - SIGMAS[sigNum]) > tolBar) {
+				indicesIn.clear();
+
+				bar = (low + high) / 2.0;
+
+				aboveCount = 0;
+
+				for (int k = 0; k < hist.size(); k++) { //determines how many samples are above bar, and which bins there are that lie within
+					if (hist[k] > bar) {
+						aboveCount += hist[k];
+						indicesIn.push_back(k);
+					}
+				}
+
+				ratioIn = (double)aboveCount / (double)totalCount;
+
+				if (ratioIn < SIGMAS[sigNum]) { //bar too high
+					high = bar;
+				}
+				else if (ratioIn >= SIGMAS[sigNum]) {
+					low = bar;
+				}
+			}
+
+			K = indicesIn.size();
+			leftBound = (edges[indicesIn[0]] - edges[indicesIn[0] + 1]) / 2.0;
+			rightBound = (edges[indicesIn[K - 1]] - edges[indicesIn[K - 1] + 1]) / 2.0;
+
+			minusSig = leftBound - mean;
+			plusSig = rightBound - mean;
+
+			minusSigmas.push_back(minusSig);
+			plusSigmas.push_back(plusSig);
+		}
+
+		allparam_uncertainties.push_back({ minusSigmas, plusSigmas });
+	}
+
+	return allparam_uncertainties; //for each parameter including slope, there is a vector containing 1 vector of +sigmas, 1 vector of -sigmas. This vector contains all of those 2-vectors.
+}
+
+void TRK::calculateUncertainties() {
+
+	std::vector <std::vector <std::vector <double> > > allparam_uncertainties;
+	int R = 200000; //adjustable; could make accessible by users later
+	int burncount = 10000;
+
+	std::vector <std::vector <double >> allparam_samples = methastPosterior(R, burncount, allparams_sigmas_guess);
+
+
+
+
+	std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKMCMC.txt", std::ofstream::trunc);
+	if (myfile.is_open())
+	{
+		// filename    a     b     optimum scale    total computation time (s)
+		for (int i = 0; i < allparam_samples.size(); i++) {
+			for (int j = 0; j < allparams_guess.size(); j++) {
+				myfile << allparam_samples[i][j] << " ";
+			}
+			myfile << std::endl;
+		}
+
+		myfile.close();
+	}
+	else std::cout << "Unable to open file";
+
+
+
+	allparam_uncertainties = lowerBar(allparam_samples); //for each parameter including slope, there is a vector containing 1 vector of +sigmas, 1 vector of -sigmas. This vector contains all of those 2-vectors.
+
+	results.bestFit_123Sigmas.clear();
+
+	for (int j = 0; j < M; j++) {
+		results.bestFit_123Sigmas.push_back(allparam_uncertainties[j]);
+	}
+	results.slopX_123Sigmas = allparam_uncertainties[M];
+	results.slopY_123Sigmas = allparam_uncertainties[M + 1];
+
+	return;
+}
+
+
+// CORE ALGORITHMS/TRK FITS
+
+void TRK::performTRKFit() {//finds optimum scale AND performs TRK fit + uncertainty
+	optimizeScale();
+
+	calculateUncertainties();
+}
+void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
+	s = scale;
+
+	calculateUncertainties();
+}
+void TRK::performSimpleTRKFit() {//finds optimum scale and and performs TRK fit but without finding uncertainties
+	optimizeScale(); // (stores results in TRK.results)
+
+	return;
+}
+
+
 
 //testing purposes only
 
