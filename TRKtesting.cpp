@@ -321,7 +321,7 @@ int main()
 
 	std::string filename;
 
-	//filename = "rvc2_data.csv";
+	//filename = "bhc2_data.csv";
 	//filename = "c1c2_data.csv";																									//**********
 	//std::vector <std::vector <double> > data = getData(filename, 441);
 
@@ -389,8 +389,11 @@ int main()
 	std::vector <std::vector <double> > bhc2prior_params = { {NAN, NAN}, {PI, 1.5*PI}, {NAN, NAN}, {-0.5*PI, 0} };
 	std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0, PI}, {NAN, NAN}, {-0.5*PI, 0} };
 
+	//std::vector <std::vector <double> > testlinprior_params = { {NAN, NAN}, {NAN, NAN}, {0.0, NAN}, {0.0, NAN} }; //including slop for testing
+
 	Priors bhc2Priors = Priors(CONSTRAINED, bhc2prior_params);
 	Priors rvc2Priors = Priors(CONSTRAINED, rvc2prior_params);
+	//Priors testlinPriors = Priors(CONSTRAINED, testlinprior_params);
 
 	//std::vector <double> params_guess = { 5.0, 4.6, 2.5, -0.3 };	//rvc2	
 	//std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };				//bhc2																					//**********
@@ -402,9 +405,16 @@ int main()
 	double slopx_guess = 0.3;																									//**********
 	double slopy_guess = 0.3;
 
-	TRK TRKtest = TRK(linearFunc, dLin, ddLin, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
-	//TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, simplex_size);															//**********
-	//TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, rvc2_params_guess, slopx_guess, slopy_guess, simplex_size, bhc2Priors);
+	std::vector <double> testsigma_guess = { 0.1, 0.05 }; //bhc2 good deltas:  { 0.01, 0.005, 0.01, 0.01};
+
+	double testslop_x_sigma_guess = 0.01;
+	double testslop_y_sigma_guess = 0.01;
+
+
+
+	TRK TRKtest = TRK(linearFunc, dLin, ddLin, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
+	//TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);															//**********
+	//TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, bhc2Priors);
 	//TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, rvc2Priors);
 
 	std::vector <double> allparams_guess = params_guess;
@@ -412,33 +422,54 @@ int main()
 	allparams_guess.push_back(slopx_guess);
 	allparams_guess.push_back(slopy_guess);
 
-	TRKtest.s = 0.418573;
+	TRKtest.s = 0.418573;     //optimum for test lin
+	//TRKtest.s = 0.259519;		//c1c2
+	//TRKtest.s = 0.2745;			//bhc2
+
+	//TRKtest.s = 0.228531;
+
+	//std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess);
+	//std::cout << "s = " << TRKtest.s << ":    " << fit[0] << "   " << fit[1] << "   " << fit[2] << "   " << fit[3] << "   " << fit[4] << "   " << fit[5] << std::endl;
 
 	clock_t time = startTimer();
 
-	double testlin_R = 100000;
-	double testlin_burn = 0.1*testlin_R;
+	printf("scale of %f \n", TRKtest.s);
 
-	std::vector <double> testlin_delta = { 0.1, 0.1, 0.05, 0.05 };
+	
+	//int test_R = 200000;
+	//int test_burn = 10000;
 
-	std::vector <std::vector <double > > test_drawn = TRKtest.methastPosterior(testlin_R, testlin_delta, testlin_burn);
+	//std::vector <std::vector <double > > test_drawn = TRKtest.methastPosterior(test_R, test_burn, testsigma_guess);
 
-	std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKMCMC.txt", std::ofstream::app);
-	if (myfile.is_open())
-	{
-		// filename    a     b     optimum scale    total computation time (s)
-		for (int i = 0; i < test_drawn.size(); i++) {
-			for (int j = 0; j < allparams_guess.size(); j++) {
-				myfile << test_drawn[i][j] << " ";
+	TRKtest.calculateUncertainties();
+
+	printf("Uncertainties: (+ 1 2 3, - 1 2 3): \n");
+	for (int k = 0; k < params_guess.size(); k++) {
+		for (int j = 0; j < 2; j++) {
+			for (int i = 0; i < 3; i++) {
+				printf("%f ", TRKtest.results.bestFit_123Sigmas[k][j][i]);
 			}
-			myfile << std::endl;
+			printf("\t");
 		}
-
-		myfile.close();
+		std::cout << std::endl;
 	}
-	else std::cout << "Unable to open file";
 
-
+	printf(" Slop Uncertainties: (+ 1 2 3, - 1 2 3): \n");
+	for (int j = 0; j < 2; j++) {
+		for (int i = 0; i < 3; i++) {
+			printf("%f ", TRKtest.results.slopX_123Sigmas[j][i]);
+		}
+		printf("\t");
+	}
+	std::cout << std::endl;
+	for (int j = 0; j < 2; j++) {
+		for (int i = 0; i < 3; i++) {
+			printf("%f ", TRKtest.results.slopY_123Sigmas[j][i]);
+		}
+		printf("\t");
+	}
+	std::cout << std::endl;
+	
 	//TRKtest.optimizeScale();
 
 	/*
