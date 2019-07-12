@@ -481,7 +481,7 @@ double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <doub
 				}
 
 				if (vertex[i] <= lb && !std::isnan(lb)) {
-					f_test =  DBL_MAX;
+					f_test = DBL_MAX;
 					break;
 				}
 			}
@@ -1804,9 +1804,23 @@ double TRK::innerMetHastSimplex(int burncount, std::vector <double> delta, doubl
 	return std::abs(accept_frac - best_ratio);
 }
 
+std::vector <double> TRK::pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex) {
+
+	std::vector <double> vertexfixed = vertex;
+
+	for (int j = 0; j < M + 2; j++) {
+		if (vertex[j] == 0.0) {
+			vertexfixed[j] = lastvertex[j] * 0.5;
+		}
+	}
+
+	return vertexfixed;
+}
+
+
 std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess) {
 	double tol = 0.05;
-	double optRatio = 0.44;
+	double optRatio = 0.45;
 
 	int n = delta_guess.size(); //number of model parameters plus two slop parameters
 
@@ -1865,6 +1879,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 			}
 
 			//refpoint = pegToZeroSlop(refpoint);
+			refpoint = pegToNonZeroDelta(refpoint, vertices[n]);
 
 			double fr = innerMetHastSimplex(burncount, refpoint, optRatio);
 			if (fr < tol) {
@@ -1893,6 +1908,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 				}
 
 				//exppoint = pegToZeroSlop(exppoint);
+				exppoint = pegToNonZeroDelta(exppoint, vertices[n]);
 
 				double fe = innerMetHastSimplex(burncount, exppoint, optRatio);
 				if (fe < tol) {
@@ -1927,6 +1943,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 					}
 
 					//cpoint = pegToZeroSlop(cpoint);
+					cpoint = pegToNonZeroDelta(cpoint, vertices[n]);
 
 					double fc = innerMetHastSimplex(burncount, cpoint, optRatio);
 					if (fc < tol) {
@@ -1962,6 +1979,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 					}
 
 					//ccpoint = pegToZeroSlop(ccpoint);
+					ccpoint = pegToNonZeroDelta(ccpoint, vertices[n]);
 
 					double fcc = innerMetHastSimplex(burncount, ccpoint, optRatio);
 					if (fcc < tol) {
@@ -2343,7 +2361,8 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 
 		double low = 0.0;
 		double high = minMax(hist)[1];
-		double bar, leftBound, rightBound, minusSig, plusSig;
+		double bar = (low + high) / 2.0;
+		double leftBound, rightBound, minusSig, plusSig;
 		int aboveCount, K; // number of SAMPLES within the bins above bar
 
 		double ratioIn = 0.0;
@@ -2353,11 +2372,11 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 		minusSigmas.clear();
 		plusSigmas.clear();
 
-		for (int sigNum = 1; sigNum < 4; sigNum++) { //for all of 1, 2 and 3 sigma
-			while (std::abs(ratioIn - SIGMAS[sigNum]) > tolBar) {
+		for (int sigNum = 0; sigNum < 3; sigNum++) { //for all of 1, 2 and 3 sigma
+			low = 0.0;
+			high = minMax(hist)[1];
+			while (std::abs(ratioIn - SIGMAS[sigNum]) > tolBar && high - low > tolBar) {
 				indicesIn.clear();
-
-				bar = (low + high) / 2.0;
 
 				aboveCount = 0;
 
@@ -2370,17 +2389,24 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 
 				ratioIn = (double)aboveCount / (double)totalCount;
 
+				//printf("bisec: %f %f %f \t ratioIn: %f\n", low, bar, high, ratioIn);
+				//printf("%f \n", SIGMAS[sigNum]);
+
 				if (ratioIn < SIGMAS[sigNum]) { //bar too high
 					high = bar;
 				}
 				else if (ratioIn >= SIGMAS[sigNum]) {
 					low = bar;
 				}
+
+				bar = (low + high) / 2.0;
 			}
 
 			K = indicesIn.size();
-			leftBound = (edges[indicesIn[0]] - edges[indicesIn[0] + 1]) / 2.0;
-			rightBound = (edges[indicesIn[K - 1]] - edges[indicesIn[K - 1] + 1]) / 2.0;
+			leftBound = (edges[indicesIn[0]] + edges[indicesIn[0] + 1]) / 2.0;
+			rightBound = (edges[indicesIn[K - 1]] + edges[indicesIn[K - 1] + 1]) / 2.0;
+
+			//printf("left = %f, right = %f \n", leftBound, rightBound);
 
 			minusSig = leftBound - mean;
 			plusSig = rightBound - mean;
@@ -2388,6 +2414,8 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 			minusSigmas.push_back(minusSig);
 			plusSigmas.push_back(plusSig);
 		}
+
+		ratioIn = 0.0;
 
 		allparam_uncertainties.push_back({ minusSigmas, plusSigmas });
 	}
@@ -2398,15 +2426,14 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 void TRK::calculateUncertainties() {
 
 	std::vector <std::vector <std::vector <double> > > allparam_uncertainties;
-	int R = 200000; //adjustable; could make accessible by users later
-	int burncount = 10000;
+
+	std::cout << "Sampling Posterior...\n";
 
 	std::vector <std::vector <double >> allparam_samples = methastPosterior(R, burncount, allparams_sigmas_guess);
 
+	std::string fileName = std::string("TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
 
-
-
-	std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKMCMC.txt", std::ofstream::trunc);
+	std::ofstream myfile(fileName, std::ofstream::trunc);
 	if (myfile.is_open())
 	{
 		// filename    a     b     optimum scale    total computation time (s)
@@ -2421,7 +2448,7 @@ void TRK::calculateUncertainties() {
 	}
 	else std::cout << "Unable to open file";
 
-
+	std::cout << "Computing Uncertainties...\n";
 
 	allparam_uncertainties = lowerBar(allparam_samples); //for each parameter including slope, there is a vector containing 1 vector of +sigmas, 1 vector of -sigmas. This vector contains all of those 2-vectors.
 
@@ -2476,7 +2503,7 @@ double secElapsed(clock_t t_i) {
 
 void writeResults(TRK TRKobj, double t_sec, std::string filename) {
 
-	std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKresults.txt", std::ofstream::app);
+	std::ofstream myfile("TRKresults.txt", std::ofstream::app);
 	if (myfile.is_open())
 	{	
 		// filename    a     b     optimum scale    total computation time (s)

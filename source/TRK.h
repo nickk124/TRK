@@ -6,9 +6,10 @@
 #include <time.h>
 #include <string>
 #include <random>
+#include <cfloat>
 
 const double PI = 3.1415926535897932384626434;
-const std::vector <double> SIGMAS = { 0.682639, 95.4500, 99.7300 };
+const std::vector <double> SIGMAS = { 0.682639, 0.954500, 0.997300 };
 
 const double PHI = (std::sqrt(5.0) + 1.0) / 2.0;
 
@@ -117,6 +118,7 @@ class TRK
 		// MCMC/uncertainty calculation
 		std::vector <std::vector <double >> methastPosterior(int R, int burncount, std::vector <double> sigmas_guess);
 		std::vector <std::vector <double >> checkSlopSignMCMC(std::vector <std::vector <double >> result_final);
+		std::vector <double> pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex);
 		std::vector <double> optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess);
 		double innerMetHastSimplex(int burncount, std::vector <double> delta, double best_ratio);
 		double rnorm(double mu, double sig);
@@ -124,6 +126,9 @@ class TRK
 		std::vector <std::vector <std::vector <double> > >  lowerBar(std::vector <std::vector <double> > allparam_samples);
 		std::vector <std::vector <double> > getHistogram(std::vector <double> data);
 		void calculateUncertainties();
+
+		int R = 200000; //adjustable; could make accessible by users later
+		int burncount = 10000;
 
 
 
