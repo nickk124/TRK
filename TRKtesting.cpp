@@ -322,11 +322,12 @@ int main()
 	std::string filename;
 
 	//filename = "bhc2_data.csv";
+	filename = "rvc2_data.csv";
 	//filename = "c1c2_data.csv";																									//**********
-	//std::vector <std::vector <double> > data = getData(filename, 441);
+	std::vector <std::vector <double> > data = getData(filename, 441);
 
-	filename = "simplelinear_data.csv";
-	std::vector <std::vector <double> > data = getData(filename, 9);
+	//filename = "simplelinear_data.csv";
+	//std::vector <std::vector <double> > data = getData(filename, 9);
 
 	std::vector <double> x, y, sx, sy, w;
 
@@ -337,6 +338,8 @@ int main()
 		sy.push_back(data[3][i]);
 		w.push_back(data[4][i]);
 	}
+
+	//printf("filename: %s \n", filename);
 
 	/*
 
@@ -395,51 +398,63 @@ int main()
 	Priors rvc2Priors = Priors(CONSTRAINED, rvc2prior_params);
 	//Priors testlinPriors = Priors(CONSTRAINED, testlinprior_params);
 
-	//std::vector <double> params_guess = { 5.0, 4.6, 2.5, -0.3 };	//rvc2	
+	std::vector <double> params_guess = { 5.0, 4.6, 2.5, -0.3 };	//rvc2	
 	//std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };				//bhc2																					//**********
 	//std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
-	std::vector <double> params_guess = { 0.8, 1.0 };     //test lin
+	//std::vector <double> params_guess = { 0.8, 1.0 };     //test lin
 
 
 
 	double slopx_guess = 0.3;																									//**********
 	double slopy_guess = 0.3;
 
-	std::vector <double> testsigma_guess = { 0.1, 0.05 }; //bhc2 good deltas:  { 0.01, 0.005, 0.01, 0.01};
+	//std::vector <double> testsigma_guess = { 0.212500, 0.106250}; //testlin
+	std::vector <double> testsigma_guess = { 0.01, 0.005, 0.01, 0.01};  //bhc2/rvc2
+	//std::vector <double> testsigma_guess = { 0.01, 0.005};  //c1c2
 
-	double testslop_x_sigma_guess = 0.01;
-	double testslop_y_sigma_guess = 0.01;
+	//double testslop_x_sigma_guess = 0.006250; //testlin
+	//double testslop_y_sigma_guess = 0.002500;
+
+	double testslop_x_sigma_guess = 0.0005; //bhc2/rvc2
+	double testslop_y_sigma_guess = 0.0005;
 
 
 
-	TRK TRKtest = TRK(linearFunc, dLin, ddLin, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
-	//TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);															//**********
-	//TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, bhc2Priors);
-	//TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, rvc2Priors);
+	//TRK TRKtest = TRK(linearFunc, dLin, ddLin, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
+	//TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);															//**********
+	//TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, bhc2Priors);
+	TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, rvc2Priors);
 
 	std::vector <double> allparams_guess = params_guess;
 
 	allparams_guess.push_back(slopx_guess);
 	allparams_guess.push_back(slopy_guess);
 
-	TRKtest.s = 0.418573;     //optimum for test lin
+	//TRKtest.s = 0.418573;     //optimum for test lin
 	//TRKtest.s = 0.259519;		//c1c2
 	//TRKtest.s = 0.2745;			//bhc2
+	TRKtest.s = 0.37568; //rvc2
 
 	//TRKtest.s = 0.228531;
 
-	//std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess);
-	//std::cout << "s = " << TRKtest.s << ":    " << fit[0] << "   " << fit[1] << "   " << fit[2] << "   " << fit[3] << "   " << fit[4] << "   " << fit[5] << std::endl;
+	std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess);
+	std::cout << "s = " << TRKtest.s << ":    ";
+	for (int j = 0; j < allparams_guess.size(); j++) {
+		std::cout << fit[j] << "   ";
+	}
+	std::cout << std::endl;
 
 	clock_t time = startTimer();
 
-	printf("scale of %f \n", TRKtest.s);
+	printf("\n scale of %f \n", TRKtest.s);
 
 	
 	//int test_R = 200000;
 	//int test_burn = 10000;
 
 	//std::vector <std::vector <double > > test_drawn = TRKtest.methastPosterior(test_R, test_burn, testsigma_guess);
+
+	//TRKtest.R = 200000;
 
 	TRKtest.calculateUncertainties();
 
