@@ -423,8 +423,8 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 		}
 		*/
 
-		if (itercount > 10000) {
-			//std::cout << " itercount of >10000 reached; exiting NR" << std::endl;
+		if (itercount > 5000) {
+			//std::cout << " itercount of >5000 reached; exiting NR" << std::endl;
 			return NAN;
 		}
 
@@ -434,6 +434,7 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 	}
 
 	//std::cout << itercount << " iterations." << std::endl;
+	//printf("%i\n", itercount);
 	return xkp1;
 }
 
@@ -464,40 +465,49 @@ std::vector <double> TRK::avoidNegativeSlop(std::vector <double> vertex, int n) 
 }
 
 double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <double> vertex) {
-	double f_test = (this->*f)(vertex);
-
 	if (hasPriors) {
 		switch (priorsObject.priorType) {
 
-		case CONSTRAINED || MIXED:
+		case CONSTRAINED:
 
 			for (int i = 0; i < M; i++) { //check upper bound
 				double ub = priorsObject.paramBounds[i][1];
 				double lb = priorsObject.paramBounds[i][0];
 
 				if (vertex[i] >= ub && !std::isnan(ub)) {
-					f_test =  DBL_MAX;
-					break;
+					return DBL_MAX;
 				}
 
 				if (vertex[i] <= lb && !std::isnan(lb)) {
-					f_test = DBL_MAX;
-					break;
+					return DBL_MAX;
 				}
 			}
-
 			break;
 
+		case MIXED:
+
+			for (int i = 0; i < M; i++) { //check upper bound
+				double ub = priorsObject.paramBounds[i][1];
+				double lb = priorsObject.paramBounds[i][0];
+
+				if (vertex[i] >= ub && !std::isnan(ub)) {
+					return DBL_MAX;
+				}
+
+				if (vertex[i] <= lb && !std::isnan(lb)) {
+					return DBL_MAX;
+				}
+			}
+			break;
 		}
 	}
-	
-	return f_test;
 
+	return (this->*f)(vertex);
 }
 
 std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
 
-	double tol = 1e-6;
+	double tol = 1e-3;
 
 	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
 
@@ -689,14 +699,14 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 		vertices = bettervertices;
 		
-		/*
 		
-		std::cout << "chi-square parameters at s = " << s << " ";
+		
+		/*std::cout << "chi-square parameters at s = " << s << " ";
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
 		}
-		std::cout << "fitness = " << evalWPriors(f, vertices[i]) << "\n";
-		*/
+		std::cout << "fitness = " << evalWPriors(f, result) << "\n";*/
+		
 
 		
 		/*
@@ -842,8 +852,12 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 			printf("STOP\n");
 		}
 		*/
+		
 		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
 		
+		if (std::isnan(x_t)) {
+			printf("STOP\n");
+		}
 
 		//printf("%f  %f  %f  %f  %f  %f  %f  %f  %f \n", params[0], params[1], params[2], params[3], Sig_xn2, Sig_yn2, x[n], y[n], x_t);
 
@@ -2433,7 +2447,8 @@ void TRK::calculateUncertainties() {
 
 	std::string fileName = std::string("TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
 
-	std::ofstream myfile(fileName, std::ofstream::trunc);
+	std::ofstream myfile;
+	myfile.open(fileName, std::ofstream::trunc);
 	if (myfile.is_open())
 	{
 		// filename    a     b     optimum scale    total computation time (s)
