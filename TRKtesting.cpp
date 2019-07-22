@@ -390,7 +390,7 @@ int main()
 
 
 	std::vector <std::vector <double> > bhc2prior_params = { {NAN, NAN}, {PI, 1.5*PI}, {NAN, NAN}, {-0.5*PI, 0} };
-	std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0, PI}, {NAN, NAN}, {-0.5*PI, 0} };
+	std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0 + 0.1, PI - 0.1}, {NAN, NAN}, {-0.5*PI + 0.1, 0} };
 
 	//std::vector <std::vector <double> > testlinprior_params = { {NAN, NAN}, {NAN, NAN}, {0.0, NAN}, {0.0, NAN} }; //including slop for testing
 
@@ -398,7 +398,7 @@ int main()
 	Priors rvc2Priors = Priors(CONSTRAINED, rvc2prior_params);
 	//Priors testlinPriors = Priors(CONSTRAINED, testlinprior_params);
 
-	std::vector <double> params_guess = { 5.0, 4.6, 2.5, -0.3 };	//rvc2	
+	std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };	//rvc2	
 	//std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };				//bhc2																					//**********
 	//std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
 	//std::vector <double> params_guess = { 0.8, 1.0 };     //test lin
@@ -433,32 +433,36 @@ int main()
 	//TRKtest.s = 0.418573;     //optimum for test lin
 	//TRKtest.s = 0.259519;		//c1c2
 	//TRKtest.s = 0.2745;			//bhc2
-	TRKtest.s = 0.37568; //rvc2
+	//TRKtest.s = 0.37568; //rvc2
 
 	//TRKtest.s = 0.228531;
 
-	std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess);
+	//TRKtest.s = 0.125892541;
+	
+	/*std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess);
 	std::cout << "s = " << TRKtest.s << ":    ";
 	for (int j = 0; j < allparams_guess.size(); j++) {
 		std::cout << fit[j] << "   ";
 	}
-	std::cout << std::endl;
-
+	std::cout << std::endl;*/
+	
 	clock_t time = startTimer();
 
-	printf("\n scale of %f \n", TRKtest.s);
+	//printf("\n scale of %f \n", TRKtest.s);
 
 	
-	//int test_R = 200000;
+	//TRKtest.R = 1000000;
 	//int test_burn = 10000;
 
 	//std::vector <std::vector <double > > test_drawn = TRKtest.methastPosterior(test_R, test_burn, testsigma_guess);
 
 	//TRKtest.R = 200000;
 
-	TRKtest.calculateUncertainties();
+	TRKtest.optimizeScale();
 
-	printf("Uncertainties: (+ 1 2 3, - 1 2 3): \n");
+	//TRKtest.calculateUncertainties();
+
+	printf("Uncertainties: (- 1 2 3, + 1 2 3): \n");
 	for (int k = 0; k < params_guess.size(); k++) {
 		for (int j = 0; j < 2; j++) {
 			for (int i = 0; i < 3; i++) {
@@ -469,7 +473,7 @@ int main()
 		std::cout << std::endl;
 	}
 
-	printf(" Slop Uncertainties: (+ 1 2 3, - 1 2 3): \n");
+	printf(" Slop Uncertainties: (- 1 2 3, + 1 2 3): \n");
 	for (int j = 0; j < 2; j++) {
 		for (int i = 0; i < 3; i++) {
 			printf("%f ", TRKtest.results.slopX_123Sigmas[j][i]);
