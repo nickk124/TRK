@@ -50,6 +50,8 @@ public:
 class TRK
 {
 	public:
+		//dataset 
+		double N, M;
 		//core algorithms
 		void performTRKFit(); //perform fit on previously found optimum scale
 		void performTRKFit(double scale); //perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
@@ -82,6 +84,9 @@ class TRK
 		double modifiedChiSquared(std::vector <double> allparams);
 		std::vector <double> downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess);
 		//scale optimization
+		bool firstGuess = true;
+		double slopYScaleGuess, slopYGuess;
+		void getBetterSlopYGuess(double slop_y, double s);
 		void optimizeScale();
 		double optimize_s_SlopX();
 		double optimize_s_SlopY();
@@ -127,7 +132,7 @@ class TRK
 		std::vector <std::vector <double> > getHistogram(std::vector <double> data);
 		void calculateUncertainties();
 
-		int R = 200000; //adjustable; could make accessible by users later
+		int R = 100000; //adjustable; could make accessible by users later
 		int burncount = 10000;
 
 
@@ -135,7 +140,7 @@ class TRK
 	private:
 
 		// dataset
-		double N, M;
+		
 		std::vector <double> x, y, sx, sy, w; //datapoints; errorbars
 		double datawidth, x_min, x_max;
 		void getDataWidth();

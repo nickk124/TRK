@@ -507,7 +507,7 @@ double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <doub
 
 std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
 
-	double tol = 1e-3;
+	double tol = 1e-6;
 
 	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
 
@@ -847,17 +847,27 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 			}
 		}
 
-		/*
-		if (ck > 0) {
+		//if (ck == x_tn_vec.size()) {//every tangent point is a NAN
+		//	printf("STOP: NAN tangents t:\n");
+		//	for (int j = 0; j < params.size(); j++) {
+		//		printf("%f ", params[j]);
+		//	}
+		//	printf("%f  %f  %f  %f \n", Sig_xn2, Sig_yn2, x[n], y[n]);
+		//}
+
+
+		
+		/*if (ck > 0) {
 			printf("STOP\n");
-		}
-		*/
+		}*/
+		
 		
 		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
 		
-		if (std::isnan(x_t)) {
-			printf("STOP\n");
-		}
+		/*if (std::isnan(x_t)) {
+			printf("STOP: NAN tangent pt:\n");
+			printf("%f  %f  %f  %f  %f  %f  %f  %f  %f \n", params[0], params[1], params[2], params[3], Sig_xn2, Sig_yn2, x[n], y[n], x_t);
+		}*/
 
 		//printf("%f  %f  %f  %f  %f  %f  %f  %f  %f \n", params[0], params[1], params[2], params[3], Sig_xn2, Sig_yn2, x[n], y[n], x_t);
 
@@ -881,22 +891,22 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 			printf("stop \n");
 		}
 		*/
-		/*
-		std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKtangents.txt", std::ofstream::app);
-		if (myfile.is_open())
-		{
-			// filename    a     b     optimum scale    total computation time (s)
-			double fit_contrib = w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) - w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
+		
+		//std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKtangents.txt", std::ofstream::app);
+		//if (myfile.is_open())
+		//{
+		//	// filename    a     b     optimum scale    total computation time (s)
+		//	double fit_contrib = w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) - w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
 
-			myfile << params[0] << " " << params[1] << " " << params[2] << " " << params[3] << " " << Sig_xn2 << " " << Sig_yn2 << " " << x[n] << " " << y[n] << " " << x_t << " " << fit_contrib << " " << x_tn_vec.size() << " ";
-			for (int i = 0; i < x_tn_vec.size(); i++) {
-				myfile << x_tn_vec[i] << " ";
-			}
-			myfile << std::endl;
-			myfile.close();
-		}
-		else std::cout << "Unable to open file";
-		*/
+		//	myfile << params[0] << " " << params[1] << " " << params[2] << " " << params[3] << " " << Sig_xn2 << " " << Sig_yn2 << " " << x[n] << " " << y[n] << " " << x_t << " " << fit_contrib << " " << x_tn_vec.size() << " ";
+		//	for (int i = 0; i < x_tn_vec.size(); i++) {
+		//		myfile << x_tn_vec[i] << " ";
+		//	}
+		//	myfile << std::endl;
+		//	myfile.close();
+		//}
+		//else std::cout << "Unable to open file";
+		
 	}
 
 	switch (whichExtrema) {
@@ -1096,10 +1106,19 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 	double xr1old;
 	
 	bool checkcheck = false;
+	//bool tryNewGuess = false;
 
 	int itcount = 0;
 
 	while (true) {
+		if (xr1vec.size() > 99) {
+			printf("100 iterations of tangent finder loop! \n");
+			for (int j = 0; j < params.size(); j++) {
+				printf("%f ", params[j]);
+			}
+			printf("%f  %f  %f  %f \t", Sig_xn2, Sig_yn2, x_n, y_n);
+			printf("s = %f\n", s);
+		}
 		result.clear();
 
 		double xr1 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg1, xg1 + std::sqrt(Sig_xn2)/10.0);
@@ -1110,14 +1129,15 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 
 		xr1vec.push_back(xr1);
 
-		if (checkcheck) { //different guess gives same root; only one root
+		if (checkcheck) { //different guess gives same root;
 
 			if (std::abs(xr1 - xr1old) < 1e-3) {
+				//tryNewGuess = true;
 				result.push_back(xr1);
 				break;
 			}
 			if (xr1vec.size() >= 3){
-				if (std::abs(xr1vec[xr1vec.size() - 1] - xr1vec[xr1vec.size() - 3]) < 1e-3) {
+				if (std::abs(xr1vec[xr1vec.size() - 1] - xr1vec[xr1vec.size() - 3]) < 1e-3) { //root finder oscillating between two roots
 
 					//std::cout << "oscillation!" << std::endl;
 
@@ -1164,6 +1184,34 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			xg2 = extraRoots[0];
 			xg3 = extraRoots[1];
 
+			//if (tryNewGuess) {//if different guess couldn't find a new root, try using the two additional guesses
+			//	xr2 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg2, xg2 - std::sqrt(Sig_xn2) / 10.0);
+			//	xr3 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg3, xg3 + std::sqrt(Sig_xn2) / 10.0);
+
+			//	std::vector <double> all = { xr1, xr2, xr3 };
+
+			//	int c = 0;
+
+			//	for (int i = 0; i < 3; i++) {
+			//		for (int j = 0; j < 3; j++) {
+			//			if (std::abs(all[i] - all[j]) > ident_roots_tol) { //checks if roots are (numerically) identical or not
+			//				c += 1;
+			//			}
+			//		}
+			//	}
+
+			//	if (c == 0) { //if it still couldn't find additional roots, tries to find roots with guesses of leftmost and rightmost x values
+			//		double xr_left = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_min, x_min - std::sqrt(Sig_xn2) / 10.0);
+			//		double xr_right = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_max, x_max + std::sqrt(Sig_xn2) / 10.0);
+
+			//		result.push_back(xr1);
+			//		result.push_back(xr_left);
+			//		result.push_back(xr_right);
+
+			//		break;
+			//	}
+			//}
+
 			if (xg2 < xr1 && xr1 < xg3) {
 				xr2 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg2, xg2 - std::sqrt(Sig_xn2) / 10.0);
 				xr3 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg3, xg3 + std::sqrt(Sig_xn2) / 10.0);
@@ -1183,9 +1231,9 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 
 				checkcheck = true;
 			}
-		} else if (extraRoots.size() == 0 && xr1vec.size() == 1) { //if only have one root (the one initially found)
+		} else if (extraRoots.size() == 0 && xr1vec.size() == 1) {//if initial quadratic approximation didn't yield any more guesses, try to find roots with guesses of leftmost and rightmost x values
 
-			//if initial quadratic approximation didn't yield any more guesses, try to find roots with guesses of leftmost and rightmost x values
+			
 			double xr_left = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_min, x_min - std::sqrt(Sig_xn2) / 10.0);
 			double xr_right = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_max, x_max + std::sqrt(Sig_xn2) / 10.0);
 
@@ -1194,9 +1242,25 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			result.push_back(xr_right);
 
 			break;
-		}
-		else if (extraRoots.size() == 0 && xr1vec.size() == 2) { //found two roots but can't find a third
+		} else if (extraRoots.size() == 0 && xr1vec.size() == 2) { //found two roots but can't find a third
 			result = xr1vec;
+			break;
+		} else if (extraRoots.size() == 3) {//this can happen if the "root" found is very close to being a root but isn't actually one.
+			/*printf("3 extra roots!\t");
+			for (int j = 0; j < params.size(); j++) {
+				printf("%f ", params[j]);
+			}
+			printf("%f  %f  %f  %f \t", Sig_xn2, Sig_yn2, x_n, y_n);
+			printf("s = %f\n", s);*/
+
+			
+			//in this case, try again with a different guess.
+			double xr_left = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_min, x_min - std::sqrt(Sig_xn2) / 10.0);
+			double xr_right = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_max, x_max + std::sqrt(Sig_xn2) / 10.0);
+
+			result.push_back(xr_left);
+			result.push_back(xr_right);
+
 			break;
 		}
 
@@ -1223,6 +1287,19 @@ double TRK::findBestTangent(std::vector <double> params, double x_n, double y_n,
 }
 
 // SCALE OPTIMIZATION ALGORITHMS
+void TRK::getBetterSlopYGuess(double slop_y, double s) {
+	if (firstGuess) {
+		firstGuess = false;
+		slopYScaleGuess = s;
+		slopYGuess = slop_y;
+	}
+
+	if (slop_y < slopYScaleGuess && slop_y > 0) {
+		slopYScaleGuess = s;
+		slopYGuess = slop_y;
+	}
+}
+
 double TRK::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
 	s = ss[0];
 
@@ -1231,6 +1308,8 @@ double TRK::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> all
 	//iterative_allparams_guess = allparams_s;
 
 	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
+
+	getBetterSlopYGuess(allparams_s[M + 1], s);
 
 	return allparams_s[M];
 }
@@ -1314,6 +1393,8 @@ double TRK::optimize_s_SlopX() {
 			}
 			else if (slop_trial_a > 0) {
 				inc *= 0.5;
+
+				b = trial_a;
 			}
 		}
 	}
@@ -1333,7 +1414,8 @@ double TRK::optimize_s_SlopX() {
 				break;
 			}
 			else if (slop_trial_b == 0) {
-				inc *= 0.5;
+				//inc *= 2.0;
+				a = trial_b;
 			}
 		}
 	}
@@ -1385,7 +1467,7 @@ double TRK::optimize_s_SlopY() {
 		//bracket finding
 
 	double a, b;
-	double trial_s = 1.0;
+	double trial_s = slopYScaleGuess;
 	double slop_trial_s = innerSlopY_Simplex({ trial_s }, iterative_allparams_guess);
 
 	double inc = trial_s * 0.5;
@@ -1406,7 +1488,8 @@ double TRK::optimize_s_SlopY() {
 				break;
 			}
 			else if (slop_trial_b > 0) {
-				inc *= 0.5;
+				//inc *= 2.0;
+				a = trial_b;
 			}
 		}
 	}
@@ -1427,6 +1510,7 @@ double TRK::optimize_s_SlopY() {
 			}
 			else if (slop_trial_a == 0) {
 				inc *= 0.5;
+				b = trial_a;
 			}
 		}
 	}
@@ -1656,13 +1740,13 @@ double TRK::iterateR2_OptimumScale(double s0) {
 	bool tolcheck = false;
 
 	while (!tolcheck) {
-		printf("next s0: %f", s0);
+		printf("next s0: %f \n", s0);
 
 		s1 = optimize_s_prime_R2(s0);
 		if (std::abs(s1-s0) <= tol_scale) {
 			tolcheck = true;
 		}
-		std::printf("new s0: %f", s1);
+		std::printf("new s0: %f \n", s1);
 		s0 = s1;
 	}
 
@@ -1674,11 +1758,11 @@ void TRK::optimizeScale() {
 
 	std::vector <double> scale_extrema;
 
-	std::cout << "minimizing slop x" << std::endl;
+	std::cout << "minimizing x slop..." << std::endl;
 
 	double s_slopx = optimize_s_SlopX(); //computes scale which minizes slop_x, and scale which minimizes slop_y
 
-	std::cout << "minimizing slop y" << std::endl;
+	std::cout << "minimizing y slop..." << std::endl;
 
 	double s_slopy = optimize_s_SlopY();
 
@@ -1692,8 +1776,8 @@ void TRK::optimizeScale() {
 	a = scale_extrema[sortedindices[0]]; //figures out which scale is a, and which is b, as well as storing the associated best-fit parameters and their associated tangent points for those two extreme scales
 	b = scale_extrema[sortedindices[1]];
 
-	printf("extrema: \t a \t b:");
-	printf(" \t %f \t %f", a, b);
+	printf("extrema: \t a \t b: \n");
+	printf(" \t %f \t %f \n", a, b);
 
 	if (a == s_slopx) {
 		x_t_a = x_t_slopx;
@@ -1712,7 +1796,7 @@ void TRK::optimizeScale() {
 
 	//determine best s1 (new s) to satistfy R2TRKp(a,s) = R2TRKp(s,b)
 
-	std::cout << "finding optimum scale" << std::endl;
+	std::cout << "finding optimum scale..." << std::endl;
 
 	double s0 = optimize_s0_R2();
 
