@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "TRK.h"
 
+#include <execution>
+
 // PRIORS
 
 // Constructors
@@ -440,12 +442,10 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 
 std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex){
 
-	double tol = 0.004;
-
-	if (std::abs(vertex[M]) <= tol) {
+	if (std::abs(vertex[M]) <= pegToZeroTol) {
 		vertex[M] = 0;
 	}
-	if (std::abs(vertex[M+1]) <= tol) {
+	if (std::abs(vertex[M+1]) <= pegToZeroTol) {
 		vertex[M+1] = 0;
 	}
 	
@@ -507,7 +507,7 @@ double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <doub
 
 std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
 
-	double tol = 1e-6;
+	double tol = simplexTol;
 
 	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
 
@@ -701,11 +701,11 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		
 		
 		
-		/*std::cout << "chi-square parameters at s = " << s << " ";
+		std::cout << "chi-square parameters at s = " << s << " ";
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
 		}
-		std::cout << "fitness = " << evalWPriors(f, result) << "\n";*/
+		std::cout << "fitness = " << evalWPriors(f, result) << "\n";
 		
 
 		
@@ -732,6 +732,18 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		if (stDevUnweighted(evals) < tol) {
 			break;
 		}
+
+
+		//terminates based off of slop parameters solely
+		/*std::vector <double> sx, sy;
+		for (int i = 0; i < n + 1; i++) {
+			sx.push_back(vertices[i][M]);
+			sy.push_back(vertices[i][M+1]);
+		}
+
+		if ( (stDevUnweighted(sx) < slopTol ) && (stDevUnweighted(sy) < slopTol)) {
+			break;
+		}*/
 
 	}
 
@@ -810,42 +822,51 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 		params.push_back(allparams[i]);
 	}
 
-	for (int n = 0; n < N; n++) {
-		
-		/*
-		if (n == 43) {
-			test += 1;
-			printf("stopp \t %i \n", test);
-		}
-		*/
-		
-		/*
-		
-		if (test == 291) {
-			printf("STOP \n");
-		}
-		*/
 
+	std::vector <int> nn;
+
+	for (int n = 0; n < N; n++) {
+		nn.push_back(n);
+	}
+
+	//std::for_each(
+	//	std::execution::par_unseq,
+	//	nn.begin(),
+	//	nn.end(),
+	//	[](auto&& n)
+	//	{
+	//		double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
+	//		double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
+
+
+	//		std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sig_xn2, Sig_yn2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+
+	//		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
+
+	//		double m_tn = dyc(x_t, params);
+	//		double y_tn = yc(x_t, params);
+
+	//		all_x_t.push_back(x_t);
+
+	//		sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2);
+	//		sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
+	//	});
+
+	
+	for (int n = 0; n < N; n++) {
 		double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
 		double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
 
-		//std::cout << x[n] << " " << y[n] << std::endl;
-
-		/*
-		if (std::abs(x[n] - 0.015) < 1e-4 && std::abs(y[n] - 3.8727) < 1e-4 ){//&& std::abs(params[0] - 2.4855) < 1e-4 && std::abs(params[1] - 4.573) < 1e-4 && std::abs(params[2] - 2.2869) < 1e-4 && std::abs(params[3] - -1.3164) < 1e-4) {
-			std::cout << "stop" << std::endl;
-		}
-		*/
 
 		std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sig_xn2, Sig_yn2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
 
-		int ck = 0;
+		/*int ck = 0;
 
 		for (int i = 0; i < x_tn_vec.size(); i++) {
 			if (std::isnan(x_tn_vec[i])) {
 				ck += 1;
 			}
-		}
+		}*/
 
 		//if (ck == x_tn_vec.size()) {//every tangent point is a NAN
 		//	printf("STOP: NAN tangents t:\n");
@@ -879,18 +900,6 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 		sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2);
 		sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
 
-		//printf("%f \t %f \n", add1, add2);
-
-		/*
-		if (add1 > 1000 || add2 > 1000) {
-			printf("stop\n");
-		}
-		*/
-		/*
-		if (std::isnan(sum1) || std::isnan(sum1)) {
-			printf("stop \n");
-		}
-		*/
 		
 		//std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKtangents.txt", std::ofstream::app);
 		//if (myfile.is_open())
