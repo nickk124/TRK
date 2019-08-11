@@ -701,11 +701,11 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		
 		
 		
-		std::cout << "chi-square parameters at s = " << s << " ";
+		/*std::cout << "chi-square parameters at s = " << s << " ";
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
 		}
-		std::cout << "fitness = " << evalWPriors(f, result) << "\n";
+		std::cout << "fitness = " << evalWPriors(f, result) << "\n";*/
 		
 
 		
@@ -807,8 +807,8 @@ double TRK::singlePointLnL(std::vector <double> params, double x_n, double y_n, 
 
 double TRK::modifiedChiSquared(std::vector <double> allparams)
 {
-
-	std::vector <double> all_x_t;
+	std::vector <double> SigXVec, SigYVec;
+	std::vector <double> all_x_t(N, 0.0);
 
 	double sum1 = 0.0;
 	double sum2 = 0.0;
@@ -822,100 +822,37 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 		params.push_back(allparams[i]);
 	}
 
-
 	std::vector <int> nn;
 
 	for (int n = 0; n < N; n++) {
 		nn.push_back(n);
 	}
 
-	//std::for_each(
-	//	std::execution::par_unseq,
-	//	nn.begin(),
-	//	nn.end(),
-	//	[](auto&& n)
-	//	{
-	//		double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
-	//		double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
-
-
-	//		std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sig_xn2, Sig_yn2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
-
-	//		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
-
-	//		double m_tn = dyc(x_t, params);
-	//		double y_tn = yc(x_t, params);
-
-	//		all_x_t.push_back(x_t);
-
-	//		sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2);
-	//		sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
-	//	});
-
-	
 	for (int n = 0; n < N; n++) {
-		double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
-		double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
+		SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
+		SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
+	}
 
+	std::for_each( //parallel tangent point finding
+		std::execution::par_unseq,
+		nn.begin(),
+		nn.end(),
+		[&](auto&& n)
+		{
+			std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
 
-		std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sig_xn2, Sig_yn2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+			double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
 
-		/*int ck = 0;
+			all_x_t[n] = x_t;
+		});
 
-		for (int i = 0; i < x_tn_vec.size(); i++) {
-			if (std::isnan(x_tn_vec[i])) {
-				ck += 1;
-			}
-		}*/
+	for (int n = 0; n < N; n++) {
 
-		//if (ck == x_tn_vec.size()) {//every tangent point is a NAN
-		//	printf("STOP: NAN tangents t:\n");
-		//	for (int j = 0; j < params.size(); j++) {
-		//		printf("%f ", params[j]);
-		//	}
-		//	printf("%f  %f  %f  %f \n", Sig_xn2, Sig_yn2, x[n], y[n]);
-		//}
+		double m_tn = dyc(all_x_t[n], params);
+		double y_tn = yc(all_x_t[n], params);
 
-
-		
-		/*if (ck > 0) {
-			printf("STOP\n");
-		}*/
-		
-		
-		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
-		
-		/*if (std::isnan(x_t)) {
-			printf("STOP: NAN tangent pt:\n");
-			printf("%f  %f  %f  %f  %f  %f  %f  %f  %f \n", params[0], params[1], params[2], params[3], Sig_xn2, Sig_yn2, x[n], y[n], x_t);
-		}*/
-
-		//printf("%f  %f  %f  %f  %f  %f  %f  %f  %f \n", params[0], params[1], params[2], params[3], Sig_xn2, Sig_yn2, x[n], y[n], x_t);
-
-		double m_tn = dyc(x_t, params);
-		double y_tn = yc(x_t, params);
-
-		all_x_t.push_back(x_t);
-
-		sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2);
-		sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
-
-		
-		//std::ofstream myfile("C:\\Users\\nickk124\\Documents\\Reichart Research\\TRK\\TRKtangents.txt", std::ofstream::app);
-		//if (myfile.is_open())
-		//{
-		//	// filename    a     b     optimum scale    total computation time (s)
-		//	double fit_contrib = w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) - w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
-
-		//	myfile << params[0] << " " << params[1] << " " << params[2] << " " << params[3] << " " << Sig_xn2 << " " << Sig_yn2 << " " << x[n] << " " << y[n] << " " << x_t << " " << fit_contrib << " " << x_tn_vec.size() << " ";
-		//	for (int i = 0; i < x_tn_vec.size(); i++) {
-		//		myfile << x_tn_vec[i] << " ";
-		//	}
-		//	myfile << std::endl;
-		//	myfile.close();
-		//}
-		//else std::cout << "Unable to open file";
-		
+		sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]);
+		sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
 	}
 
 	switch (whichExtrema) {
@@ -952,6 +889,8 @@ double TRK::regularChiSquared(std::vector <double> params) {
 }
 
 double TRK::likelihood(std::vector <double> allparams) {
+	std::vector <double> SigXVec, SigYVec;
+	std::vector <double> all_x_t(N, 0.0);
 	double L = 1.0;
 
 	double slop_x = allparams[M];
@@ -963,18 +902,36 @@ double TRK::likelihood(std::vector <double> allparams) {
 		params.push_back(allparams[i]);
 	}
 
+	std::vector <int> nn;
+
 	for (int n = 0; n < N; n++) {
-		double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
-		double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
+		nn.push_back(n);
+	}
 
-		std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sig_xn2, Sig_yn2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
-		double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
+	for (int n = 0; n < N; n++) {
+		SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
+		SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
+	}
 
-		double m_tn = dyc(x_t, params);
-		double y_tn = yc(x_t, params);
+	std::for_each( //parallel tangent point finding
+		std::execution::par_unseq,
+		nn.begin(),
+		nn.end(),
+		[&](auto&& n)
+	{
+		std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
 
-		L *= w[n]*std::sqrt((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
-		L *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2)));
+		double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
+
+		all_x_t[n] = x_t;
+	});
+
+	for (int n = 0; n < N; n++) {
+		double m_tn = dyc(all_x_t[n], params);
+		double y_tn = yc(all_x_t[n], params);
+
+		L *= w[n]*std::sqrt((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
+		L *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n])));
 	}
 	return L;
 }
@@ -1827,6 +1784,8 @@ void TRK::optimizeScale() {
 	results.slop_y = allparams_s[M + 1];
 
 	results.optimumScale = s;
+	results.minimumScale = a;
+	results.maximumScale = b;
 
 	return;
 }
@@ -2538,23 +2497,23 @@ void TRK::calculateUncertainties() {
 
 	std::vector <std::vector <double >> allparam_samples = methastPosterior(R, burncount, allparams_sigmas_guess);
 
-	std::string fileName = std::string("TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
+	//std::string fileName = std::string("TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
 
-	std::ofstream myfile;
-	myfile.open(fileName, std::ofstream::trunc);
-	if (myfile.is_open())
-	{
-		// filename    a     b     optimum scale    total computation time (s)
-		for (int i = 0; i < allparam_samples.size(); i++) {
-			for (int j = 0; j < allparams_guess.size(); j++) {
-				myfile << allparam_samples[i][j] << " ";
-			}
-			myfile << std::endl;
-		}
+	//std::ofstream myfile;
+	//myfile.open(fileName, std::ofstream::trunc);
+	//if (myfile.is_open())
+	//{
+	//	// filename    a     b     optimum scale    total computation time (s)
+	//	for (int i = 0; i < allparam_samples.size(); i++) {
+	//		for (int j = 0; j < allparams_guess.size(); j++) {
+	//			myfile << allparam_samples[i][j] << " ";
+	//		}
+	//		myfile << std::endl;
+	//	}
 
-		myfile.close();
-	}
-	else std::cout << "Unable to open file";
+	//	myfile.close();
+	//}
+	//else std::cout << "Unable to open file";
 
 	std::cout << "Computing Uncertainties...\n";
 

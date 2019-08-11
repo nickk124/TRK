@@ -41,7 +41,7 @@ public:
 	std::vector <double> bestFitParams;
 	double slop_x;
 	double slop_y;
-	double optimumScale;
+	double optimumScale, minimumScale, maximumScale;
 	std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
 	std::vector < std::vector <double> > slopX_123Sigmas;
 	std::vector < std::vector <double> > slopY_123Sigmas;
@@ -63,12 +63,13 @@ class TRK
 
 		//dataset 
 		double N, M;
+		std::vector <double> SigXVec, SigYVec;
 		std::vector <double> x, y, sx, sy, w; //datapoints; errorbars
 		double datawidth, x_min, x_max;
 		void getDataWidth();
 
 		//core algorithms
-		void performTRKFit(); //perform fit on previously found optimum scale
+		void performTRKFit(); //finds optimum scale AND calculates uncertainties
 		void performTRKFit(double scale); //perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
 		void performSimpleTRKFit(); //finds optimum scale and and performs TRK fit but without finding uncertainties
 
