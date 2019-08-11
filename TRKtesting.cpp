@@ -322,8 +322,8 @@ int main()
 	std::string filename;
 
 	//filename = "bhc2_data.csv";
-	filename = "rvc2_data.csv";
-	//filename = "c1c2_data.csv";																									//**********
+	//filename = "rvc2_data.csv";
+	filename = "c1c2_data.csv";																									//**********
 	std::vector <std::vector <double> > data = getData(filename, 441);
 
 	//filename = "simplelinear_data.csv";
@@ -390,7 +390,7 @@ int main()
 
 
 	std::vector <std::vector <double> > bhc2prior_params = { {NAN, NAN}, {PI, 1.5*PI}, {NAN, NAN}, {-0.5*PI, 0} };
-	std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0 + 0.1, PI - 0.1}, {NAN, NAN}, {-0.5*PI + 0.1, 0} };
+	std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0, PI}, {NAN, NAN}, {-0.5*PI, 0} };
 
 	//std::vector <std::vector <double> > testlinprior_params = { {NAN, NAN}, {NAN, NAN}, {0.0, NAN}, {0.0, NAN} }; //including slop for testing
 
@@ -398,9 +398,9 @@ int main()
 	Priors rvc2Priors = Priors(CONSTRAINED, rvc2prior_params);
 	//Priors testlinPriors = Priors(CONSTRAINED, testlinprior_params);
 
-	std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };	//rvc2	
+	//std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };	//rvc2	
 	//std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };				//bhc2																					//**********
-	//std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
+	std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
 	//std::vector <double> params_guess = { 0.8, 1.0 };     //test lin
 
 
@@ -409,8 +409,8 @@ int main()
 	double slopy_guess = 0.3;
 
 	//std::vector <double> testsigma_guess = { 0.212500, 0.106250}; //testlin
-	std::vector <double> testsigma_guess = { 0.01, 0.005, 0.01, 0.01};  //bhc2/rvc2
-	//std::vector <double> testsigma_guess = { 0.01, 0.005};  //c1c2
+	//std::vector <double> testsigma_guess = { 0.01, 0.005, 0.01, 0.01};  //bhc2/rvc2
+	std::vector <double> testsigma_guess = { 0.01, 0.005};  //c1c2
 
 	//double testslop_x_sigma_guess = 0.006250; //testlin
 	//double testslop_y_sigma_guess = 0.002500;
@@ -421,9 +421,10 @@ int main()
 
 
 	//TRK TRKtest = TRK(linearFunc, dLin, ddLin, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
-	//TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);															//**********
+	TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);															//**********
 	//TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, bhc2Priors);
-	TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, rvc2Priors);
+	//TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, rvc2Priors);
+	//TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
 
 	std::vector <double> allparams_guess = params_guess;
 
@@ -438,14 +439,26 @@ int main()
 	//TRKtest.s = 0.228531;
 
 	//TRKtest.s = 0.125892541;
+	//TRKtest.s = 2.51188643150958;
+
+	/*c2p1RV = -0.287324;
+	c2p2RV = -2.0;*/
+
+	//std::vector <double> adamParams = { 102.965701, toRad(90.120709), 7.425779, toRad(-53.732416), 0.659038, 0.000003 };
+
+
+
+	//double fitness = TRKtest.modifiedChiSquared(adamParams);
 	
 	/*std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess);
 	std::cout << "s = " << TRKtest.s << ":    ";
 	for (int j = 0; j < allparams_guess.size(); j++) {
 		std::cout << fit[j] << "   ";
 	}
-	std::cout << std::endl;*/
-	
+	std::cout << std::endl; */
+	//TRKtest.s = 0.341797;
+	//std::vector <double> x_tn_vec = TRKtest.tangentsFinder({ 2.444524,  4.586552,  2.258013, -1.134365 }, 0.398100, 3.505000, 0.028963, 0.275889, 0.398100);
+
 	clock_t time = startTimer();
 
 	//printf("\n scale of %f \n", TRKtest.s);
@@ -458,9 +471,21 @@ int main()
 
 	//TRKtest.R = 200000;
 
-	TRKtest.optimizeScale();
+	//TRKtest.optimizeScale();
 
 	//TRKtest.calculateUncertainties();
+
+	TRKtest.performTRKFit();
+
+	printf("Optimum scale: %f \n", TRKtest.results.optimumScale);
+	printf("Minimum scale: %f \n", TRKtest.results.minimumScale);
+	printf("Maximum scale: %f \n", TRKtest.results.maximumScale);
+
+	printf("Fitted parameters (including slop): ");
+	for (int k = 0; k < params_guess.size() + 2; k++) {
+		printf("%f ", TRKtest.results.bestFitParams[k]);
+	}
+	std::cout << std::endl;
 
 	printf("Uncertainties: (- 1 2 3, + 1 2 3): \n");
 	for (int k = 0; k < params_guess.size(); k++) {
@@ -489,7 +514,6 @@ int main()
 	}
 	std::cout << std::endl;
 	
-	//TRKtest.optimizeScale();
 
 	/*
 	TRKtest.s = 0.05;
@@ -552,10 +576,11 @@ int main()
 
 	writeResults(TRKtest, sec_elapsed, filename);
 	
-	/*
+	
 
-	TRKtest.a = 0.175415;
-	TRKtest.b = 0.369385;
+	//TRKtest.a = 0.129883;
+	/*TRKtest.a = 0.129;
+	TRKtest.b = 0.977539;
 
 	TRKtest.iterative_allparams_guess = allparams_guess;
 
@@ -571,8 +596,27 @@ int main()
 	TRKtest.params_a = TRKtest.params_slopx;
 	TRKtest.params_b = TRKtest.params_slopy;
 
-	TRKtest.optimize_s_R2();
-	*/
+	double s0 = TRKtest.optimize_s0_R2();
+
+	TRKtest.s = s0;
+
+	double s_final = TRKtest.iterateR2_OptimumScale(s0);
+
+	TRKtest.s = s_final;
+
+	std::cout << "optimum s = " << TRKtest.s << std::endl;
+
+	TRKtest.results.bestFitParams.clear();
+
+	for (int j = 0; j < TRKtest.M; j++) {
+		TRKtest.results.bestFitParams.push_back(TRKtest.allparams_s[j]);
+	}
+
+	TRKtest.results.slop_x = TRKtest.allparams_s[TRKtest.M];
+	TRKtest.results.slop_y = TRKtest.allparams_s[TRKtest.M + 1];
+
+	TRKtest.results.optimumScale = TRKtest.s;*/
+	
 
 	return 0;
 }
