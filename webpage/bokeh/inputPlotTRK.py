@@ -36,7 +36,7 @@ srcData = ColumnDataSource(data=dict(x = x, y = y, err_x_up = err_x_up, err_y_up
 # create the scatter plot
 TOOLS="pan,wheel_zoom,reset"
 
-p = Figure(tools=TOOLS, plot_width=600, plot_height=600, min_border=10, min_border_left=50,
+p = Figure(tools=TOOLS, plot_width=500, plot_height=500, min_border=10, min_border_left=50,
            toolbar_location="above",
            active_scroll='wheel_zoom', 
            active_drag = "pan"

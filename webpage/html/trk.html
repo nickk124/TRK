@@ -18,13 +18,13 @@
     <!--<link rel= "stylesheet" type= "text/css" href= "{{URL('static','css/rcr2.css')}}">-->
     <link href='https://fonts.googleapis.com/css?family=Josefin+Sans:300' rel='stylesheet' type='text/css'>
 
-    <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.css" type="text/css" />
-    <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.0.4.min.css" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-1.2.0.min.css" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.2.0.min.css" type="text/css" />
 
     <!--<script href= "{{URL('static','js/jquery.js') }}" type="text/javascript"></script>-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-1.0.4.min.js"></script>
-    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.0.4.min.js"></script>
+    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-1.2.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.2.0.min.js"></script>
     <script type="text/javascript">
         Bokeh.set_log_level("info");
     </script>
@@ -74,61 +74,51 @@
             </div>
         </div>
 
-        <h1 style="font-size:2.5em;">Plot Data and Select the Basis of the Dependent Variable</h1>
+        <h1 style="font-size:2.5em;">Plot and Model Data</h1>
         <div id="StepOne">
-            <div id="Plot_input" style="padding:25px">
-                <div class="bk-root" id="fc3e0e56-e709-4718-8505-7986df9cdcdb" data-root-id="1059"></div>
-
-                <script type="application/json" id="1132">
-                    {"0e14db1a-014f-48dc-aa4c-d571b6c5c580":{"roots":{"references":[{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1046","type":"CustomJS"}]},"label":"Logarithmic x Basis","sizing_mode":"stretch_both"},"id":"1050","type":"Button"},{"attributes":{},"id":"1022","type":"WheelZoomTool"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1037","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1038","type":"Circle"},"selection_glyph":null,"view":{"id":"1040","type":"CDSView"}},"id":"1039","type":"GlyphRenderer"},{"attributes":{"axis_label":"x","formatter":{"id":"1065","type":"BasicTickFormatter"},"plot":{"id":"1002","subtype":"Figure","type":"Plot"},"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1011","type":"LinearAxis"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1044","type":"CustomJS"}]},"label":"Exponential x Basis","sizing_mode":"stretch_both"},"id":"1051","type":"Button"},{"attributes":{"overlay":{"id":"1029","type":"BoxAnnotation"}},"id":"1023","type":"BoxZoomTool"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1043","type":"CustomJS"}]},"label":"Linear y Basis","sizing_mode":"stretch_both"},"id":"1052","type":"Button"},{"attributes":{},"id":"1024","type":"SaveTool"},{"attributes":{},"id":"1012","type":"BasicTicker"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1047","type":"CustomJS"}]},"label":"Logarithmic y Basis","sizing_mode":"stretch_both"},"id":"1053","type":"Button"},{"attributes":{},"id":"1025","type":"ResetTool"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1045","type":"CustomJS"}]},"label":"Exponential y Basis","sizing_mode":"stretch_both"},"id":"1054","type":"Button"},{"attributes":{"plot":{"id":"1002","subtype":"Figure","type":"Plot"},"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1015","type":"Grid"},{"attributes":{},"id":"1026","type":"HelpTool"},{"attributes":{"below":[{"id":"1011","type":"LinearAxis"}],"left":[{"id":"1016","type":"LinearAxis"}],"plot_height":400,"renderers":[{"id":"1011","type":"LinearAxis"},{"id":"1015","type":"Grid"},{"id":"1016","type":"LinearAxis"},{"id":"1020","type":"Grid"},{"id":"1029","type":"BoxAnnotation"},{"id":"1039","type":"GlyphRenderer"}],"title":{"id":"1060","type":"Title"},"toolbar":{"id":"1027","type":"Toolbar"},"x_range":{"id":"1003","type":"DataRange1d"},"x_scale":{"id":"1007","type":"LinearScale"},"y_range":{"id":"1005","type":"DataRange1d"},"y_scale":{"id":"1009","type":"LinearScale"}},"id":"1002","subtype":"Figure","type":"Plot"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x"},"y":{"field":"y"}},"id":"1038","type":"Circle"},{"attributes":{"callback":null},"id":"1003","type":"DataRange1d"},{"attributes":{"children":[{"id":"1048","type":"Button"}],"sizing_mode":"scale_width"},"id":"1055","type":"WidgetBox"},{"attributes":{"axis_label":"y(x)","formatter":{"id":"1063","type":"BasicTickFormatter"},"plot":{"id":"1002","subtype":"Figure","type":"Plot"},"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1016","type":"LinearAxis"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1021","type":"PanTool"},{"id":"1022","type":"WheelZoomTool"},{"id":"1023","type":"BoxZoomTool"},{"id":"1024","type":"SaveTool"},{"id":"1025","type":"ResetTool"},{"id":"1026","type":"HelpTool"}]},"id":"1027","type":"Toolbar"},{"attributes":{"children":[{"id":"1049","type":"Button"},{"id":"1050","type":"Button"},{"id":"1051","type":"Button"}],"sizing_mode":"scale_width"},"id":"1056","type":"WidgetBox"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"plot":null,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1029","type":"BoxAnnotation"},{"attributes":{},"id":"1017","type":"BasicTicker"},{"attributes":{"children":[{"id":"1052","type":"Button"},{"id":"1053","type":"Button"},{"id":"1054","type":"Button"}],"sizing_mode":"scale_width"},"id":"1057","type":"WidgetBox"},{"attributes":{"dimension":1,"plot":{"id":"1002","subtype":"Figure","type":"Plot"},"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1020","type":"Grid"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{"callback":null,"data":{"x":[],"y":[]},"selected":{"id":"1067","type":"Selection"},"selection_policy":{"id":"1066","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"children":[{"id":"1055","type":"WidgetBox"},{"id":"1056","type":"WidgetBox"},{"id":"1057","type":"WidgetBox"}],"sizing_mode":"fixed"},"id":"1058","type":"Column"},{"attributes":{"children":[{"id":"1002","subtype":"Figure","type":"Plot"},{"id":"1058","type":"Column"}]},"id":"1059","type":"Row"},{"attributes":{"args":{"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"}},"code":"\n    testCallBegin();\n\n    testLog('Plotting Input');\n\n    p.reset.emit();\n\n    var input_data = getData();\n    var x_data = input_data[0];\n    var y_data = input_data[1];\n\n    var data = src.data;\n\n    var x = [];\n    var y = [];\n\n    x = data['x'];\n    y = data['y'];\n\n    if (x_data.length != y_data.length){\n        testLog('Alert: inputted data must be same size');\n    }\n\n    for (var i = 0; i &lt; y_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n    }\n\n    x = x.slice(0,y_data.length);\n    y = y.slice(0,y_data.length);\n\n    data['x'] = x;\n    data['y'] = y;\n\n    src.change.emit();\n\n    testLog(x_basis);\n    testLog(y_basis);\n\n    testCallEnd();\n"},"id":"1041","type":"CustomJS"},{"attributes":{},"id":"1007","type":"LinearScale"},{"attributes":{"args":{"axis":{"id":"1011","type":"LinearAxis"},"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"}},"code":"\n    testCallBegin();\n\n    x_basis = 'linear';\n\n    testLog('x -&gt; linear');\n\n    p.reset.emit();\n\n    var input_data = getData();\n    var oldx_data = input_data[0];\n    var oldy_data = input_data[1];\n\n    var trans_result = transformXLinear(oldx_data, oldy_data);\n\n    var x_data = trans_result[0];\n    var y_data = trans_result[1];\n\n    var data = src.data;\n\n    var x = [];\n    var y = [];\n\n    x = data['x'];\n    y = data['y'];\n\n    if (x_data.length != y_data.length){\n        testLog('Alert: inputted data must be same size');\n    }\n\n    for (var i = 0; i &lt; y_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n    }\n\n    x = x.slice(0,y_data.length);\n    y = y.slice(0,y_data.length);\n\n    data['x'] = x;\n    data['y'] = y;\n\n    axis.axis_label = \"x\";\n\n    p.change.emit()\n\n    src.change.emit();\n\n    testLog(x_basis);\n    testLog(y_basis);\n\n    testCallEnd();\n"},"id":"1042","type":"CustomJS"},{"attributes":{"args":{"axis":{"id":"1016","type":"LinearAxis"},"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"}},"code":"\n    testCallBegin();\n\n    var oldy_basis = y_basis;\n\n    y_basis = 'linear';\n\n    testLog('y -&gt; linear');\n\n    p.reset.emit();\n\n    var input_data = getData();\n    var oldx_data = input_data[0];\n    var oldy_data = input_data[1];\n\n    var trans_result = transformYLinear(oldx_data, oldy_data);\n\n    var x_data = trans_result[0];\n    var y_data = trans_result[1];\n\n    var data = src.data;\n\n    var x = [];\n    var y = [];\n\n    x = data['x'];\n    y = data['y'];\n\n    if (x_data.length != y_data.length){\n        testLog('Alert: inputted data must be same size');\n    }\n\n    for (var i = 0; i &lt; y_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n    }\n\n    x = x.slice(0,y_data.length);\n    y = y.slice(0,y_data.length);\n\n    data['x'] = x;\n    data['y'] = y;\n\n    axis.axis_label = \"y\";\n\n    p.change.emit()\n\n    src.change.emit();\n\n    testLog(x_basis);\n    testLog(y_basis);\n\n    document.getElementById(\"ModelTitle\").innerHTML = \"Model y(x):\";\n\n    changeFunctionDisplay(oldy_basis);\n\n    testCallEnd();\n"},"id":"1043","type":"CustomJS"},{"attributes":{"args":{"axis":{"id":"1011","type":"LinearAxis"},"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"}},"code":"\n    testCallBegin();\n\n    x_basis = 'exp';\n\n    testLog('x -&gt; exponential');\n\n    p.reset.emit();\n\n    var input_data = getData();\n    var oldx_data = input_data[0];\n    var oldy_data = input_data[1];\n\n    var trans_result = transformXExp(oldx_data, oldy_data);\n\n    var x_data = trans_result[0];\n    var y_data = trans_result[1];\n\n    var data = src.data;\n\n    var x = [];\n    var y = [];\n\n    x = data['x'];\n    y = data['y'];\n\n    if (x_data.length != y_data.length){\n        testLog('Alert: inputted data must be same size');\n    }\n\n    for (var i = 0; i &lt; y_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n    }\n\n    x = x.slice(0,y_data.length);\n    y = y.slice(0,y_data.length);\n\n    data['x'] = x;\n    data['y'] = y;\n\n    axis.axis_label = \"10^x\";\n\n    p.change.emit()\n\n    src.change.emit();\n\n    testLog(x_basis);\n    testLog(y_basis);\n\n    testCallEnd();\n"},"id":"1044","type":"CustomJS"},{"attributes":{},"id":"1063","type":"BasicTickFormatter"},{"attributes":{"plot":null,"text":""},"id":"1060","type":"Title"},{"attributes":{"args":{"axis":{"id":"1016","type":"LinearAxis"},"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"}},"code":"\n    testCallBegin();\n\n    var oldy_basis = y_basis;\n\n    y_basis = 'exp';\n\n    testLog('y -&gt; exponential');\n\n    p.reset.emit();\n\n    var input_data = getData();\n    var oldx_data = input_data[0];\n    var oldy_data = input_data[1];\n\n    var trans_result = transformYExp(oldx_data, oldy_data);\n\n    var x_data = trans_result[0];\n    var y_data = trans_result[1];\n\n    var data = src.data;\n\n    var x = [];\n    var y = [];\n\n    x = data['x'];\n    y = data['y'];\n\n    if (x_data.length != y_data.length){\n        testLog('Alert: inputted data must be same size');\n    }\n\n    for (var i = 0; i &lt; y_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n    }\n\n    x = x.slice(0,y_data.length);\n    y = y.slice(0,y_data.length);\n\n    data['x'] = x;\n    data['y'] = y;\n\n    axis.axis_label = \"10^y\";\n\n    p.change.emit()\n\n    src.change.emit();\n\n    testLog(x_basis);\n    testLog(y_basis);\n\n    document.getElementById(\"ModelTitle\").innerHTML = \"Model 10&lt;sup&gt; y(x)&lt;/sup&gt;:\";\n\n    changeFunctionDisplay(oldy_basis);\n\n    testCallEnd();\n"},"id":"1045","type":"CustomJS"},{"attributes":{},"id":"1065","type":"BasicTickFormatter"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{"args":{"axis":{"id":"1011","type":"LinearAxis"},"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"}},"code":"\n    testCallBegin();\n\n    x_basis = 'log';\n\n    testLog('x -&gt; logarithmic');\n\n    p.reset.emit();\n\n    var input_data = getData();\n    var oldx_data = input_data[0];\n    var oldy_data = input_data[1];\n\n    var trans_result = transformXLog(oldx_data, oldy_data);\n\n    var x_data = trans_result[0];\n    var y_data = trans_result[1];\n\n    var data = src.data;\n\n    var x = [];\n    var y = [];\n\n    x = data['x'];\n    y = data['y'];\n\n    if (x_data.length != y_data.length){\n        testLog('Alert: inputted data must be same size');\n    }\n\n    for (var i = 0; i &lt; y_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n    }\n\n    x = x.slice(0,y_data.length);\n    y = y.slice(0,y_data.length);\n\n    data['x'] = x;\n    data['y'] = y;\n\n    axis.axis_label = \"log(x) (base 10)\";\n\n    p.change.emit()\n\n    src.change.emit();\n\n    testLog(x_basis);\n    testLog(y_basis);\n\n    testCallEnd();\n"},"id":"1046","type":"CustomJS"},{"attributes":{},"id":"1066","type":"UnionRenderers"},{"attributes":{"args":{"axis":{"id":"1016","type":"LinearAxis"},"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"}},"code":"\n    testCallBegin();\n\n    var oldy_basis = y_basis;\n\n    y_basis = 'log';\n\n    testLog('y -&gt; logarithmic');\n\n    p.reset.emit();\n\n    var input_data = getData();\n    var oldx_data = input_data[0];\n    var oldy_data = input_data[1];\n\n    var trans_result = transformYLog(oldx_data, oldy_data);\n\n    var x_data = trans_result[0];\n    var y_data = trans_result[1];\n\n    var data = src.data;\n\n    var x = [];\n    var y = [];\n\n    x = data['x'];\n    y = data['y'];\n\n    if (x_data.length != y_data.length){\n        testLog('Alert: inputted data must be same size');\n    }\n\n    for (var i = 0; i &lt; y_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n    }\n\n    x = x.slice(0,y_data.length);\n    y = y.slice(0,y_data.length);\n\n    data['x'] = x;\n    data['y'] = y;\n\n    axis.axis_label = \"log(y) (base 10)\";\n\n    p.change.emit()\n\n    src.change.emit();\n\n    testLog(x_basis);\n    testLog(y_basis);\n\n    document.getElementById(\"ModelTitle\").innerHTML = \"Model log y(x):\";\n\n    changeFunctionDisplay(oldy_basis);\n\n    testCallEnd();\n"},"id":"1047","type":"CustomJS"},{"attributes":{},"id":"1067","type":"Selection"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1041","type":"CustomJS"}]},"label":"Plot Data","sizing_mode":"stretch_both"},"id":"1048","type":"Button"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1040","type":"CDSView"},{"attributes":{},"id":"1021","type":"PanTool"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1042","type":"CustomJS"}]},"label":"Linear x Basis","sizing_mode":"stretch_both"},"id":"1049","type":"Button"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"navy"},"line_alpha":{"value":0.5},"line_color":{"value":"navy"},"size":{"units":"screen","value":5},"x":{"field":"x"},"y":{"field":"y"}},"id":"1037","type":"Circle"}],"root_ids":["1059"]},"title":"Bokeh Application","version":"1.0.4"}}
-                </script>
-                <script type="text/javascript">
-            (function() {
-              var fn = function() {
-                Bokeh.safely(function() {
-                  (function(root) {
-                    function embed_document(root) {
-
-                    var docs_json = document.getElementById('1132').textContent;
-                    var render_items = [{"docid":"0e14db1a-014f-48dc-aa4c-d571b6c5c580","roots":{"1059":"fc3e0e56-e709-4718-8505-7986df9cdcdb"}}];
-                    root.Bokeh.embed.embed_items(docs_json, render_items);
-
-                    }
-                    if (root.Bokeh !== undefined) {
-                      embed_document(root);
-                    } else {
-                      var attempts = 0;
-                      var timer = setInterval(function(root) {
-                        if (root.Bokeh !== undefined) {
-                          embed_document(root);
-                          clearInterval(timer);
-                        }
-                        attempts++;
-                        if (attempts > 100) {
-                          console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
-                          clearInterval(timer);
-                        }
-                      }, 10, root)
-                    }
-                  })(window);
-                });
-              };
-              if (document.readyState != "loading") fn();
-              else document.addEventListener("DOMContentLoaded", fn);
-            })();
-                </script>
-            </div>
-            <i style="padding-top:10px">Plot the data here, and zoom in (using the Box Zoom or Wheel Zoom tool) to the uncontaminated part of the distribution. By double-clicking the lower six buttons, you can change the basis of the data (in either or both x and y) such that the RMS scatter of average-weight data is approximately constant across the independent variable's domain, to be more compatible with RCR.</i>
-            <br>
-            <br>
-            <i style="padding-top:10px">The basis options are linear (default, y → y), logarithmic (y → log(y), base 10), and exponential (y → 10<sup> y</sup>).</i>
-            <br>
-            <br>
-        </div>
-
-        <h1 style="font-size:2.5em;">Model Data</h1>
-        <div id="StepOne" style="overflow:visible">
             <div>
+                <div id="Plot_input" style="padding:25px">
+                    <div class="bk-root" id="79829cd4-e985-4119-b5fb-cfa833304c0b" data-root-id="1002"></div>
+
+                    <script type="application/json" id="1146">
+                        {"fc9ffd37-52d5-49b5-ac76-aae923163108":{"roots":{"references":[{"attributes":{"level":"underlay","size":10},"id":"1040","type":"TeeHead"},{"attributes":{"formatter":{"id":"1046","type":"BasicTickFormatter"},"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1011","type":"LinearAxis"},{"attributes":{},"id":"1012","type":"BasicTicker"},{"attributes":{"level":"underlay","size":10},"id":"1041","type":"TeeHead"},{"attributes":{"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1015","type":"Grid"},{"attributes":{"level":"underlay","size":10},"id":"1042","type":"TeeHead"},{"attributes":{"active_drag":{"id":"1021","type":"PanTool"},"active_inspect":"auto","active_multi":null,"active_scroll":{"id":"1022","type":"WheelZoomTool"},"active_tap":"auto","tools":[{"id":"1021","type":"PanTool"},{"id":"1022","type":"WheelZoomTool"},{"id":"1023","type":"ResetTool"}]},"id":"1024","type":"Toolbar"},{"attributes":{"level":"underlay","size":10},"id":"1043","type":"TeeHead"},{"attributes":{},"id":"1044","type":"BasicTickFormatter"},{"attributes":{"fill_alpha":{"value":0.6},"fill_color":{"value":"blue"},"line_alpha":{"value":0.6},"line_color":{"value":"blue"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1029","type":"Scatter"},{"attributes":{},"id":"1017","type":"BasicTicker"},{"attributes":{"background_fill_color":{"value":"#fafafa"},"below":[{"id":"1011","type":"LinearAxis"}],"center":[{"id":"1015","type":"Grid"},{"id":"1020","type":"Grid"},{"id":"1033","type":"Whisker"},{"id":"1035","type":"Whisker"}],"js_event_callbacks":{"mouseenter":[{"id":"1037","type":"CustomJS"}]},"left":[{"id":"1016","type":"LinearAxis"}],"min_border":10,"min_border_left":50,"plot_height":500,"plot_width":500,"renderers":[{"id":"1031","type":"GlyphRenderer"}],"title":{"id":"1038","type":"Title"},"toolbar":{"id":"1024","type":"Toolbar"},"toolbar_location":"above","x_range":{"id":"1003","type":"DataRange1d"},"x_scale":{"id":"1007","type":"LinearScale"},"y_range":{"id":"1005","type":"DataRange1d"},"y_scale":{"id":"1009","type":"LinearScale"}},"id":"1002","subtype":"Figure","type":"Plot"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1029","type":"Scatter"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1030","type":"Scatter"},"selection_glyph":null,"view":{"id":"1032","type":"CDSView"}},"id":"1031","type":"GlyphRenderer"},{"attributes":{},"id":"1046","type":"BasicTickFormatter"},{"attributes":{"formatter":{"id":"1044","type":"BasicTickFormatter"},"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1016","type":"LinearAxis"},{"attributes":{},"id":"1048","type":"Selection"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1032","type":"CDSView"},{"attributes":{},"id":"1049","type":"UnionRenderers"},{"attributes":{"callback":null},"id":"1003","type":"DataRange1d"},{"attributes":{"dimension":1,"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1020","type":"Grid"},{"attributes":{},"id":"1021","type":"PanTool"},{"attributes":{"callback":null,"data":{"err_x_down":[],"err_x_up":[],"err_y_down":[],"err_y_up":[],"x":[],"y":[]},"selected":{"id":"1048","type":"Selection"},"selection_policy":{"id":"1049","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{},"id":"1022","type":"WheelZoomTool"},{"attributes":{},"id":"1023","type":"ResetTool"},{"attributes":{},"id":"1007","type":"LinearScale"},{"attributes":{"args":{"p":{"id":"1002","subtype":"Figure","type":"Plot"},"srcData":{"id":"1001","type":"ColumnDataSource"},"xaxis":{"id":"1011","type":"LinearAxis"},"yaxis":{"id":"1016","type":"LinearAxis"}},"code":"\n    p.reset.emit();\n\n    let input_data = getData();\n\n    let x_data = input_data[0];\n    let err_x_data = input_data[1];\n    let y_data = input_data[2];\n    let err_y_data = input_data[3];\n\n    let x = [];\n    let err_x_up = [];\n    let err_x_down = [];\n    let y = []; \n    let err_y_up = [];\n    let err_y_down = [];\n    \n    var dataData = srcData.data;\n\n    dataData['x'] = [];\n    dataData['y'] = [];\n    dataData['err_x_up'] = [];\n    dataData['err_y_up'] = [];\n    dataData['err_x_down'] = [];\n    dataData['err_y_down'] = [];\n\n    x = dataData['x'];\n    y = dataData['y'];\n    err_x_up = dataData['err_x_up']\n    err_y_up = dataData['err_y_up']\n    err_x_down = dataData['err_x_down']\n    err_y_down = dataData['err_y_down']\n\n    for (let i = 0; i &lt; x_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n        err_x_up[i] = x_data[i] + err_x_data[i];\n        err_y_up[i] = y_data[i] + err_y_data[i];\n        err_x_down[i] = x_data[i] - err_x_data[i];\n        err_y_down[i] = y_data[i] - err_y_data[i];\n    }\n\n    dataData['x'] = x;\n    dataData['y'] = y;\n    dataData['err_x_up'] = err_x_up;\n    dataData['err_y_up'] = err_y_up;\n    dataData['err_x_down'] = err_x_down;\n    dataData['err_y_down'] = err_y_down;\n\n    //xaxis.axis_label = playerPlotAxes[0];\n    //yaxis.axis_label = playerPlotAxes[1];\n\n    srcData.change.emit();   \n    p.change.emit();\n"},"id":"1037","type":"CustomJS"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1030","type":"Scatter"},{"attributes":{"base":{"field":"x","units":"data"},"lower":{"field":"err_y_down","units":"data"},"lower_head":{"id":"1041","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_y_up","units":"data"},"upper_head":{"id":"1040","type":"TeeHead"}},"id":"1033","type":"Whisker"},{"attributes":{"base":{"field":"y","units":"data"},"dimension":"width","lower":{"field":"err_x_down","units":"data"},"lower_head":{"id":"1043","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_x_up","units":"data"},"upper_head":{"id":"1042","type":"TeeHead"}},"id":"1035","type":"Whisker"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{"text":""},"id":"1038","type":"Title"}],"root_ids":["1002"]},"title":"Input Data","version":"1.2.0"}}
+                    </script>
+                    <script type="text/javascript">
+                        (function () {
+                            var fn = function () {
+                                Bokeh.safely(function () {
+                                    (function (root) {
+                                        function embed_document(root) {
+
+                                            var docs_json = document.getElementById('1146').textContent;
+                                            var render_items = [{ "docid": "fc9ffd37-52d5-49b5-ac76-aae923163108", "roots": { "1002": "79829cd4-e985-4119-b5fb-cfa833304c0b" } }];
+                                            root.Bokeh.embed.embed_items(docs_json, render_items);
+
+                                        }
+                                        if (root.Bokeh !== undefined) {
+                                            embed_document(root);
+                                        } else {
+                                            var attempts = 0;
+                                            var timer = setInterval(function (root) {
+                                                if (root.Bokeh !== undefined) {
+                                                    embed_document(root);
+                                                    clearInterval(timer);
+                                                }
+                                                attempts++;
+                                                if (attempts > 100) {
+                                                    console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+                                                    clearInterval(timer);
+                                                }
+                                            }, 10, root)
+                                        }
+                                    })(window);
+                                });
+                            };
+                            if (document.readyState != "loading") fn();
+                            else document.addEventListener("DOMContentLoaded", fn);
+                        })();
+                    </script>
+                </div>
                 <div id="ButtonSection" style="float:left; width:30%">
                     <h2 id="ModelTitle">Model y(x):</h2>
                     <div>
@@ -169,11 +159,6 @@
                     <textarea class="dataTable" id="barArea" style="height:20px; width:70%;float: left;"></textarea>
 
                 </div>
-                <div id="RejectionMethod" style="float:left; width:30%">
-                    <h2>Input Initial Guess for Model Function Parameters:</h2>
-                    <br>
-                    <textarea class="dataTable" id="guessarea" style="height:300px"></textarea>
-                </div>
                 <br style="clear: left;" />
             </div>
             <br>
@@ -211,10 +196,11 @@
                     <textarea class="dataTable" id="priorsArea" style="height:300px"></textarea>
                 </div>
             </div>
+
         </div>
         <br>
         <div style="clear:both"></div>
-        <h1 style="font-size:2.5em; padding-top:25px;"> Select Rejection Method </h1>
+        <h1 style="font-size:2.5em; padding-top:25px;">Select Fitting Algorithm</h1>
         <!--////////////////////////////////////////////////////////////////////////////-->
         <!-- DISTRIBUTION SELECTION -->
         <!--////////////////////////////////////////////////////////////////////////////-->
@@ -222,49 +208,38 @@
 
             <div id="ButtonSection">
 
-                <h2> Select Uncontaminated Distribution about y(x):</h2>
+                <h2>Optimize Fitting Scale?</h2>
 
-                <button id="Symmetric" class="Button Distribution"> Gaussian, Mildly Peaked, or Mildly Flat-Topped (Default) </button>
-                <button id="Asymmetric" class="Button Distribution"> Mildly Asymmetric (Less Powerful) </button>
+                <button id="OpScale" class="Button Distribution">Yes (Default)</button>
+                <button id="NoOpScale" class="Button Distribution">No</button>
 
-                <h2 id="SelectContaminantSectionTitle"> Select Contaminant Type:</h2>
+                <h2 id="SelectContaminantSectionTitle">Generate Model Parameter Distributions/Uncertainties?</h2>
                 <div id="SelectContaminantSection">
-                    <button id="Equal" class="Button Contaminants"> High and Low in Equal Proportions </button>
-                    <button id="OneSided" class="Button Contaminants"> All High or All Low </button>
-                    <button id="Between" class="Button Contaminants"> In Between (Default) </button>
+                    <button id="YesMCMC" class="Button Contaminants">Yes</button>
+                    <button id="NoMCMC" class="Button Contaminants">No</button>
                 </div>
             </div>
             <div id="RejectionMethod">
 
-                <h2> Selected Uncontaminated Distribution about y(x): </h2>
+                <h2> Selected Fitting Algorithm: </h2>
                 <br>
                 <div style="width:80%">
-                    <img src="/rcr/static/rcr1.png" id="SymmetricImage">
-                    <img src="/rcr/static/rcr2.png" id="AsymmetricImage">
+                    <img src="/rcr/static/YesScaleYesMCMC.png" id="YesScaleYesMCMC">
+                    <img src="/rcr/static/YesScaleNoMCMC.png" id="YesScaleNoMCMC">
+                    <img src="/rcr/static/NoScaleYesMCMC.png" id="NoScaleYesMCMC">
+                    <img src="/rcr/static/NoScaleNoMCMC.png" id="NoScaleNoMCMC">
                 </div>
-                <h2> Selected Rejection Method: </h2>
                 <p id="Option11" class="RejectionMethods">
-                    μ: Median (§2.1; Maples et al. 2018) <br>
-                    σ : Broken-line technique (§2.2, §2.3) <br>
-                    Rejection proportional to σ both below and above  μ (§3.1, §3.3.2)
+                    
                 </p>
-                <p id="Option12" class="RejectionMethods">
-                    μ : Half-sample mode (§2.1; Maples et al. 2018)  <br>
-                    σ<sub>-</sub> , σ<sub>+</sub> : 68.3%-Value technique (§2.2, §2.3)<br>
-                    Rejection proportional to min{σ<sub>-</sub> , σ<sub>+</sub>} both below and above μ (§3.2, §3.3.2)
+                <p id="Option10" class="RejectionMethods">
+                    
                 </p>
-                <p id="Option13" class="RejectionMethods">
-                    μ: Half-sample mode (§2.1; Maples et al. 2018)  <br>
-                    σ<sub>-</sub> , σ<sub>+</sub> : Broken-line technique (§2.2, §2.3)<br>
-                    Rejection proportional to min{σ<sub>-</sub> , σ<sub>+</sub>} both below and above μ (§3.2, §3.3.2)
+                <p id="Option01" class="RejectionMethods">
+                    
                 </p>
-                <p id="Option2All" class="RejectionMethods">
-                    μ: Half-sample mode (§2.1; Maples et al. 2018)  <br>
-                    σ<sub>-</sub> , σ<sub>+</sub> : Broken-line technique (§2.2, §2.3)<br>
-                    Rejection proportional to σ<sub>-</sub> below μ and σ<sub>+</sub> above μ (§3.3.1)
-                </p>
-                <p id="Option3" class="RejectionMethods">
-                    Fundamentally, RCR assumes that the uncontaminated distribution is Gaussian, or near Gaussian.  In particular, our <q>All High or All Low</q> and <q>In Between</q> contaminant type options are especially sensitive to this assumption, and should not be used if this assumption is not met.
+                <p id="Option00" class="RejectionMethods">
+                    
                 </p>
                 <p id="OptionAll" class="RejectionMethods">
                     Note: Rejection method is iterative, preceded by iterative bulk rejection (§5), and proceeded by both (1) iterative "median + 68.3%-value technique" rejection, and (2) iterative "mean + standard deviation " rejection (§4).
@@ -279,105 +254,123 @@
 
         <h1 style="font-size:2.5em; padding-top:25px;"> Output </h1>
         <div id="StepOne">
-            <h1 id="BasisNotice" style="font-size:2.5em; padding-top:25px;">Note: results are in the chosen linear basis.</h1>
-            <div id="ButtonSection" style="float:left; width:46%; padding-right:25px">
+            <div id="FinalPlot" style="float:left; width:24%; padding-right:25px">
                 <br>
                 <div style="float:left; width:400px">
-                    <button id="PerformRCR" class="Button RejectButton" onclick="performFunctionalRCR();">Perform RCR!</button>
+                    <button id="PerformRCR" class="Button RejectButton" onclick="performTRK();">Perform Fit!</button>
                 </div>
                 <br>
                 <div id="OutputTableWrapper">
-                    <div id="ButtonSection" style="width:100%; padding:5px 0px 5px 0px;">
-                        <br>
-                        <table style="width:100%;">
-                            <tr>
-                                <td style="width:33%;">
-                                    <button id="showNonRejected" class="Button DataType"> Show Unrejected Points </button>
-                                </td>
-                                <td style="width:33%;">
-                                    <button id="showRejected" class="Button DataType"> Show Rejected Points </button>
-                                </td>
-                                <td style="width:33%;">
-                                    <button id="showAll" class="Button DataType"> Show Both With Flags </button>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
 
                     <div id="RejectionMethod" style="width:130%; float:right">
                         <table style="float:right">
                             <tr>
-                                <th>Final model<br>parameters and <span id="xBarOut" style="text-decoration:overline">x</span>:</th>
-                                <th style="width:400px">Selected points (x, y, and w if weighted):</th>
+                                <th>Final model<br>parameters:</th>
+                                <th>Parameter<br>uncertainties:</th> <!--only 1 sigma for now-->
                             </tr>
                             <tr>
                                 <th><textarea class="dataTable" id="finalParameters" style="margin-top:10px; width:80%; height:200px"></textarea></th>
-                                <th style="width:400px">
-                                    <textarea class="dataTable" id="nonRejectedData" style="margin-top:10px; width:80%; height:200px"></textarea>
-                                    <textarea class="dataTable" id="rejectedData" style="margin-top:10px; width:80%; height:200px"></textarea>
-                                    <textarea class="dataTable" id="allData" style="margin-top:15px; width:80%; height:200px"></textarea>
-                                </th>
+                                <th><textarea class="dataTable" id="parameterSigmas" style="margin-top:10px; width:80%; height:200px"></textarea></th>
                             </tr>
-                            <!--
-                              <tr style="padding-top:10px">
-                                <th>Final <span id="xBarOut" style="text-decoration:overline">x</span>:</th>
-                              </tr>
-                              <tr>
-                                <th><textarea class="dataTable" id="finalBar" style="margin-top:10px; width:80%; height:200px"></textarea></th>
-                              </tr>
-                            -->
+
+                        </table>
+                        <table style="float:right">
+                            <tr>
+                                <th>Final slop<br>parameters:</th>
+                                <th>Min, max and<br>optimum scales</th>
+                            </tr>
+                            <tr>
+                                <th><textarea class="dataTable" id="slopParameters" style="margin-top:10px; width:80%; height:200px"></textarea></th>
+                                <th><textarea class="dataTable" id="scales" style="margin-top:10px; width:80%; height:200px"></textarea></th>
+                            </tr>
+
                         </table>
                     </div>
                 </div>
-                <div id="NonRCRNote">
-                    <i style="padding-top:10px; display:block;">Note:  RCR not performed.</i>
-
-                </div>
-                <div id="OverRejectionNote">
-                    <i id="OverRejectionNotice" style="padding-top:10px; display:block;"></i>
-
-                </div>
             </div>
             <!-- PLOT DIV -->
-            <div id="Plot" style="float:left; width:46%">
+            <div id="Histogram" style="float:left; width:36%">
                 <div class="bk-root" id="9112dff6-2954-4ac8-ba70-55a9771bcf90" data-root-id="1087"></div>
 
                 <script type="application/json" id="1284">
                     {"5da963a5-8078-45ac-a721-e61f2b698c6b":{"roots":{"references":[{"attributes":{"callback":null,"data":{"x_rejected":[],"y_rejected":[]},"selected":{"id":"1082","type":"Selection"},"selection_policy":{"id":"1081","type":"UnionRenderers"}},"id":"1002","type":"ColumnDataSource"},{"attributes":{},"id":"1014","type":"BasicTicker"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1039","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1040","type":"Circle"},"selection_glyph":null,"view":{"id":"1042","type":"CDSView"}},"id":"1041","type":"GlyphRenderer"},{"attributes":{},"id":"1027","type":"ResetTool"},{"attributes":{"label":{"value":"nonrejected data of size"},"renderers":[{"id":"1041","type":"GlyphRenderer"}]},"id":"1051","type":"LegendItem"},{"attributes":{"line_color":"green","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1068","type":"Line"},{"attributes":{},"id":"1028","type":"HelpTool"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b4","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1069","type":"Line"},{"attributes":{"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1017","type":"Grid"},{"attributes":{"data_source":{"id":"1003","type":"ColumnDataSource"},"glyph":{"id":"1068","type":"Line"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1069","type":"Line"},"selection_glyph":null,"view":{"id":"1071","type":"CDSView"}},"id":"1070","type":"GlyphRenderer"},{"attributes":{"callback":null,"data":{"x_nonrejected":[],"y_nonrejected":[]},"selected":{"id":"1065","type":"Selection"},"selection_policy":{"id":"1064","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1023","type":"PanTool"},{"id":"1024","type":"WheelZoomTool"},{"id":"1025","type":"BoxZoomTool"},{"id":"1026","type":"SaveTool"},{"id":"1027","type":"ResetTool"},{"id":"1028","type":"HelpTool"}]},"id":"1029","type":"Toolbar"},{"attributes":{"axis_label":"y","formatter":{"id":"1047","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1018","type":"LinearAxis"},{"attributes":{},"id":"1064","type":"UnionRenderers"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"plot":null,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1031","type":"BoxAnnotation"},{"attributes":{"source":{"id":"1003","type":"ColumnDataSource"}},"id":"1071","type":"CDSView"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{},"id":"1081","type":"UnionRenderers"},{"attributes":{},"id":"1019","type":"BasicTicker"},{"attributes":{},"id":"1082","type":"Selection"},{"attributes":{"label":{"value":"fitted model"},"renderers":[{"id":"1070","type":"GlyphRenderer"}]},"id":"1083","type":"LegendItem"},{"attributes":{"plot":null,"text":""},"id":"1044","type":"Title"},{"attributes":{"below":[{"id":"1013","type":"LinearAxis"}],"left":[{"id":"1018","type":"LinearAxis"}],"renderers":[{"id":"1013","type":"LinearAxis"},{"id":"1017","type":"Grid"},{"id":"1018","type":"LinearAxis"},{"id":"1022","type":"Grid"},{"id":"1031","type":"BoxAnnotation"},{"id":"1050","type":"Legend"},{"id":"1041","type":"GlyphRenderer"},{"id":"1055","type":"GlyphRenderer"},{"id":"1070","type":"GlyphRenderer"}],"title":{"id":"1044","type":"Title"},"toolbar":{"id":"1029","type":"Toolbar"},"x_range":{"id":"1005","type":"DataRange1d"},"x_scale":{"id":"1009","type":"LinearScale"},"y_range":{"id":"1007","type":"DataRange1d"},"y_scale":{"id":"1011","type":"LinearScale"}},"id":"1004","subtype":"Figure","type":"Plot"},{"attributes":{"callback":null,"data":{"x_original":[],"y_fitted":[]},"selected":{"id":"1100","type":"Selection"},"selection_policy":{"id":"1099","type":"UnionRenderers"}},"id":"1003","type":"ColumnDataSource"},{"attributes":{"args":{"sourceall":{"id":"1003","type":"ColumnDataSource"},"sourcenon":{"id":"1001","type":"ColumnDataSource"},"sourcerej":{"id":"1002","type":"ColumnDataSource"}},"code":"\n    console.log('Plot Generating...');\n    var datanon = sourcenon.data;\n    var datarej = sourcerej.data;\n    var dataall = sourceall.data;\n\n    var x_rejected = datarej['x_rejected']\n    var y_rejected = datarej['y_rejected']\n    var x_nonrejected = datanon['x_nonrejected']\n    var y_nonrejected = datanon['y_nonrejected']\n    var x_original = dataall['x_original']\n    var y_fitted = dataall['y_fitted']\n\n    for (var i = 0; i &lt; x_rejected_result.length; i++) {\n        x_rejected[i] = x_rejected_result[i]\n        y_rejected[i] = y_rejected_result[i]\n    }\n    for (var i = 0; i &lt; x_nonrejected_result.length; i++) {\n        x_nonrejected[i] = x_nonrejected_result[i]\n        y_nonrejected[i] = y_nonrejected_result[i]\n    }\n    for (var i = 0; i &lt; x_original_result.length; i++) {\n        x_original[i] = x_original_result[i]\n        y_fitted[i] = y_fitted_result[i]\n    }\n\n    console.log(datarej['x_rejected']);\n    console.log(datarej['y_rejected']);\n    console.log(datanon['x_nonrejected']);\n    console.log(datanon['y_nonrejected']);\n    console.log(dataall['x_original']);\n    console.log(dataall['y_fitted']);\n\n    sourcenon.change.emit();\n    sourcerej.change.emit();\n    sourceall.change.emit();\n"},"id":"1084","type":"CustomJS"},{"attributes":{},"id":"1045","type":"BasicTickFormatter"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1084","type":"CustomJS"}]},"label":"Plot Results"},"id":"1085","type":"Button"},{"attributes":{},"id":"1047","type":"BasicTickFormatter"},{"attributes":{"callback":null},"id":"1007","type":"DataRange1d"},{"attributes":{"children":[{"id":"1086","type":"WidgetBox"},{"id":"1004","subtype":"Figure","type":"Plot"}]},"id":"1087","type":"Column"},{"attributes":{"dimension":1,"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1022","type":"Grid"},{"attributes":{"items":[{"id":"1051","type":"LegendItem"},{"id":"1066","type":"LegendItem"},{"id":"1083","type":"LegendItem"}],"plot":{"id":"1004","subtype":"Figure","type":"Plot"}},"id":"1050","type":"Legend"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1040","type":"Circle"},{"attributes":{"children":[{"id":"1085","type":"Button"}]},"id":"1086","type":"WidgetBox"},{"attributes":{},"id":"1023","type":"PanTool"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1042","type":"CDSView"},{"attributes":{},"id":"1024","type":"WheelZoomTool"},{"attributes":{"label":{"value":"rejected data"},"renderers":[{"id":"1055","type":"GlyphRenderer"}]},"id":"1066","type":"LegendItem"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"navy"},"line_alpha":{"value":0.5},"line_color":{"value":"navy"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1039","type":"Circle"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"red"},"line_alpha":{"value":0.5},"line_color":{"value":"red"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1053","type":"Circle"},{"attributes":{"overlay":{"id":"1031","type":"BoxAnnotation"}},"id":"1025","type":"BoxZoomTool"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1054","type":"Circle"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{},"id":"1099","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1002","type":"ColumnDataSource"},"glyph":{"id":"1053","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1054","type":"Circle"},"selection_glyph":null,"view":{"id":"1056","type":"CDSView"}},"id":"1055","type":"GlyphRenderer"},{"attributes":{},"id":"1011","type":"LinearScale"},{"attributes":{},"id":"1100","type":"Selection"},{"attributes":{"source":{"id":"1002","type":"ColumnDataSource"}},"id":"1056","type":"CDSView"},{"attributes":{"axis_label":"x","formatter":{"id":"1045","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1013","type":"LinearAxis"},{"attributes":{},"id":"1065","type":"Selection"},{"attributes":{},"id":"1026","type":"SaveTool"}],"root_ids":["1087"]},"title":"Bokeh Application","version":"1.0.4"}}
                 </script>
                 <script type="text/javascript">
-                    (function() {
-                      var fn = function() {
-                        Bokeh.safely(function() {
-                          (function(root) {
-                            function embed_document(root) {
+                    (function () {
+                        var fn = function () {
+                            Bokeh.safely(function () {
+                                (function (root) {
+                                    function embed_document(root) {
 
-                            var docs_json = document.getElementById('1284').textContent;
-                            var render_items = [{"docid":"5da963a5-8078-45ac-a721-e61f2b698c6b","roots":{"1087":"9112dff6-2954-4ac8-ba70-55a9771bcf90"}}];
-                            root.Bokeh.embed.embed_items(docs_json, render_items);
+                                        var docs_json = document.getElementById('1284').textContent;
+                                        var render_items = [{ "docid": "5da963a5-8078-45ac-a721-e61f2b698c6b", "roots": { "1087": "9112dff6-2954-4ac8-ba70-55a9771bcf90" } }];
+                                        root.Bokeh.embed.embed_items(docs_json, render_items);
 
-                            }
-                            if (root.Bokeh !== undefined) {
-                              embed_document(root);
-                            } else {
-                              var attempts = 0;
-                              var timer = setInterval(function(root) {
-                                if (root.Bokeh !== undefined) {
-                                  embed_document(root);
-                                  clearInterval(timer);
-                                }
-                                attempts++;
-                                if (attempts > 100) {
-                                  console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
-                                  clearInterval(timer);
-                                }
-                              }, 10, root)
-                            }
-                          })(window);
-                        });
-                      };
-                      if (document.readyState != "loading") fn();
-                      else document.addEventListener("DOMContentLoaded", fn);
+                                    }
+                                    if (root.Bokeh !== undefined) {
+                                        embed_document(root);
+                                    } else {
+                                        var attempts = 0;
+                                        var timer = setInterval(function (root) {
+                                            if (root.Bokeh !== undefined) {
+                                                embed_document(root);
+                                                clearInterval(timer);
+                                            }
+                                            attempts++;
+                                            if (attempts > 100) {
+                                                console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+                                                clearInterval(timer);
+                                            }
+                                        }, 10, root)
+                                    }
+                                })(window);
+                            });
+                        };
+                        if (document.readyState != "loading") fn();
+                        else document.addEventListener("DOMContentLoaded", fn);
+                    })();
+                </script>
+            </div>
+            <!-- HISTOGRAM DIV -->
+            <div id="Plot" style="float:left; width:36%">
+                <div class="bk-root" id="9112dff6-2954-4ac8-ba70-55a9771bcf90" data-root-id="1087"></div>
+
+                <script type="application/json" id="1284">
+                    {"5da963a5-8078-45ac-a721-e61f2b698c6b":{"roots":{"references":[{"attributes":{"callback":null,"data":{"x_rejected":[],"y_rejected":[]},"selected":{"id":"1082","type":"Selection"},"selection_policy":{"id":"1081","type":"UnionRenderers"}},"id":"1002","type":"ColumnDataSource"},{"attributes":{},"id":"1014","type":"BasicTicker"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1039","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1040","type":"Circle"},"selection_glyph":null,"view":{"id":"1042","type":"CDSView"}},"id":"1041","type":"GlyphRenderer"},{"attributes":{},"id":"1027","type":"ResetTool"},{"attributes":{"label":{"value":"nonrejected data of size"},"renderers":[{"id":"1041","type":"GlyphRenderer"}]},"id":"1051","type":"LegendItem"},{"attributes":{"line_color":"green","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1068","type":"Line"},{"attributes":{},"id":"1028","type":"HelpTool"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b4","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1069","type":"Line"},{"attributes":{"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1017","type":"Grid"},{"attributes":{"data_source":{"id":"1003","type":"ColumnDataSource"},"glyph":{"id":"1068","type":"Line"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1069","type":"Line"},"selection_glyph":null,"view":{"id":"1071","type":"CDSView"}},"id":"1070","type":"GlyphRenderer"},{"attributes":{"callback":null,"data":{"x_nonrejected":[],"y_nonrejected":[]},"selected":{"id":"1065","type":"Selection"},"selection_policy":{"id":"1064","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1023","type":"PanTool"},{"id":"1024","type":"WheelZoomTool"},{"id":"1025","type":"BoxZoomTool"},{"id":"1026","type":"SaveTool"},{"id":"1027","type":"ResetTool"},{"id":"1028","type":"HelpTool"}]},"id":"1029","type":"Toolbar"},{"attributes":{"axis_label":"y","formatter":{"id":"1047","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1018","type":"LinearAxis"},{"attributes":{},"id":"1064","type":"UnionRenderers"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"plot":null,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1031","type":"BoxAnnotation"},{"attributes":{"source":{"id":"1003","type":"ColumnDataSource"}},"id":"1071","type":"CDSView"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{},"id":"1081","type":"UnionRenderers"},{"attributes":{},"id":"1019","type":"BasicTicker"},{"attributes":{},"id":"1082","type":"Selection"},{"attributes":{"label":{"value":"fitted model"},"renderers":[{"id":"1070","type":"GlyphRenderer"}]},"id":"1083","type":"LegendItem"},{"attributes":{"plot":null,"text":""},"id":"1044","type":"Title"},{"attributes":{"below":[{"id":"1013","type":"LinearAxis"}],"left":[{"id":"1018","type":"LinearAxis"}],"renderers":[{"id":"1013","type":"LinearAxis"},{"id":"1017","type":"Grid"},{"id":"1018","type":"LinearAxis"},{"id":"1022","type":"Grid"},{"id":"1031","type":"BoxAnnotation"},{"id":"1050","type":"Legend"},{"id":"1041","type":"GlyphRenderer"},{"id":"1055","type":"GlyphRenderer"},{"id":"1070","type":"GlyphRenderer"}],"title":{"id":"1044","type":"Title"},"toolbar":{"id":"1029","type":"Toolbar"},"x_range":{"id":"1005","type":"DataRange1d"},"x_scale":{"id":"1009","type":"LinearScale"},"y_range":{"id":"1007","type":"DataRange1d"},"y_scale":{"id":"1011","type":"LinearScale"}},"id":"1004","subtype":"Figure","type":"Plot"},{"attributes":{"callback":null,"data":{"x_original":[],"y_fitted":[]},"selected":{"id":"1100","type":"Selection"},"selection_policy":{"id":"1099","type":"UnionRenderers"}},"id":"1003","type":"ColumnDataSource"},{"attributes":{"args":{"sourceall":{"id":"1003","type":"ColumnDataSource"},"sourcenon":{"id":"1001","type":"ColumnDataSource"},"sourcerej":{"id":"1002","type":"ColumnDataSource"}},"code":"\n    console.log('Plot Generating...');\n    var datanon = sourcenon.data;\n    var datarej = sourcerej.data;\n    var dataall = sourceall.data;\n\n    var x_rejected = datarej['x_rejected']\n    var y_rejected = datarej['y_rejected']\n    var x_nonrejected = datanon['x_nonrejected']\n    var y_nonrejected = datanon['y_nonrejected']\n    var x_original = dataall['x_original']\n    var y_fitted = dataall['y_fitted']\n\n    for (var i = 0; i &lt; x_rejected_result.length; i++) {\n        x_rejected[i] = x_rejected_result[i]\n        y_rejected[i] = y_rejected_result[i]\n    }\n    for (var i = 0; i &lt; x_nonrejected_result.length; i++) {\n        x_nonrejected[i] = x_nonrejected_result[i]\n        y_nonrejected[i] = y_nonrejected_result[i]\n    }\n    for (var i = 0; i &lt; x_original_result.length; i++) {\n        x_original[i] = x_original_result[i]\n        y_fitted[i] = y_fitted_result[i]\n    }\n\n    console.log(datarej['x_rejected']);\n    console.log(datarej['y_rejected']);\n    console.log(datanon['x_nonrejected']);\n    console.log(datanon['y_nonrejected']);\n    console.log(dataall['x_original']);\n    console.log(dataall['y_fitted']);\n\n    sourcenon.change.emit();\n    sourcerej.change.emit();\n    sourceall.change.emit();\n"},"id":"1084","type":"CustomJS"},{"attributes":{},"id":"1045","type":"BasicTickFormatter"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1084","type":"CustomJS"}]},"label":"Plot Results"},"id":"1085","type":"Button"},{"attributes":{},"id":"1047","type":"BasicTickFormatter"},{"attributes":{"callback":null},"id":"1007","type":"DataRange1d"},{"attributes":{"children":[{"id":"1086","type":"WidgetBox"},{"id":"1004","subtype":"Figure","type":"Plot"}]},"id":"1087","type":"Column"},{"attributes":{"dimension":1,"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1022","type":"Grid"},{"attributes":{"items":[{"id":"1051","type":"LegendItem"},{"id":"1066","type":"LegendItem"},{"id":"1083","type":"LegendItem"}],"plot":{"id":"1004","subtype":"Figure","type":"Plot"}},"id":"1050","type":"Legend"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1040","type":"Circle"},{"attributes":{"children":[{"id":"1085","type":"Button"}]},"id":"1086","type":"WidgetBox"},{"attributes":{},"id":"1023","type":"PanTool"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1042","type":"CDSView"},{"attributes":{},"id":"1024","type":"WheelZoomTool"},{"attributes":{"label":{"value":"rejected data"},"renderers":[{"id":"1055","type":"GlyphRenderer"}]},"id":"1066","type":"LegendItem"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"navy"},"line_alpha":{"value":0.5},"line_color":{"value":"navy"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1039","type":"Circle"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"red"},"line_alpha":{"value":0.5},"line_color":{"value":"red"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1053","type":"Circle"},{"attributes":{"overlay":{"id":"1031","type":"BoxAnnotation"}},"id":"1025","type":"BoxZoomTool"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1054","type":"Circle"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{},"id":"1099","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1002","type":"ColumnDataSource"},"glyph":{"id":"1053","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1054","type":"Circle"},"selection_glyph":null,"view":{"id":"1056","type":"CDSView"}},"id":"1055","type":"GlyphRenderer"},{"attributes":{},"id":"1011","type":"LinearScale"},{"attributes":{},"id":"1100","type":"Selection"},{"attributes":{"source":{"id":"1002","type":"ColumnDataSource"}},"id":"1056","type":"CDSView"},{"attributes":{"axis_label":"x","formatter":{"id":"1045","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1013","type":"LinearAxis"},{"attributes":{},"id":"1065","type":"Selection"},{"attributes":{},"id":"1026","type":"SaveTool"}],"root_ids":["1087"]},"title":"Bokeh Application","version":"1.0.4"}}
+                </script>
+                <script type="text/javascript">
+                    (function () {
+                        var fn = function () {
+                            Bokeh.safely(function () {
+                                (function (root) {
+                                    function embed_document(root) {
+
+                                        var docs_json = document.getElementById('1284').textContent;
+                                        var render_items = [{ "docid": "5da963a5-8078-45ac-a721-e61f2b698c6b", "roots": { "1087": "9112dff6-2954-4ac8-ba70-55a9771bcf90" } }];
+                                        root.Bokeh.embed.embed_items(docs_json, render_items);
+
+                                    }
+                                    if (root.Bokeh !== undefined) {
+                                        embed_document(root);
+                                    } else {
+                                        var attempts = 0;
+                                        var timer = setInterval(function (root) {
+                                            if (root.Bokeh !== undefined) {
+                                                embed_document(root);
+                                                clearInterval(timer);
+                                            }
+                                            attempts++;
+                                            if (attempts > 100) {
+                                                console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+                                                clearInterval(timer);
+                                            }
+                                        }, 10, root)
+                                    }
+                                })(window);
+                            });
+                        };
+                        if (document.readyState != "loading") fn();
+                        else document.addEventListener("DOMContentLoaded", fn);
                     })();
                 </script>
             </div>
@@ -902,7 +895,7 @@ function getData(){
 
 function convertData(inputDataContents){ //convert from new format to old format
   var has_Weights = $('#Weighted').data('clicked');
-	var has_ErrorBars = $('#ErrorBars').data('clicked');
+  var has_ErrorBars = $('#ErrorBars').data('clicked');
 
   var x_data = [];
   var y_data = []; //these are lists of strings
