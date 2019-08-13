@@ -37,6 +37,7 @@ srcData = ColumnDataSource(data=dict(x = x, y = y, err_x_up = err_x_up, err_y_up
 TOOLS="pan,wheel_zoom,reset"
 
 p = Figure(tools=TOOLS, plot_width=500, plot_height=500, min_border=10, min_border_left=50,
+           title="Inputted Data",
            toolbar_location="above",
            active_scroll='wheel_zoom', 
            active_drag = "pan"
@@ -54,8 +55,6 @@ p.add_layout(
 p.add_layout(
         Whisker(source = srcData, base="y", upper="err_x_up", lower="err_x_down", dimension="width")
     )
-
-#p.add_tools(HoverTool(tooltips=[("x", "@x"), ("err_x", "@err_x"), ("y", "@y"), ("err_y", "@err_y")]))
 
 #JS callbacks
 
@@ -115,45 +114,11 @@ callbackPlot = CustomJS(args=dict(srcData=srcData, p=p, xaxis=p.xaxis[0], yaxis=
     p.change.emit();
 """)
 
-#callbackUpdateHAxis = CustomJS(code="""
-#    playerPlotAxes[0] = this.value;
-#""")
-
-#callbackUpdateVAxis = CustomJS(code="""
-#    playerPlotAxes[1] = this.value;
-#""")
-
-#widgets
-
-
-#hOptions = ["KO Counts per Player", "Win Counts per Player", "Damage Done per Player"]
-#vOptions = ["KO Counts per Player", "Win Counts per Player", "Damage Done per Player"]
-
-#hSelect = Select(title =    "Horizontal Data", 
-#                 options =  hOptions,   #list of options
-#                 value =   "KO Counts per Player" #default value  
-#                 )
-
-#vSelect = Select(title =    "Vertical Data", 
-#                 options =  vOptions,   #list of options
-#                 value =   "Win Counts per Player" #default value  
-#                 )
-
-#layout
-
-#widgets = row(hSelect, vSelect)
-#layout = column(widgets, p)
 layout = p
 
 #interactivity
 
 layout.js_on_event(MouseEnter, callbackPlot) #plot whichever axes are currently selected
-
-#hSelect.js_on_change('value', callbackUpdateHAxis)
-#vSelect.js_on_change('value', callbackUpdateVAxis)
-
-#hSelect.js_on_change('value', callbackPlot)
-#vSelect.js_on_change('value', callbackPlot)
 
 curdoc().add_root(layout) #any changes to layout will trigger on_change callbacks
 curdoc().title = "Input Data"

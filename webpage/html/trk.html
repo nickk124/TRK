@@ -151,14 +151,15 @@
                         <br>
                     </div>
                 </div>
-                <div style="float:left; width:30%; padding:5px;">
-                    <h2>Suggested form of initial guess for <span id="xBarType" style="text-decoration:overline">x</span>:</h2>
-                    <h3 id="XBarDisplay"><span style="text-decoration:overline">x</span> = Σ<sub>i</sub>w<sub>i</sub>x<sub>i</sub> / Σ<sub>i</sub>w<sub>i</sub></h3>
+                <div id="RejectionMethod" style="float:left; width:30%">
+                    <h2>Input Initial Guess for Model Function Parameters (Including Slop):</h2>
                     <br>
-                    <h2>Input Initial Guess for <span id="xBarInp" style="text-decoration:overline">x</span>:</h2>
-                    <textarea class="dataTable" id="barArea" style="height:20px; width:70%;float: left;"></textarea>
+                    <textarea class="dataTable" id="guessarea" style="height:300px"></textarea>
+                    <br/>
+                    <i style="padding-top:10px">Input guesses for slop along the x axis (intrinsic scatter of the data)<br>and then along the y axis, as the last two lines.</i>
 
                 </div>
+                <br style="clear: left;" />
                 <br style="clear: left;" />
             </div>
             <br>
@@ -265,30 +266,69 @@
                     <div id="RejectionMethod" style="width:130%; float:right">
                         <table style="float:right">
                             <tr>
-                                <th>Final model<br>parameters:</th>
-                                <th>Parameter<br>uncertainties:</th> <!--only 1 sigma for now-->
+                                <th>Final model<br>parameters<br>(including slop)</th>
+                                <th>Min, max and<br>optimum scales</th>
                             </tr>
                             <tr>
-                                <th><textarea class="dataTable" id="finalParameters" style="margin-top:10px; width:80%; height:200px"></textarea></th>
-                                <th><textarea class="dataTable" id="parameterSigmas" style="margin-top:10px; width:80%; height:200px"></textarea></th>
+                                <th><textarea class="dataTable" id="finalParameters" style="margin-top:10px; width:35%; height:200px"></textarea></th>
+                                <th><textarea class="dataTable" id="scales" style="margin-top:10px; width:35%; height:200px"></textarea></th>
                             </tr>
 
                         </table>
                         <table style="float:right">
                             <tr>
-                                <th>Final slop<br>parameters:</th>
-                                <th>Min, max and<br>optimum scales</th>
+                                <th>Parameter uncertainties:<br>(- 1 2 3, + 1 2 3 σ) </th>
                             </tr>
                             <tr>
-                                <th><textarea class="dataTable" id="slopParameters" style="margin-top:10px; width:80%; height:200px"></textarea></th>
-                                <th><textarea class="dataTable" id="scales" style="margin-top:10px; width:80%; height:200px"></textarea></th>
+                                <th><textarea class="dataTable" id="parameterSigmas" style="margin-top:10px; width:80%; height:200px"></textarea></th>
                             </tr>
 
                         </table>
                     </div>
                 </div>
             </div>
-            <!-- PLOT DIV -->
+            <div id="OutputPlot" style="float:left; width:36%">
+                <div class="bk-root" id="9112dff6-2954-4ac8-ba70-55a9771bcf90" data-root-id="1087"></div>
+
+                <script type="application/json" id="1284">
+                    {"5da963a5-8078-45ac-a721-e61f2b698c6b":{"roots":{"references":[{"attributes":{"callback":null,"data":{"x_rejected":[],"y_rejected":[]},"selected":{"id":"1082","type":"Selection"},"selection_policy":{"id":"1081","type":"UnionRenderers"}},"id":"1002","type":"ColumnDataSource"},{"attributes":{},"id":"1014","type":"BasicTicker"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1039","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1040","type":"Circle"},"selection_glyph":null,"view":{"id":"1042","type":"CDSView"}},"id":"1041","type":"GlyphRenderer"},{"attributes":{},"id":"1027","type":"ResetTool"},{"attributes":{"label":{"value":"nonrejected data of size"},"renderers":[{"id":"1041","type":"GlyphRenderer"}]},"id":"1051","type":"LegendItem"},{"attributes":{"line_color":"green","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1068","type":"Line"},{"attributes":{},"id":"1028","type":"HelpTool"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b4","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1069","type":"Line"},{"attributes":{"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1017","type":"Grid"},{"attributes":{"data_source":{"id":"1003","type":"ColumnDataSource"},"glyph":{"id":"1068","type":"Line"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1069","type":"Line"},"selection_glyph":null,"view":{"id":"1071","type":"CDSView"}},"id":"1070","type":"GlyphRenderer"},{"attributes":{"callback":null,"data":{"x_nonrejected":[],"y_nonrejected":[]},"selected":{"id":"1065","type":"Selection"},"selection_policy":{"id":"1064","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1023","type":"PanTool"},{"id":"1024","type":"WheelZoomTool"},{"id":"1025","type":"BoxZoomTool"},{"id":"1026","type":"SaveTool"},{"id":"1027","type":"ResetTool"},{"id":"1028","type":"HelpTool"}]},"id":"1029","type":"Toolbar"},{"attributes":{"axis_label":"y","formatter":{"id":"1047","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1018","type":"LinearAxis"},{"attributes":{},"id":"1064","type":"UnionRenderers"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"plot":null,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1031","type":"BoxAnnotation"},{"attributes":{"source":{"id":"1003","type":"ColumnDataSource"}},"id":"1071","type":"CDSView"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{},"id":"1081","type":"UnionRenderers"},{"attributes":{},"id":"1019","type":"BasicTicker"},{"attributes":{},"id":"1082","type":"Selection"},{"attributes":{"label":{"value":"fitted model"},"renderers":[{"id":"1070","type":"GlyphRenderer"}]},"id":"1083","type":"LegendItem"},{"attributes":{"plot":null,"text":""},"id":"1044","type":"Title"},{"attributes":{"below":[{"id":"1013","type":"LinearAxis"}],"left":[{"id":"1018","type":"LinearAxis"}],"renderers":[{"id":"1013","type":"LinearAxis"},{"id":"1017","type":"Grid"},{"id":"1018","type":"LinearAxis"},{"id":"1022","type":"Grid"},{"id":"1031","type":"BoxAnnotation"},{"id":"1050","type":"Legend"},{"id":"1041","type":"GlyphRenderer"},{"id":"1055","type":"GlyphRenderer"},{"id":"1070","type":"GlyphRenderer"}],"title":{"id":"1044","type":"Title"},"toolbar":{"id":"1029","type":"Toolbar"},"x_range":{"id":"1005","type":"DataRange1d"},"x_scale":{"id":"1009","type":"LinearScale"},"y_range":{"id":"1007","type":"DataRange1d"},"y_scale":{"id":"1011","type":"LinearScale"}},"id":"1004","subtype":"Figure","type":"Plot"},{"attributes":{"callback":null,"data":{"x_original":[],"y_fitted":[]},"selected":{"id":"1100","type":"Selection"},"selection_policy":{"id":"1099","type":"UnionRenderers"}},"id":"1003","type":"ColumnDataSource"},{"attributes":{"args":{"sourceall":{"id":"1003","type":"ColumnDataSource"},"sourcenon":{"id":"1001","type":"ColumnDataSource"},"sourcerej":{"id":"1002","type":"ColumnDataSource"}},"code":"\n    console.log('Plot Generating...');\n    var datanon = sourcenon.data;\n    var datarej = sourcerej.data;\n    var dataall = sourceall.data;\n\n    var x_rejected = datarej['x_rejected']\n    var y_rejected = datarej['y_rejected']\n    var x_nonrejected = datanon['x_nonrejected']\n    var y_nonrejected = datanon['y_nonrejected']\n    var x_original = dataall['x_original']\n    var y_fitted = dataall['y_fitted']\n\n    for (var i = 0; i &lt; x_rejected_result.length; i++) {\n        x_rejected[i] = x_rejected_result[i]\n        y_rejected[i] = y_rejected_result[i]\n    }\n    for (var i = 0; i &lt; x_nonrejected_result.length; i++) {\n        x_nonrejected[i] = x_nonrejected_result[i]\n        y_nonrejected[i] = y_nonrejected_result[i]\n    }\n    for (var i = 0; i &lt; x_original_result.length; i++) {\n        x_original[i] = x_original_result[i]\n        y_fitted[i] = y_fitted_result[i]\n    }\n\n    console.log(datarej['x_rejected']);\n    console.log(datarej['y_rejected']);\n    console.log(datanon['x_nonrejected']);\n    console.log(datanon['y_nonrejected']);\n    console.log(dataall['x_original']);\n    console.log(dataall['y_fitted']);\n\n    sourcenon.change.emit();\n    sourcerej.change.emit();\n    sourceall.change.emit();\n"},"id":"1084","type":"CustomJS"},{"attributes":{},"id":"1045","type":"BasicTickFormatter"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1084","type":"CustomJS"}]},"label":"Plot Results"},"id":"1085","type":"Button"},{"attributes":{},"id":"1047","type":"BasicTickFormatter"},{"attributes":{"callback":null},"id":"1007","type":"DataRange1d"},{"attributes":{"children":[{"id":"1086","type":"WidgetBox"},{"id":"1004","subtype":"Figure","type":"Plot"}]},"id":"1087","type":"Column"},{"attributes":{"dimension":1,"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1022","type":"Grid"},{"attributes":{"items":[{"id":"1051","type":"LegendItem"},{"id":"1066","type":"LegendItem"},{"id":"1083","type":"LegendItem"}],"plot":{"id":"1004","subtype":"Figure","type":"Plot"}},"id":"1050","type":"Legend"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1040","type":"Circle"},{"attributes":{"children":[{"id":"1085","type":"Button"}]},"id":"1086","type":"WidgetBox"},{"attributes":{},"id":"1023","type":"PanTool"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1042","type":"CDSView"},{"attributes":{},"id":"1024","type":"WheelZoomTool"},{"attributes":{"label":{"value":"rejected data"},"renderers":[{"id":"1055","type":"GlyphRenderer"}]},"id":"1066","type":"LegendItem"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"navy"},"line_alpha":{"value":0.5},"line_color":{"value":"navy"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1039","type":"Circle"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"red"},"line_alpha":{"value":0.5},"line_color":{"value":"red"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1053","type":"Circle"},{"attributes":{"overlay":{"id":"1031","type":"BoxAnnotation"}},"id":"1025","type":"BoxZoomTool"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1054","type":"Circle"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{},"id":"1099","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1002","type":"ColumnDataSource"},"glyph":{"id":"1053","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1054","type":"Circle"},"selection_glyph":null,"view":{"id":"1056","type":"CDSView"}},"id":"1055","type":"GlyphRenderer"},{"attributes":{},"id":"1011","type":"LinearScale"},{"attributes":{},"id":"1100","type":"Selection"},{"attributes":{"source":{"id":"1002","type":"ColumnDataSource"}},"id":"1056","type":"CDSView"},{"attributes":{"axis_label":"x","formatter":{"id":"1045","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1013","type":"LinearAxis"},{"attributes":{},"id":"1065","type":"Selection"},{"attributes":{},"id":"1026","type":"SaveTool"}],"root_ids":["1087"]},"title":"Bokeh Application","version":"1.0.4"}}
+                </script>
+                <script type="text/javascript">
+                    (function () {
+                        var fn = function () {
+                            Bokeh.safely(function () {
+                                (function (root) {
+                                    function embed_document(root) {
+
+                                        var docs_json = document.getElementById('1284').textContent;
+                                        var render_items = [{ "docid": "5da963a5-8078-45ac-a721-e61f2b698c6b", "roots": { "1087": "9112dff6-2954-4ac8-ba70-55a9771bcf90" } }];
+                                        root.Bokeh.embed.embed_items(docs_json, render_items);
+
+                                    }
+                                    if (root.Bokeh !== undefined) {
+                                        embed_document(root);
+                                    } else {
+                                        var attempts = 0;
+                                        var timer = setInterval(function (root) {
+                                            if (root.Bokeh !== undefined) {
+                                                embed_document(root);
+                                                clearInterval(timer);
+                                            }
+                                            attempts++;
+                                            if (attempts > 100) {
+                                                console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+                                                clearInterval(timer);
+                                            }
+                                        }, 10, root)
+                                    }
+                                })(window);
+                            });
+                        };
+                        if (document.readyState != "loading") fn();
+                        else document.addEventListener("DOMContentLoaded", fn);
+                    })();
+                </script>
+            </div>
             <div id="Histogram" style="float:left; width:36%">
                 <div class="bk-root" id="9112dff6-2954-4ac8-ba70-55a9771bcf90" data-root-id="1087"></div>
 
@@ -331,49 +371,7 @@
                     })();
                 </script>
             </div>
-            <!-- HISTOGRAM DIV -->
-            <div id="Plot" style="float:left; width:36%">
-                <div class="bk-root" id="9112dff6-2954-4ac8-ba70-55a9771bcf90" data-root-id="1087"></div>
 
-                <script type="application/json" id="1284">
-                    {"5da963a5-8078-45ac-a721-e61f2b698c6b":{"roots":{"references":[{"attributes":{"callback":null,"data":{"x_rejected":[],"y_rejected":[]},"selected":{"id":"1082","type":"Selection"},"selection_policy":{"id":"1081","type":"UnionRenderers"}},"id":"1002","type":"ColumnDataSource"},{"attributes":{},"id":"1014","type":"BasicTicker"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1039","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1040","type":"Circle"},"selection_glyph":null,"view":{"id":"1042","type":"CDSView"}},"id":"1041","type":"GlyphRenderer"},{"attributes":{},"id":"1027","type":"ResetTool"},{"attributes":{"label":{"value":"nonrejected data of size"},"renderers":[{"id":"1041","type":"GlyphRenderer"}]},"id":"1051","type":"LegendItem"},{"attributes":{"line_color":"green","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1068","type":"Line"},{"attributes":{},"id":"1028","type":"HelpTool"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b4","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1069","type":"Line"},{"attributes":{"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1017","type":"Grid"},{"attributes":{"data_source":{"id":"1003","type":"ColumnDataSource"},"glyph":{"id":"1068","type":"Line"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1069","type":"Line"},"selection_glyph":null,"view":{"id":"1071","type":"CDSView"}},"id":"1070","type":"GlyphRenderer"},{"attributes":{"callback":null,"data":{"x_nonrejected":[],"y_nonrejected":[]},"selected":{"id":"1065","type":"Selection"},"selection_policy":{"id":"1064","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1023","type":"PanTool"},{"id":"1024","type":"WheelZoomTool"},{"id":"1025","type":"BoxZoomTool"},{"id":"1026","type":"SaveTool"},{"id":"1027","type":"ResetTool"},{"id":"1028","type":"HelpTool"}]},"id":"1029","type":"Toolbar"},{"attributes":{"axis_label":"y","formatter":{"id":"1047","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1018","type":"LinearAxis"},{"attributes":{},"id":"1064","type":"UnionRenderers"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"plot":null,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1031","type":"BoxAnnotation"},{"attributes":{"source":{"id":"1003","type":"ColumnDataSource"}},"id":"1071","type":"CDSView"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{},"id":"1081","type":"UnionRenderers"},{"attributes":{},"id":"1019","type":"BasicTicker"},{"attributes":{},"id":"1082","type":"Selection"},{"attributes":{"label":{"value":"fitted model"},"renderers":[{"id":"1070","type":"GlyphRenderer"}]},"id":"1083","type":"LegendItem"},{"attributes":{"plot":null,"text":""},"id":"1044","type":"Title"},{"attributes":{"below":[{"id":"1013","type":"LinearAxis"}],"left":[{"id":"1018","type":"LinearAxis"}],"renderers":[{"id":"1013","type":"LinearAxis"},{"id":"1017","type":"Grid"},{"id":"1018","type":"LinearAxis"},{"id":"1022","type":"Grid"},{"id":"1031","type":"BoxAnnotation"},{"id":"1050","type":"Legend"},{"id":"1041","type":"GlyphRenderer"},{"id":"1055","type":"GlyphRenderer"},{"id":"1070","type":"GlyphRenderer"}],"title":{"id":"1044","type":"Title"},"toolbar":{"id":"1029","type":"Toolbar"},"x_range":{"id":"1005","type":"DataRange1d"},"x_scale":{"id":"1009","type":"LinearScale"},"y_range":{"id":"1007","type":"DataRange1d"},"y_scale":{"id":"1011","type":"LinearScale"}},"id":"1004","subtype":"Figure","type":"Plot"},{"attributes":{"callback":null,"data":{"x_original":[],"y_fitted":[]},"selected":{"id":"1100","type":"Selection"},"selection_policy":{"id":"1099","type":"UnionRenderers"}},"id":"1003","type":"ColumnDataSource"},{"attributes":{"args":{"sourceall":{"id":"1003","type":"ColumnDataSource"},"sourcenon":{"id":"1001","type":"ColumnDataSource"},"sourcerej":{"id":"1002","type":"ColumnDataSource"}},"code":"\n    console.log('Plot Generating...');\n    var datanon = sourcenon.data;\n    var datarej = sourcerej.data;\n    var dataall = sourceall.data;\n\n    var x_rejected = datarej['x_rejected']\n    var y_rejected = datarej['y_rejected']\n    var x_nonrejected = datanon['x_nonrejected']\n    var y_nonrejected = datanon['y_nonrejected']\n    var x_original = dataall['x_original']\n    var y_fitted = dataall['y_fitted']\n\n    for (var i = 0; i &lt; x_rejected_result.length; i++) {\n        x_rejected[i] = x_rejected_result[i]\n        y_rejected[i] = y_rejected_result[i]\n    }\n    for (var i = 0; i &lt; x_nonrejected_result.length; i++) {\n        x_nonrejected[i] = x_nonrejected_result[i]\n        y_nonrejected[i] = y_nonrejected_result[i]\n    }\n    for (var i = 0; i &lt; x_original_result.length; i++) {\n        x_original[i] = x_original_result[i]\n        y_fitted[i] = y_fitted_result[i]\n    }\n\n    console.log(datarej['x_rejected']);\n    console.log(datarej['y_rejected']);\n    console.log(datanon['x_nonrejected']);\n    console.log(datanon['y_nonrejected']);\n    console.log(dataall['x_original']);\n    console.log(dataall['y_fitted']);\n\n    sourcenon.change.emit();\n    sourcerej.change.emit();\n    sourceall.change.emit();\n"},"id":"1084","type":"CustomJS"},{"attributes":{},"id":"1045","type":"BasicTickFormatter"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1084","type":"CustomJS"}]},"label":"Plot Results"},"id":"1085","type":"Button"},{"attributes":{},"id":"1047","type":"BasicTickFormatter"},{"attributes":{"callback":null},"id":"1007","type":"DataRange1d"},{"attributes":{"children":[{"id":"1086","type":"WidgetBox"},{"id":"1004","subtype":"Figure","type":"Plot"}]},"id":"1087","type":"Column"},{"attributes":{"dimension":1,"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1022","type":"Grid"},{"attributes":{"items":[{"id":"1051","type":"LegendItem"},{"id":"1066","type":"LegendItem"},{"id":"1083","type":"LegendItem"}],"plot":{"id":"1004","subtype":"Figure","type":"Plot"}},"id":"1050","type":"Legend"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1040","type":"Circle"},{"attributes":{"children":[{"id":"1085","type":"Button"}]},"id":"1086","type":"WidgetBox"},{"attributes":{},"id":"1023","type":"PanTool"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1042","type":"CDSView"},{"attributes":{},"id":"1024","type":"WheelZoomTool"},{"attributes":{"label":{"value":"rejected data"},"renderers":[{"id":"1055","type":"GlyphRenderer"}]},"id":"1066","type":"LegendItem"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"navy"},"line_alpha":{"value":0.5},"line_color":{"value":"navy"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1039","type":"Circle"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"red"},"line_alpha":{"value":0.5},"line_color":{"value":"red"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1053","type":"Circle"},{"attributes":{"overlay":{"id":"1031","type":"BoxAnnotation"}},"id":"1025","type":"BoxZoomTool"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1054","type":"Circle"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{},"id":"1099","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1002","type":"ColumnDataSource"},"glyph":{"id":"1053","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1054","type":"Circle"},"selection_glyph":null,"view":{"id":"1056","type":"CDSView"}},"id":"1055","type":"GlyphRenderer"},{"attributes":{},"id":"1011","type":"LinearScale"},{"attributes":{},"id":"1100","type":"Selection"},{"attributes":{"source":{"id":"1002","type":"ColumnDataSource"}},"id":"1056","type":"CDSView"},{"attributes":{"axis_label":"x","formatter":{"id":"1045","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1013","type":"LinearAxis"},{"attributes":{},"id":"1065","type":"Selection"},{"attributes":{},"id":"1026","type":"SaveTool"}],"root_ids":["1087"]},"title":"Bokeh Application","version":"1.0.4"}}
-                </script>
-                <script type="text/javascript">
-                    (function () {
-                        var fn = function () {
-                            Bokeh.safely(function () {
-                                (function (root) {
-                                    function embed_document(root) {
-
-                                        var docs_json = document.getElementById('1284').textContent;
-                                        var render_items = [{ "docid": "5da963a5-8078-45ac-a721-e61f2b698c6b", "roots": { "1087": "9112dff6-2954-4ac8-ba70-55a9771bcf90" } }];
-                                        root.Bokeh.embed.embed_items(docs_json, render_items);
-
-                                    }
-                                    if (root.Bokeh !== undefined) {
-                                        embed_document(root);
-                                    } else {
-                                        var attempts = 0;
-                                        var timer = setInterval(function (root) {
-                                            if (root.Bokeh !== undefined) {
-                                                embed_document(root);
-                                                clearInterval(timer);
-                                            }
-                                            attempts++;
-                                            if (attempts > 100) {
-                                                console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
-                                                clearInterval(timer);
-                                            }
-                                        }, 10, root)
-                                    }
-                                })(window);
-                            });
-                        };
-                        if (document.readyState != "loading") fn();
-                        else document.addEventListener("DOMContentLoaded", fn);
-                    })();
-                </script>
-            </div>
         </div>
         <div style="clear:both"></div>
 
@@ -384,1552 +382,1550 @@
 </body>
 </html>
 <script>
-var chosenFunctionType;
+    var chosenFunctionType;
 
 //Initializing the final result lists that will come from RCR and will result in plotting:
-var x_rejected_result = [];
-var y_rejected_result = [];
-var x_nonrejected_result = [];
-var y_nonrejected_result = [];
-var x_original_result = [];
-var y_fitted_result = [];
+    var parameters = []; //including slop
+    var bestFit_123Sigmas = []; //3-tensor; matches cpp implementation
+    var bar_result; //will come from cpp code
+    var paramHistograms = []; //organized same as paramDistributionHistograms in cpp
+    var whichParam = 0; //index  of param being plotted in hist
 
-var x_basis = 'linear';
-var y_basis = 'linear';
+    var x_basis = 'linear';
+    var y_basis = 'linear';
 
-// MODEL FUNCTIONS
-//
-//
-function linear(x, params, bar){
-  var a0 = params[0];
-	var a1 = params[1];
+    // MODEL FUNCTIONS
 
-	return a0 + a1 * (x - bar);
-}
+    function linear(x, params, bar){
+      var a0 = params[0];
+	    var a1 = params[1];
 
-function quadratic(x, params, bar){
-  var a0 = params[0];
-	var a1 = params[1];
-  var a2 = params[2];
+	    return a0 + a1 * (x - bar);
+    }
 
-	return a0 + a1 * (x - bar) + a2 * Math.pow((x - bar), 2.0);
-}
+    function quadratic(x, params, bar){
+      var a0 = params[0];
+	    var a1 = params[1];
+      var a2 = params[2];
 
-function cubic(x, params, bar){
-  var a0 = params[0];
-	var a1 = params[1];
-  var a2 = params[2];
-  var a3 = params[3];
+	    return a0 + a1 * (x - bar) + a2 * Math.pow((x - bar), 2.0);
+    }
 
-	return a0 + a1 * (x - bar) + a2 * Math.pow((x - bar), 2.0) + a3 * Math.pow((x - bar), 3.0);
-}
+    function cubic(x, params, bar){
+      var a0 = params[0];
+	    var a1 = params[1];
+      var a2 = params[2];
+      var a3 = params[3];
 
-function powerlaw(x, params, bar){
-  var a0 = params[0];
-	var a1 = params[1];
+	    return a0 + a1 * (x - bar) + a2 * Math.pow((x - bar), 2.0) + a3 * Math.pow((x - bar), 3.0);
+    }
 
-	return a0 * Math.pow((x / Math.pow(10, bar)), a1);
-}
+    function powerlaw(x, params, bar){
+      var a0 = params[0];
+	    var a1 = params[1];
 
-function exponential(x, params, bar){
-  var a0 = params[0];
-	var a1 = params[1];
+	    return a0 * Math.pow((x / Math.pow(10, bar)), a1);
+    }
 
-	return a0 * Math.pow(10, a1*(x - bar));
-}
+    function exponential(x, params, bar){
+      var a0 = params[0];
+	    var a1 = params[1];
 
-function logarithmic(x, params, bar){
-  var a0 = params[0];
+	    return a0 * Math.pow(10, a1*(x - bar));
+    }
 
-	return a0 * Math.log10(x - bar);
-}
-//
-//
-//
-function noOutput(){
-	$('#OutputTableWrapper').css('display', 'none');
-	$('#OverRejectionNote').css('display', 'none');
-}
+    function logarithmic(x, params, bar){
+      var a0 = params[0];
 
-function test(){
-  console.log('Testing performFunctionalRCR button')
-  return;
-}
+	    return a0 * Math.log10(x - bar);
+    }
 
-function testCallBegin(){
-	console.log('Callback begins');
-	return;
-}
+    function noOutput(){
+	    $('#OutputTableWrapper').css('display', 'none');
+	    $('#OverRejectionNote').css('display', 'none');
+    }
 
-function testCallEnd(){
-	console.log('Callback ends');
-	return;
-}
+    function test(){
+      console.log('Testing performFunctionalRCR button')
+      return;
+    }
 
-function testLog(thing){
-	console.log(thing);
-	return;
-}
+    function testCallBegin(){
+	    console.log('Callback begins');
+	    return;
+    }
 
-function changeFunctionDisplay(oldy_basis){
-  var buttonNames = document.getElementsByClassName('Button DataType Function');
-  switch (oldy_basis){
-    case 'linear':
-      switch (y_basis){
+    function testCallEnd(){
+	    console.log('Callback ends');
+	    return;
+    }
+
+    function testLog(thing){
+	    console.log(thing);
+	    return;
+    }
+
+    function changeFunctionDisplay(oldy_basis){
+      var buttonNames = document.getElementsByClassName('Button DataType Function');
+      switch (oldy_basis){
         case 'linear':
-          break;
-        case 'log':
-          for (var i = 0; i < buttonNames.length; i++){
-            var newName = "log y(x) = ";
-            newName += buttonNames[i].innerHTML.slice(7, -1);
-            buttonNames[i].innerHTML = newName;
-          }
-          break;
-        case 'exp':
-          for (var i = 0; i < buttonNames.length; i++){
-            var newName = "10<sup>y(x)</sup> = ";
-            newName += buttonNames[i].innerHTML.slice(7, -1);
-            buttonNames[i].innerHTML = newName;
-          }
-          break;
-        default:
-          break;
-      }
-      break;
-    case 'log':
-      switch (y_basis){
-        case 'linear':
-          for (var i = 0; i < buttonNames.length; i++){
-            var newName = "y(x) = ";
-            newName += buttonNames[i].innerHTML.slice(11, -1);
-            buttonNames[i].innerHTML = newName;
-          }
-          break;
-        case 'log':
-          break;
-        case 'exp':
-          for (var i = 0; i < buttonNames.length; i++){
-            var newName = "10<sup>y(x)</sup> = ";
-            newName += buttonNames[i].innerHTML.slice(11, -1);
-            buttonNames[i].innerHTML = newName;
-          }
-          break;
-        default:
-          break;
-      }
-      break;
-    case 'exp':
-      switch (y_basis){
-        case 'linear':
-          for (var i = 0; i < buttonNames.length; i++){
-            var newName = "y(x) = ";
-            newName += buttonNames[i].innerHTML.slice(20, -1);
-            buttonNames[i].innerHTML = newName;
-          }
-          break;
-        case 'log':
-          for (var i = 0; i < buttonNames.length; i++){
-            var newName = "log y(x) = ";
-            newName += buttonNames[i].innerHTML.slice(20, -1);
-            buttonNames[i].innerHTML = newName;
-          }
-          break;
-        case 'exp':
-          break;
-        default:
-          break;
-      }
-      break;
-    default:
-      break;
-  }
-}
-
-function transformXLinear(x_data, y_data){ //takes in RAW DATA for x and y, always
-	var trans_x = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
-  var new_y = [];
-
-	for (var i = 0; i < x_data.length; i++){
-		if (x_data[i] > 0){
-			trans_x.push(x_data[i]);
-      switch (y_basis){
-        case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
-          new_y.push(y_data[i]);
-          break;
-        case 'log':
-          if (y_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
-            trans_x.pop();
-          } else {
-            new_y.push(Math.log10(y_data[i]));
-          }
-        case 'exp':
-          new_y.push(Math.pow(10,y_data[i]));
-          break;
-        default:
-          break;
-      }
-		}
-	}
-  x_basis = 'linear';
-	return [trans_x, new_y];
-}
-
-function transformYLinear(x_data, y_data){ //takes in RAW DATA for x and y, always
-	var trans_y = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
-  var new_x = [];
-
-	for (var i = 0; i < y_data.length; i++){
-		if (y_data[i] > 0){
-			trans_y.push(y_data[i]);
-      switch (x_basis){
-        case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
-          new_x.push(x_data[i]);
-          break;
-        case 'log':
-          if (x_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
-            trans_y.pop();
-          } else {
-            new_x.push(Math.log10(x_data[i]));
-          }
-        case 'exp':
-          new_x.push(Math.pow(10,x_data[i]));
-          break;
-        default:
-          break;
-      }
-		}
-	}
-  y_basis = 'linear';
-	return [new_x, trans_y];
-}
-
-function transformXExp(x_data, y_data){ //takes in RAW DATA for x and y, always
-	var trans_x = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
-  var new_y = [];
-
-	for (var i = 0; i < x_data.length; i++){
-		if (x_data[i] > 0){
-			trans_x.push(Math.pow(10,x_data[i]));
-      switch (y_basis){
-        case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
-          new_y.push(y_data[i]);
-          break;
-        case 'log':
-          if (y_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
-            trans_x.pop();
-          } else {
-            new_y.push(Math.log10(y_data[i]));
-          }
-        case 'exp':
-          new_y.push(Math.pow(10,y_data[i]));
-          break;
-        default:
-          break;
-      }
-		}
-	}
-  x_basis = 'exp';
-	return [trans_x, new_y];
-}
-
-function transformYExp(x_data, y_data){ //takes in RAW DATA for x and y, always
-	var trans_y = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
-  var new_x = [];
-
-	for (var i = 0; i < y_data.length; i++){
-		if (y_data[i] > 0){
-			trans_y.push(Math.pow(10,y_data[i]));
-      switch (x_basis){
-        case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
-          new_x.push(x_data[i]);
-          break;
-        case 'log':
-          if (x_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
-            trans_y.pop();
-          } else {
-            new_x.push(Math.log10(x_data[i]));
-          }
-        case 'exp':
-          new_x.push(Math.pow(10,x_data[i]));
-          break;
-        default:
-          break;
-      }
-		}
-	}
-  y_basis = 'exp';
-	return [new_x, trans_y];
-}
-
-function transformXLog(x_data, y_data){ //takes in RAW DATA for x and y, always
-	var trans_x = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
-  var new_y = [];
-
-	for (var i = 0; i < x_data.length; i++){
-		if (x_data[i] > 0){
-			trans_x.push(Math.log10(x_data[i]));
-      switch (y_basis){
-        case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
-          new_y.push(y_data[i]);
-          break;
-        case 'log':
-          if (y_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
-            trans_x.pop();
-          } else {
-            new_y.push(Math.log10(y_data[i]));
-          }
-        case 'exp':
-          new_y.push(Math.pow(10,y_data[i]));
-          break;
-        default:
-          break;
-      }
-		}
-	}
-  x_basis = 'log';
-	return [trans_x, new_y];
-}
-
-function transformYLog(x_data, y_data){ //takes in RAW DATA for x and y, always
-	var trans_y = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
-  var new_x = [];
-
-	for (var i = 0; i < y_data.length; i++){
-		if (y_data[i] > 0){
-			trans_y.push(Math.log10(y_data[i]));
-      switch (x_basis){
-        case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
-          new_x.push(x_data[i]);
-          break;
-        case 'log':
-          if (x_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
-            trans_y.pop();
-          } else {
-            new_x.push(Math.log10(x_data[i]));
-          }
-        case 'exp':
-          new_x.push(Math.pow(10,x_data[i]));
-          break;
-        default:
-          break;
-      }
-		}
-	}
-  y_basis = 'log';
-	return [new_x, trans_y];
-}
-
-function changeInputBasis(){ //returns the data modified to the correct basis; in the correct format to be sent via ajax (same as inputDataContents)
-	var datapoint;
-	var newInputData = "";
-
-	var inputDataContents = document.getElementById('inputTextAreaData').value;
-  var inputData_Arr_unsorted = inputDataContents.split("\n");
-	var inputData_Arr = [];
-
-	for (var i = 0; i < inputData_Arr_unsorted.length; i++){ //gets rid of blank lines
-		if ((inputData_Arr_unsorted[i] != "") && (inputData_Arr_unsorted[i] != " "))
-			inputData_Arr.push(inputData_Arr_unsorted[i]);
-	}
-	var N = inputData_Arr.length;
-
-
-	var has_Weights = $('#Weighted').data('clicked');
-	var has_ErrorBars = $('#ErrorBars').data('clicked');
-
-	if (has_Weights || has_ErrorBars){
-		switch(y_basis){
-			case 'linear':
-
-        for (var i = 0; i < N; i++){
-          datapoint = inputData_Arr[i].split("\t");
-          if (datapoint.length < 3){ //if not tab seperated, try space seperated
-            datapoint = inputData_Arr[i].split(" ");
-          }
-          w = datapoint[2];
-          if (has_ErrorBars){
-            w = 1.0 / Math.pow(Number(w), 2.0);
-            w = w.toString();
-          }
-          newInputData += datapoint[0] + " " + datapoint[1] + " " +  w + "\n";
-        }
-        inputDataContents = newInputData;
-				break;
-			case 'log':
-
-        for (var i = 0; i < N; i++){
-          datapoint = inputData_Arr[i].split("\t");
-          if (datapoint.length < 3){ //if not tab seperated, try space seperated
-            datapoint = inputData_Arr[i].split(" ");
-          }
-          w = datapoint[2];
-          if (has_ErrorBars){
-            w = 1.0 / Math.pow(Number(w), 2.0);
-            w = w.toString();
-          }
-          if (Number(datapoint[1]) > 0){
-            newInputData += datapoint[0] + " " + Math.log10(Number(datapoint[1])).toString() + " " +  w + "\n";
-          }
-        }
-        inputDataContents = newInputData;
-        break;
-			case 'exp':
-
-        for (var i = 0; i < N; i++){
-          datapoint = inputData_Arr[i].split("\t");
-          if (datapoint.length < 3){ //if not tab seperated, try space seperated
-            datapoint = inputData_Arr[i].split(" ");
-          }
-          w = datapoint[2];
-          if (has_ErrorBars){
-            w = 1.0 / Math.pow(Number(w), 2.0);
-            w = w.toString();
-          }
-          newInputData += datapoint[0] + " " + Math.pow(10, Number(datapoint[1])).toString() + " " +  w + "\n";
-        }
-        inputDataContents = newInputData;
-
-				break;
-			default:
-				break;
-		}
-	} else {
-		switch(y_basis){
-			case 'linear':
-
-        for (var i = 0; i < N; i++){
-          datapoint = inputData_Arr[i].split("\t");
-          if (datapoint.length < 2){ //if not tab seperated, try space seperated
-            datapoint = inputData_Arr[i].split(" ");
-          }
-          newInputData += datapoint[0] + " " + datapoint[1] + "\n";
-        }
-        inputDataContents = newInputData;
-				break;
-			case 'log':
-
-        for (var i = 0; i < N; i++){
-          datapoint = inputData_Arr[i].split("\t");
-          if (datapoint.length < 2){ //if not tab seperated, try space seperated
-            datapoint = inputData_Arr[i].split(" ");
-          }
-          if (Number(datapoint[1]) > 0){
-            newInputData += datapoint[0] + " " + Math.log10(Number(datapoint[1])).toString() + "\n";
-          }
-        }
-        inputDataContents = newInputData;
-
-				break;
-			case 'exp':
-
-        for (var i = 0; i < N; i++){
-          datapoint = inputData_Arr[i].split("\t");
-          if (datapoint.length < 2){ //if not tab seperated, try space seperated
-            datapoint = inputData_Arr[i].split(" ");
-          }
-          newInputData += datapoint[0] + " " + Math.pow(10, Number(datapoint[1])).toString() + "\n";
-        }
-        inputDataContents = newInputData;
-
-				break;
-			default:
-				break;
-		}
-
-	}
-
-	return inputDataContents;
-}
-
-function getData(){
-	var has_Weights = $('#Weighted').data('clicked');
-
-    var x_data = [];
-	var y_data = [];
-    var w_data = [];
-    let err_x_data = [];
-    let err_y_data = [];
-
-	var inputData = document.getElementById('inputTextAreaData').value;
-
-    var inputData_Arr_unsorted = inputData.split("\n");
-	var inputData_Arr = [];
-
-	for (var i = 0; i < inputData_Arr_unsorted.length; i++){ //gets rid of blank lines
-		if ((inputData_Arr_unsorted[i] != "") && (inputData_Arr_unsorted[i] != " "))
-			inputData_Arr.push(inputData_Arr_unsorted[i]);
-	}
-
-	var N = inputData_Arr.length;
-
-    //console.log(inputData_Arr);
-	if (has_Weights){
-    for (var i = 0; i < N; i++){
-    	datapoint = inputData_Arr[i].split("\t");
-    	if (datapoint.length < 3){ //if not tab seperated, try space seperated
-    		datapoint = inputData_Arr[i].split(" ");
-    	}
-        x_data.push(Number(datapoint[0]));
-        err_x_data.push(Number(datapoint[1]));
-        y_data.push(Number(datapoint[2]));
-        err_y_data.push(Number(datapoint[3]));
-				
-		w_data.push(Number(datapoint[4]));
-				
-		}
-		return [x_data, err_x_data, y_data, err_y_data, w_data];
-	} else {
-    for (var i = 0; i < N; i++){
-    	datapoint = inputData_Arr[i].split("\t");
-    	if (datapoint.length < 2){ //if not tab seperated, try space seperated
-    		datapoint = inputData_Arr[i].split(" ");
-    	}
-        x_data.push(Number(datapoint[0]));
-        err_x_data.push(Number(datapoint[1]));
-        y_data.push(Number(datapoint[2]));
-        err_y_data.push(Number(datapoint[3]));
-		}
-		}
-        return [x_data, err_x_data, y_data, err_y_data];
-	}
-
-function convertData(inputDataContents){ //convert from new format to old format
-  var has_Weights = $('#Weighted').data('clicked');
-  var has_ErrorBars = $('#ErrorBars').data('clicked');
-
-  var x_data = [];
-  var y_data = []; //these are lists of strings
-	var w_data = [];
-
-  console.log("inputDataContents: " + inputDataContents);
-
-  mainDataContents = "";
-  xDataContents = "";
-  var inputData_Arr_unfiltered = inputDataContents.split("\n");
-	var inputData_Arr = [];
-
-	for (var i = 0; i < inputData_Arr_unfiltered.length; i++){ //gets rid of blank lines
-		if ((inputData_Arr_unfiltered[i] != "") && (inputData_Arr_unfiltered[i] != " "))
-			inputData_Arr.push(inputData_Arr_unfiltered[i]);
-	}
-	var N = inputData_Arr.length;
-
-  console.log("inputData_Arr: " + inputData_Arr);
-
-  if (has_Weights || has_ErrorBars){ //creates lists of data (list of strings)
-    for (var i = 0; i < N; i++){
-    	datapoint = inputData_Arr[i].split("\t");
-    	if (datapoint.length < 3){ //if not tab seperated, try space seperated
-    		datapoint = inputData_Arr[i].split(" ");
-    	}
-        x_data.push(datapoint[0]);
-        y_data.push(datapoint[1]);
-        w_data.push(datapoint[2]);
-		}
-	} else {
-      for (var i = 0; i < N; i++){
-      	datapoint = inputData_Arr[i].split("\t");
-      	if (datapoint.length < 2){ //if not tab seperated, try space seperated
-      		datapoint = inputData_Arr[i].split(" ");
-      	}
-          x_data.push(datapoint[0]);
-          y_data.push(datapoint[1]);
-  		}
-		}
-
-  for (var i = 0; i < N; i++){
-    xDataContents += x_data[i] + "\n";
-  }
-
-  if (has_Weights || has_ErrorBars){ //adds data to old format strings
-    for (var i = 0; i < N; i++){
-    	mainDataContents += y_data[i] + " " + w_data[i] + "\n";
-		}
-	}
-  else {
-    for (var i = 0; i < N; i++){
-    	mainDataContents += y_data[i] + "\n";
-		}
-	}
-
-  console.log(xDataContents);
-  console.log(mainDataContents);
-
-  return [mainDataContents, xDataContents];
-}
-
-function functionSelector(functionName){
-  chosenFunctionType = functionName;
-  console.log('Function chosen: ' + chosenFunctionType)
-}
-/*
-function getBar(xArr, fType, params, wArr = []){ //gets custom "bar" function, ie xBar, logxBar, etc depending on model
-  if (wArr === []){ //if equal weights
-    for (var i = 0; i < xArr.length; i++){
-      wArr.push(1.0);
-    }
-  }
-
-  var lowerSum = 0;
-  var upperSum = 0;
-  for (var i = 0; i < xArr.length; i++){
-  switch (fType){
-    case 'PowerLaw':
-    for (var i = 0; i < xArr.length; i++){
-      double y_i = f(xArr[i], params);
-  		uppersum += wArr[i] * Math.log10(xArr[i]) * Math.pow(y_i, 2.0);
-  		lowersum += wArr[i] * Math.pow(10.0, -2.0*y_i);
-    }
-    break;
-
-    case 'Exponential':
-    case 'Logarithmic':
-    default:
-      for (var i = 0; i < xArr.length; i++){
-        uppersum += (xArr[i] * wArr[i]);
-        lowersum += w[i];
-      }
-      break;
-  }
-  return (upperSum / lowerSum);
-}
-*/
-function displayChosenFunction(t){
-  document.getElementById("SelectedFunction").innerHTML = t.innerHTML;
-  return;
-}
-/*
-function displayBar(){
-  var has_Weights = $('#Weighted').data('clicked');
-	var has_ErrorBars = $('#ErrorBars').data('clicked');
-  var res = getData();
-
-  var x = res[0];
-  var xBar;
-
-  if (has_Weights){
-    var w = res[2];
-    xBar = getWeightedXBar(x, w);
-    document.getElementById("XBarDisplay").innerHTML = String(Math.round(xBar * 1000) / 1000);
-
-  } else if (has_ErrorBars){
-    var w = res[2].map(x => 1.0/Math.pow(x, 2.0));
-    xBar = getWeightedXBar(x, w);
-    document.getElementById("XBarDisplay").innerHTML = String(Math.round(xBar * 1000) / 1000);
-  } else  {
-    xBar = getXBar(x);
-    document.getElementById("XBarDisplay").innerHTML = String(Math.round(xBar * 1000) / 1000);
-  }
-  return;
-}
-
-function displayLogBar(){
-
-}
-*/
-function displayBar(t){
-  var chosenFn = t.id;
-  switch (chosenFn){
-    case "PowerLaw":
-      document.getElementById("XBarDisplay").innerHTML = "<span style=\"text-decoration:overline\">log x</span> = Σ<sub>i</sub>w<sub>i</sub>(log x<sub>i</sub>)y<sup>2</sup>(x<sub>i</sub>) / Σ<sub>i</sub>w<sub>i</sub>y<sup>2</sup>(x<sub>i</sub>)";
-      document.getElementById("xBarType").innerHTML = "log x";
-      document.getElementById("xBarInp").innerHTML = "log x";
-      document.getElementById("xBarOut").innerHTML = "log x";
-      break;
-    case "Exponential":
-      document.getElementById("XBarDisplay").innerHTML = "<span style=\"text-decoration:overline\">x</span> = Σ<sub>i</sub>w<sub>i</sub>x<sub>i</sub>y<sup>2</sup>(x<sub>i</sub>) / Σ<sub>i</sub>w<sub>i</sub>y<sup>2</sup>(x<sub>i</sub>)";
-      document.getElementById("xBarType").innerHTML = "x";
-      document.getElementById("xBarInp").innerHTML = "x";
-      document.getElementById("xBarOut").innerHTML = "x";
-      break;
-    case "Logarithmic":
-      document.getElementById("XBarDisplay").innerHTML = "<span style=\"text-decoration:overline\">log x</span> = Σ<sub>i</sub>w<sub>i</sub>(log x<sub>i</sub>)10<sup>-2y(x<sub>i</sub>)</sup> / Σ<sub>i</sub>w<sub>i</sub>10<sup>-2y(x<sub>i</sub>)</sup>";
-      document.getElementById("xBarType").innerHTML = "log x";
-      document.getElementById("xBarInp").innerHTML = "log x";
-      document.getElementById("xBarOut").innerHTML = "log x";
-      break;
-    default:
-      document.getElementById("XBarDisplay").innerHTML = "<span style=\"text-decoration:overline\">x</span> = Σ<sub>i</sub>w<sub>i</sub>x<sub>i</sub> / Σ<sub>i</sub>w<sub>i</sub>";
-      document.getElementById("xBarType").innerHTML = "x";
-      document.getElementById("xBarInp").innerHTML = "x";
-      document.getElementById("xBarOut").innerHTML = "x";
-      break;
-  }
-  return;
-}
-
-function createBasisNotice(){
-  switch(y_basis){
-    case 'linear':
-      $('#BasisNotice').css('display','none');
-      break;
-    case 'log':
-      document.getElementById("BasisNotice").innerHTML = "Notice: All results shown below are in the chosen logarithmic basis for y(x)."
-      $('#BasisNotice').css('display','block');
-      break;
-    case 'exp':
-      document.getElementById("BasisNotice").innerHTML = "Notice: All results shown below are in the chosen exponential basis for y(x)."
-      $('#BasisNotice').css('display','block');
-      break;
-    default:
-      break;
-  }
-}
-
-function overRejPercentage(N){
- 		//N is data size/ number of data points
-		var percentageArray = [46.435,65.717,65.717,0.127,
-													25.547,48.491,48.491,0.039,
-													25.442,29.97,32.381,0.014,
-													14.362,20.828,24.589,0.007,
-													10.112,14.305,19.601,0.002,
-													7.554,9.961,15.853,0.003,
-													5.941,7.138,13.151,0.003,
-													4.155,5.06,10.952,0,
-													3.576,3.702,9.448,0,
-													2.694,2.665,7.915,0,
-													2.199,2.063,6.912,0,
-													1.736,1.506,5.813,0,
-													1.405,1.17,5.061,0,
-													1.161,0.945,4.377,0,
-													1.039,0.719,3.802,0,
-													0.867,0.53,3.282,0,
-													0.726,0.468,2.961,0,
-													0.657,0.346,2.573,0,
-													0.597,0.304,2.326,0,
-													0.495,0.239,2.037,0,
-													0.416,0.183,1.856,0,
-													0.365,0.168,1.642,0,
-													0.289,0.126,1.51,0,
-													0.277,0.109,1.347,0,
-													0.256,0.091,1.22,0,
-													0.251,0.075,1.149,0,
-													0.21,0.056,1.023,0,
-													0.209,0.044,0.918,0,
-													0.189,0.043,0.874,0,
-													0.178,0.033,0.811,0,
-													0.17,0.024,0.722,0,
-													0.153,0.024,0.649,0,
-													0.132,0.014,0.592,0,
-													0.113,0.021,0.566,0,
-													0.1,0.018,0.537,0,
-													0.09,0.014,0.479,0,
-													0.083,0.021,0.451,0,
-													0.075,0.013,0.418,0,
-													0.074,0.013,0.418,0,
-													0.067,0.007,0.375,0,
-													0.054,0.009,0.365,0,
-													0.047,0.006,0.323,0,
-													0.045,0.004,0.314,0,
-													0.044,0.004,0.287,0,
-													0.045,0.002,0.286,0,
-													0.037,0.003,0.251,0,
-													0.028,0,0.223,0,
-													0.026,0.004,0.221,0,
-													0.021,0.003,0.221,0,
-													0.025,0.003,0.224,0,
-													0.021,0.001,0.201,0,
-													0.019,0.001,0.189,0,
-													0.016,0.001,0.18,0,
-													0.017,0.003,0.176,0,
-													0.014,0.003,0.162,0,
-													0.014,0.002,0.145,0,
-													0.013,0.003,0.137,0,
-													0.012,0.004,0.132,0,
-													0.008,0.002,0.122,0,
-													0.009,0.002,0.105,0,
-													0.011,0.001,0.103,0,
-													0.01,0.001,0.095,0,
-													0.009,0.002,0.086,0,
-													0.008,0.003,0.086,0,
-													0.011,0.001,0.085,0,
-													0.013,0.002,0.088,0,
-													0.011,0.001,0.08,0,
-													0.007,0.001,0.086,0,
-													0.004,0,0.078,0,
-													0.005,0,0.075,0,
-													0.007,0,0.074,0,
-													0.004,0.002,0.06,0,
-													0.005,0,0.062,0,
-													0.008,0,0.063,0,
-													0.008,0.002,0.06,4,0,
-													0.008,0.001,0.057,0,
-													0.006,0.001,0.062,0,
-													0.006,0.001,0.055,0,
-													0.008,0,0.053,0,
-													0.005,0,0.05,0,
-													0.005,0.001,0.048,0,
-													0.004,0,0.046,0,
-													0.005,0,0.049,0,
-													0.005,0,0.045,0,
-													0.004,0,0.043,0,
-													0.005,0,0.039,0,
-													0.004,0,0.036,0,
-													0.004,0,0.042,0,
-													0.004,0.001,0.042,0,
-													0.003,0,0.034,0,
-													0.004,0,0.037,0,
-													0.004,0,0.035,0,
-													0.003,0,0.028,0,
-													0.003,0,0.028,0,
-													0.002,0,0.029,0,
-													0.002,0,0.027,0,
-													0.002,0,0.027,0];
-
-		var percentage2DArr = []; //converts the percentage data to a 2d array
-  	for (var i = 0; i < 97; i++){
-  		percentage2DArr.push(percentageArray.slice(0 + 4*i, 4 + 4*i));
-  	}
-
-		var hasSymm = $('#Symmetric').data('clicked');
-    var hasEq = $('#Equal').data('clicked');
-    var hasOne = $('#OneSided').data('clicked');
-    var hasInBet = $('#Between').data('clicked');
-
-		var rej; //rej corresponds to the number of the column of rcr_overrejectionprecentages.csv
-
-		if (hasSymm){
-			if (hasEq){
-				rej = 0; //'ss_med_dl'
-			} else if (hasOne){
-				rej = 1;
-			} else if (hasInBet){
-				rej = 2;
-			}
-		} else {
-			rej = 3;
-		}
-
-		var percentage = Math.round( percentage2DArr[N-3][rej] * 10) / 10;
-		//rounds to first decimal place
-		return percentage;
-}
-
-function createOverRejectionNotice(){
-  var N = (getData()[0]).length;
-
-  if (N < 3){
-    document.getElementById("OverRejectionNotice").innerHTML = "Note: Please enter at least three, properly formatted data points.";
-    $('#OutputTableWrapper').css('display','none');
-    $('#OverRejectionNote').css('display','block');
-    return true;
-  }
-
-  if (N >= 3 && N <= 99){
-    var perc = overRejPercentage(N);
-    if (perc < 0.1){
-      document.getElementById("OverRejectionNotice").innerHTML = "Note: Chance of runaway overrejection is <0.1%."
-    } else if (perc >= 0.1){
-    document.getElementById("OverRejectionNotice").innerHTML = "Note: Chance of runaway overrejection is " + perc.toString() +"%.";
-    }
-  } else if (N > 99){
-    document.getElementById("OverRejectionNotice").innerHTML = "Note: Chance of runaway overrejection is <0.1%.";
-  }
-  $('#OverRejectionNote').css('display','block');
-
-  return;
-}
-
-function showPriorsBox(show){
-  if (show){
-    $('#priorsBox').css('display','inline');
-    $('#priorsInput').css('display','inline');
-  }
-  else {
-    $('#priorsBox').css('display','none');
-    $('#priorsInput').css('display','none');
-  }
-}
-
-function performFunctionalRCR(){
-
-  createBasisNotice();
-  hide = createOverRejectionNotice();
-  if (hide){
-    return;
-  }
-
-  x_rejected_result = [];
-  y_rejected_result = [];
-  x_nonrejected_result = [];
-  y_nonrejected_result = [];
-  x_original_result = [];
-  y_fitted_result = [];
-
-  var inputDataContents = changeInputBasis(); //either doesn't change the data, or changes it to fit correct basis (only changes y, not w/errors)
-
-  var convertedData = convertData(inputDataContents); //also converts error bars to weights
-
-  mainDataContents = convertedData[0];
-  xDataContents = convertedData[1];
-
-  //mainDataContents = document.getElementById('ydataarea').value
-  //xDataContents = document.getElementById('xdataarea').value
-  guessDataContents = document.getElementById('guessarea').value
-  barDataContents = document.getElementById('barArea').value
-  priorsDataContents = document.getElementById('priorsArea').value
-
-  $('#OutputTableWrapper').css('display', 'inline');
-  $('#Plot').css('display', 'inline');
-
-  hasSymmetricDist = $('#Symmetric').data('clicked');
-  hasEqualCont = $('#Equal').data('clicked');
-  hasOneSidedCont = $('#OneSided').data('clicked');
-  hasInBetweenCont = $('#Between').data('clicked');
-  hasWeights = $('#Weighted').data('clicked');
-  if (hasWeights === false){
-      hasWeights = $('#ErrorBars').data('clicked');
-  }
-  hasPriors = $('#YesPriors').data('clicked');
-
-
-
-  console.log("mainDataContents:" + mainDataContents);
-  console.log("xDataContents:" + xDataContents);
-  console.log("guessDataContents:" + guessDataContents);
-  console.log("hasSymmetricDist: " + hasSymmetricDist);
-	console.log("hasEqualCont: " + hasEqualCont);
-	console.log("hasOneSidedCont: " + hasOneSidedCont);
-	console.log("hasInBetweenCont: " + hasInBetweenCont);
-	console.log("hasWeights: " + hasWeights);
-  console.log("chosenFunctionType: " + chosenFunctionType);
-  console.log("hasPriors: " + hasPriors);
-  //console.log(correct_barData);
-
-  //Rejection tech determination:
-  var rejTechInt = "0"
-
-  if (hasSymmetricDist){
-      if (hasEqualCont){
-          rejTechInt = "1"
-        }
-      else if (hasOneSidedCont){
-          rejTechInt = "2"
-        }
-      else if (hasInBetweenCont){
-          rejTechInt = "3"
-        }
-      }
-  else{
-      rejTechInt = "4"
-    }
-
-  console.log("Rejection Type Int: " + rejTechInt);
-
-  var request = $.ajax
-      (
-          {
-              url: '/rcr/calculator/callFunctionalRCR',
-              type: "POST",
-              data: { mainData : mainDataContents,
-                      xData : xDataContents,
-                      guessData : guessDataContents,
-                      rejectionType : rejTechInt,
-                      weighted :  hasWeights,
-                      functionType : chosenFunctionType,
-                      barData : barDataContents,
-                      priorsData : priorsDataContents,
-                      priorsCheck : hasPriors
-
-
-                    },
-              dataType: "json",
-              success: function(data, textStatus, jqXHR)
-              {
-                  console.log('yes');
-      console.log(data);
-                  document.getElementById('finalParameters').value = data['finalParametersData'].split("\n").slice(0, -1).join("\n") + "\n\n" + data['finalParametersData'].split("\n").slice(-1)[0];
-                  document.getElementById('nonRejectedData').value = data['nonRejectedData'];
-                  document.getElementById('rejectedData').value = data['rejectedData'];
-                  document.getElementById('allData').value = data['allData'];
-
-                  //convert results to lists of strings (for plotting)
-                  var parameters_result = data['finalParametersData'].split("\n");
-                  parameters_result = parameters_result.map(Number);
-
-                  var bar_result = parameters_result[-1];
-
-                  var nonRejArr = data['nonRejectedData'].split("\n");
-                  var rejArr = data['rejectedData'].split("\n");
-
-                  //adds number data to nonrejected and rejected x and y arrays
-                  for (var i = 0; i < nonRejArr.length; i++) {
-                    var dataSet = nonRejArr[i].split("\t");
-                    x_nonrejected_result.push(Number(dataSet[0]));
-                    y_nonrejected_result.push(Number(dataSet[1]));
-                  }
-                  for (var i = 0; i < rejArr.length; i++) {
-                    var dataSet = rejArr[i].split("\t");
-                    x_rejected_result.push(Number(dataSet[0]));
-                    y_rejected_result.push(Number(dataSet[1]));
-
-                  }
-                  //for plotting the fitted function: (completes x_original_result)
-                  x_original_result = xDataContents.split("\n");
-                  //console.log(x_original_result);
-                  if (x_original_result[x_original_result.length - 1] ===""){
-                    x_original_result.pop();
-                  }
-                  x_original_result = x_original_result.map(Number);
-                  //console.log(x_original_result);
-
-                  //gets array of weights, as numbers in order:
-                  var weights_result = [];
-                  if (hasWeights){
-                    var mainDataContents_arr = mainDataContents.split("\n");
-
-                    for (var i = 0; i < x_original_result.length; i++){
-                      var dataSet = mainDataContents_arr[i].split("\t");
-                      weights_result.push(Number(dataSet[2]));
-                    }
-                  }
-
-
-                  //creates data for fitted model (y_fitted_result)
-                  switch (chosenFunctionType){
-                    case "Linear":
-
-                      var a0 = parameters_result[0];
-                      var a1 = parameters_result[1];
-
-                      for (var i = 0; i < x_original_result.length; i++) {
-                        var y_point = ( a0 + a1*(x_original_result[i] - bar_result) )
-                        y_fitted_result.push(y_point)
-                      }
-                      break;
-                    case "Quadratic":
-
-                      var a0 = parameters_result[0];
-                      var a1 = parameters_result[1];
-                      var a2 = parameters_result[2];
-
-                      for (var i = 0; i < x_original_result.length; i++) {
-                        var y_point = ( a0 + a1*(x_original_result[i] - bar_result) + a2*Math.pow((x_original_result[i] - bar_result), 2.0))
-                        y_fitted_result.push(y_point)
-                      }
-                      break;
-                    case "Cubic":
-
-                      var a0 = parameters_result[0];
-                      var a1 = parameters_result[1];
-                      var a2 = parameters_result[2];
-                      var a3 = parameters_result[3];
-
-                      for (var i = 0; i < x_original_result.length; i++) {
-                        var y_point = ( a0 + a1*(x_original_result[i] - bar_result) + a2*Math.pow((x_original_result[i] - bar_result), 2.0) + a3*Math.pow((x_original_result[i] - bar_result), 3.0))
-                        y_fitted_result.push(y_point)
-                      }
-                      break;
-                    case "PowerLaw":
-
-                      var a0 = parameters_result[0];
-                      var a1 = parameters_result[1];
-
-                      for (var i = 0; i < x_original_result.length; i++) {
-                        var y_point = ( a0*Math.pow((x_original_result[i]/Math.pow(10, bar_result)), a1) )
-                        y_fitted_result.push(y_point)
-                      }
-                      break;
-                    case "Exponential":
-
-                      var a0 = parameters_result[0];
-                      var a1 = parameters_result[1];
-
-                      for (var i = 0; i < x_original_result.length; i++) {
-                        var y_point = ( a0 * Math.pow(10, a1*(x_original_result[i]-bar_result)) )
-                        y_fitted_result.push(y_point)
-                      }
-                      break;
-                    case "Logarithmic":
-
-                      var a0 = parameters_result[0];
-
-                      for (var i = 0; i < x_original_result.length; i++) {
-                        var y_point = ( a0 * Math.log10(x_original_result[i] - bar_result) )
-                        y_fitted_result.push(y_point)
-                      }
-                      break;
-                    default:
-                      console.log("Error: no model function selected");
-                  }
-
-
-
-                  //console.log(data['rejTech']);
-
-
-              },
-              error: function (jqXHR, textStatus, errorThrown)
-              {
-                  console.log(errorThrown)
-                  console.log('no');
-                  console.log(jqXHR);
-                  console.log(textStatus);
+          switch (y_basis){
+            case 'linear':
+              break;
+            case 'log':
+              for (var i = 0; i < buttonNames.length; i++){
+                var newName = "log y(x) = ";
+                newName += buttonNames[i].innerHTML.slice(7, -1);
+                buttonNames[i].innerHTML = newName;
               }
+              break;
+            case 'exp':
+              for (var i = 0; i < buttonNames.length; i++){
+                var newName = "10<sup>y(x)</sup> = ";
+                newName += buttonNames[i].innerHTML.slice(7, -1);
+                buttonNames[i].innerHTML = newName;
+              }
+              break;
+            default:
+              break;
           }
-      );
+          break;
+        case 'log':
+          switch (y_basis){
+            case 'linear':
+              for (var i = 0; i < buttonNames.length; i++){
+                var newName = "y(x) = ";
+                newName += buttonNames[i].innerHTML.slice(11, -1);
+                buttonNames[i].innerHTML = newName;
+              }
+              break;
+            case 'log':
+              break;
+            case 'exp':
+              for (var i = 0; i < buttonNames.length; i++){
+                var newName = "10<sup>y(x)</sup> = ";
+                newName += buttonNames[i].innerHTML.slice(11, -1);
+                buttonNames[i].innerHTML = newName;
+              }
+              break;
+            default:
+              break;
+          }
+          break;
+        case 'exp':
+          switch (y_basis){
+            case 'linear':
+              for (var i = 0; i < buttonNames.length; i++){
+                var newName = "y(x) = ";
+                newName += buttonNames[i].innerHTML.slice(20, -1);
+                buttonNames[i].innerHTML = newName;
+              }
+              break;
+            case 'log':
+              for (var i = 0; i < buttonNames.length; i++){
+                var newName = "log y(x) = ";
+                newName += buttonNames[i].innerHTML.slice(20, -1);
+                buttonNames[i].innerHTML = newName;
+              }
+              break;
+            case 'exp':
+              break;
+            default:
+              break;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
+    function transformXLinear(x_data, y_data){ //takes in RAW DATA for x and y, always
+	    var trans_x = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
+      var new_y = [];
+
+	    for (var i = 0; i < x_data.length; i++){
+		    if (x_data[i] > 0){
+			    trans_x.push(x_data[i]);
+          switch (y_basis){
+            case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
+              new_y.push(y_data[i]);
+              break;
+            case 'log':
+              if (y_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
+                trans_x.pop();
+              } else {
+                new_y.push(Math.log10(y_data[i]));
+              }
+            case 'exp':
+              new_y.push(Math.pow(10,y_data[i]));
+              break;
+            default:
+              break;
+          }
+		    }
+	    }
+      x_basis = 'linear';
+	    return [trans_x, new_y];
+    }
+
+    function transformYLinear(x_data, y_data){ //takes in RAW DATA for x and y, always
+	    var trans_y = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
+      var new_x = [];
+
+	    for (var i = 0; i < y_data.length; i++){
+		    if (y_data[i] > 0){
+			    trans_y.push(y_data[i]);
+          switch (x_basis){
+            case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
+              new_x.push(x_data[i]);
+              break;
+            case 'log':
+              if (x_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
+                trans_y.pop();
+              } else {
+                new_x.push(Math.log10(x_data[i]));
+              }
+            case 'exp':
+              new_x.push(Math.pow(10,x_data[i]));
+              break;
+            default:
+              break;
+          }
+		    }
+	    }
+      y_basis = 'linear';
+	    return [new_x, trans_y];
+    }
+
+    function transformXExp(x_data, y_data){ //takes in RAW DATA for x and y, always
+	    var trans_x = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
+      var new_y = [];
+
+	    for (var i = 0; i < x_data.length; i++){
+		    if (x_data[i] > 0){
+			    trans_x.push(Math.pow(10,x_data[i]));
+          switch (y_basis){
+            case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
+              new_y.push(y_data[i]);
+              break;
+            case 'log':
+              if (y_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
+                trans_x.pop();
+              } else {
+                new_y.push(Math.log10(y_data[i]));
+              }
+            case 'exp':
+              new_y.push(Math.pow(10,y_data[i]));
+              break;
+            default:
+              break;
+          }
+		    }
+	    }
+      x_basis = 'exp';
+	    return [trans_x, new_y];
+    }
+
+    function transformYExp(x_data, y_data){ //takes in RAW DATA for x and y, always
+	    var trans_y = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
+      var new_x = [];
+
+	    for (var i = 0; i < y_data.length; i++){
+		    if (y_data[i] > 0){
+			    trans_y.push(Math.pow(10,y_data[i]));
+          switch (x_basis){
+            case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
+              new_x.push(x_data[i]);
+              break;
+            case 'log':
+              if (x_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
+                trans_y.pop();
+              } else {
+                new_x.push(Math.log10(x_data[i]));
+              }
+            case 'exp':
+              new_x.push(Math.pow(10,x_data[i]));
+              break;
+            default:
+              break;
+          }
+		    }
+	    }
+      y_basis = 'exp';
+	    return [new_x, trans_y];
+    }
+
+    function transformXLog(x_data, y_data){ //takes in RAW DATA for x and y, always
+	    var trans_x = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
+      var new_y = [];
+
+	    for (var i = 0; i < x_data.length; i++){
+		    if (x_data[i] > 0){
+			    trans_x.push(Math.log10(x_data[i]));
+          switch (y_basis){
+            case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
+              new_y.push(y_data[i]);
+              break;
+            case 'log':
+              if (y_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
+                trans_x.pop();
+              } else {
+                new_y.push(Math.log10(y_data[i]));
+              }
+            case 'exp':
+              new_y.push(Math.pow(10,y_data[i]));
+              break;
+            default:
+              break;
+          }
+		    }
+	    }
+      x_basis = 'log';
+	    return [trans_x, new_y];
+    }
+
+    function transformYLog(x_data, y_data){ //takes in RAW DATA for x and y, always
+	    var trans_y = []; //if one axis is transformed to log, negative points will be rejected; the corresponded points in the other dimension must also be removed.
+      var new_x = [];
+
+	    for (var i = 0; i < y_data.length; i++){
+		    if (y_data[i] > 0){
+			    trans_y.push(Math.log10(y_data[i]));
+          switch (x_basis){
+            case 'linear': //whichever basis the non-transformed axis is in needs to be maintained
+              new_x.push(x_data[i]);
+              break;
+            case 'log':
+              if (x_data[i] <= 0){ //if the other variable is in log space, and is below zero, it shouldnt be plotted, so the corresponding var is removed
+                trans_y.pop();
+              } else {
+                new_x.push(Math.log10(x_data[i]));
+              }
+            case 'exp':
+              new_x.push(Math.pow(10,x_data[i]));
+              break;
+            default:
+              break;
+          }
+		    }
+	    }
+      y_basis = 'log';
+	    return [new_x, trans_y];
+    }
+
+    function changeInputBasis(){ //returns the data modified to the correct basis; in the correct format to be sent via ajax (same as inputDataContents)
+	    var datapoint;
+	    var newInputData = "";
+
+	    var inputDataContents = document.getElementById('inputTextAreaData').value;
+      var inputData_Arr_unsorted = inputDataContents.split("\n");
+	    var inputData_Arr = [];
+
+	    for (var i = 0; i < inputData_Arr_unsorted.length; i++){ //gets rid of blank lines
+		    if ((inputData_Arr_unsorted[i] != "") && (inputData_Arr_unsorted[i] != " "))
+			    inputData_Arr.push(inputData_Arr_unsorted[i]);
+	    }
+	    var N = inputData_Arr.length;
 
 
+	    var has_Weights = $('#Weighted').data('clicked');
+	    var has_ErrorBars = $('#ErrorBars').data('clicked');
 
-  //this function will use a different parametric function, and corresponding c++ function based off of what parametric function was chosen
-  }
+	    if (has_Weights || has_ErrorBars){
+		    switch(y_basis){
+			    case 'linear':
 
-function type(){
+            for (var i = 0; i < N; i++){
+              datapoint = inputData_Arr[i].split("\t");
+              if (datapoint.length < 3){ //if not tab seperated, try space seperated
+                datapoint = inputData_Arr[i].split(" ");
+              }
+              w = datapoint[2];
+              if (has_ErrorBars){
+                w = 1.0 / Math.pow(Number(w), 2.0);
+                w = w.toString();
+              }
+              newInputData += datapoint[0] + " " + datapoint[1] + " " +  w + "\n";
+            }
+            inputDataContents = newInputData;
+				    break;
+			    case 'log':
+
+            for (var i = 0; i < N; i++){
+              datapoint = inputData_Arr[i].split("\t");
+              if (datapoint.length < 3){ //if not tab seperated, try space seperated
+                datapoint = inputData_Arr[i].split(" ");
+              }
+              w = datapoint[2];
+              if (has_ErrorBars){
+                w = 1.0 / Math.pow(Number(w), 2.0);
+                w = w.toString();
+              }
+              if (Number(datapoint[1]) > 0){
+                newInputData += datapoint[0] + " " + Math.log10(Number(datapoint[1])).toString() + " " +  w + "\n";
+              }
+            }
+            inputDataContents = newInputData;
+            break;
+			    case 'exp':
+
+            for (var i = 0; i < N; i++){
+              datapoint = inputData_Arr[i].split("\t");
+              if (datapoint.length < 3){ //if not tab seperated, try space seperated
+                datapoint = inputData_Arr[i].split(" ");
+              }
+              w = datapoint[2];
+              if (has_ErrorBars){
+                w = 1.0 / Math.pow(Number(w), 2.0);
+                w = w.toString();
+              }
+              newInputData += datapoint[0] + " " + Math.pow(10, Number(datapoint[1])).toString() + " " +  w + "\n";
+            }
+            inputDataContents = newInputData;
+
+				    break;
+			    default:
+				    break;
+		    }
+	    } else {
+		    switch(y_basis){
+			    case 'linear':
+
+            for (var i = 0; i < N; i++){
+              datapoint = inputData_Arr[i].split("\t");
+              if (datapoint.length < 2){ //if not tab seperated, try space seperated
+                datapoint = inputData_Arr[i].split(" ");
+              }
+              newInputData += datapoint[0] + " " + datapoint[1] + "\n";
+            }
+            inputDataContents = newInputData;
+				    break;
+			    case 'log':
+
+            for (var i = 0; i < N; i++){
+              datapoint = inputData_Arr[i].split("\t");
+              if (datapoint.length < 2){ //if not tab seperated, try space seperated
+                datapoint = inputData_Arr[i].split(" ");
+              }
+              if (Number(datapoint[1]) > 0){
+                newInputData += datapoint[0] + " " + Math.log10(Number(datapoint[1])).toString() + "\n";
+              }
+            }
+            inputDataContents = newInputData;
+
+				    break;
+			    case 'exp':
+
+            for (var i = 0; i < N; i++){
+              datapoint = inputData_Arr[i].split("\t");
+              if (datapoint.length < 2){ //if not tab seperated, try space seperated
+                datapoint = inputData_Arr[i].split(" ");
+              }
+              newInputData += datapoint[0] + " " + Math.pow(10, Number(datapoint[1])).toString() + "\n";
+            }
+            inputDataContents = newInputData;
+
+				    break;
+			    default:
+				    break;
+		    }
+
+	    }
+
+	    return inputDataContents;
+    }
+
+    function getHistData(paramHistogramsData) {
+        let paramHistograms = [];
+
+        paramHistogramsData = paramHistogramsData.split("\n")
+        for (let m = 0; m < paramHistogramsData.length; m++) {
+            let inner = paramHistogramsData[m].split("\t");
+            let bothsigs = [];
+            for (let n = 0; n < 2; n++) {
+                let inter = inner[n].split(" ");
+                let sigs = [];
+                for (let i = 0; i < inter.length; i++) {
+                    sigs.push(Number(inter[i]));
+                }
+                bothsigs.push(sigs);
+            }
+            paramHistograms.push(bothsigs);
+        }
+
+        return paramHistograms;
+    }
+
+    function getData(){
+	    var has_Weights = $('#Weighted').data('clicked');
+
+        var x_data = [];
+	    var y_data = [];
+        var w_data = [];
+        let err_x_data = [];
+        let err_y_data = [];
+
+	    var inputData = document.getElementById('inputTextAreaData').value;
+
+        var inputData_Arr_unsorted = inputData.split("\n");
+	    var inputData_Arr = [];
+
+	    for (var i = 0; i < inputData_Arr_unsorted.length; i++){ //gets rid of blank lines
+		    if ((inputData_Arr_unsorted[i] != "") && (inputData_Arr_unsorted[i] != " "))
+			    inputData_Arr.push(inputData_Arr_unsorted[i]);
+	    }
+
+	    var N = inputData_Arr.length;
+
+        //console.log(inputData_Arr);
+	    if (has_Weights){
+        for (var i = 0; i < N; i++){
+    	    datapoint = inputData_Arr[i].split("\t");
+    	    if (datapoint.length < 3){ //if not tab seperated, try space seperated
+    		    datapoint = inputData_Arr[i].split(" ");
+    	    }
+            x_data.push(Number(datapoint[0]));
+            err_x_data.push(Number(datapoint[1]));
+            y_data.push(Number(datapoint[2]));
+            err_y_data.push(Number(datapoint[3]));
+				
+		    w_data.push(Number(datapoint[4]));
+				
+		    }
+		    return [x_data, err_x_data, y_data, err_y_data, w_data];
+	    } else {
+            for (var i = 0; i < N; i++){
+    	        datapoint = inputData_Arr[i].split("\t");
+    	        if (datapoint.length < 2){ //if not tab seperated, try space seperated
+    		        datapoint = inputData_Arr[i].split(" ");
+    	        }
+                x_data.push(Number(datapoint[0]));
+                err_x_data.push(Number(datapoint[1]));
+                y_data.push(Number(datapoint[2]));
+                err_y_data.push(Number(datapoint[3]));
+		        }
+		    }
+        return [x_data, err_x_data, y_data, err_y_data];
+    }
+
+    function getBands(y_m, slop_y) {
+        let lower1 = y_m.map(x => x - slop_y);
+        let lower2 = y_m.map(x => x - 2.0*slop_y);
+        let lower3 = y_m.map(x => x - 3.0*slop_y);
+        let upper1 = y_m.map(x => x + slop_y);
+        let upper2 = y_m.map(x => x + 2.0*slop_y);
+        let upper3 = y_m.map(x => x + 3.0*slop_y);
+
+        return [lower1, lower2, lower3, upper1, upper2, upper3]
+    }
+
+    function linspace(startValue, stopValue, cardinality) {
+        var arr = [];
+        var step = (stopValue - startValue) / (cardinality - 1);
+        for (var i = 0; i < cardinality; i++) {
+            arr.push(startValue + (step * i));
+        }
+        return arr;
+    }
+
+    function getModelData() {
+        let input_data = getData();
+        let x_data = input_data[0];
+        let xmin = Math.min(...x_data);
+        let xmax = Math.max(...x_data);
+        let margin = (xmax - xmin) / 2.0;
+        let x_original_result = linspace(xmin - margin, xmax + margin, 1000);
+
+        let parameters_result = parameters.slice(0, -2);
+
+        switch (chosenFunctionType) {
+            case "Linear":
+                var a0 = parameters_result[0];
+                var a1 = parameters_result[1];
+
+                for (var i = 0; i < x_original_result.length; i++) {
+                    var y_point = (a0 + a1 * (x_original_result[i] - bar_result))
+                    y_fitted_result.push(y_point)
+                }
+                break;
+            case "Quadratic":
+
+                var a0 = parameters_result[0];
+                var a1 = parameters_result[1];
+                var a2 = parameters_result[2];
+
+                for (var i = 0; i < x_original_result.length; i++) {
+                    var y_point = (a0 + a1 * (x_original_result[i] - bar_result) + a2 * Math.pow((x_original_result[i] - bar_result), 2.0))
+                    y_fitted_result.push(y_point)
+                }
+                break;
+            case "Cubic":
+
+                var a0 = parameters_result[0];
+                var a1 = parameters_result[1];
+                var a2 = parameters_result[2];
+                var a3 = parameters_result[3];
+
+                for (var i = 0; i < x_original_result.length; i++) {
+                    var y_point = (a0 + a1 * (x_original_result[i] - bar_result) + a2 * Math.pow((x_original_result[i] - bar_result), 2.0) + a3 * Math.pow((x_original_result[i] - bar_result), 3.0))
+                    y_fitted_result.push(y_point)
+                }
+                break;
+            case "PowerLaw":
+
+                var a0 = parameters_result[0];
+                var a1 = parameters_result[1];
+
+                for (var i = 0; i < x_original_result.length; i++) {
+                    var y_point = (a0 * Math.pow((x_original_result[i] / Math.pow(10, bar_result)), a1))
+                    y_fitted_result.push(y_point)
+                }
+                break;
+            case "Exponential":
+
+                var a0 = parameters_result[0];
+                var a1 = parameters_result[1];
+
+                for (var i = 0; i < x_original_result.length; i++) {
+                    var y_point = (a0 * Math.pow(10, a1 * (x_original_result[i] - bar_result)))
+                    y_fitted_result.push(y_point)
+                }
+                break;
+            case "Logarithmic":
+
+                var a0 = parameters_result[0];
+
+                for (var i = 0; i < x_original_result.length; i++) {
+                    var y_point = (a0 * Math.log10(x_original_result[i] - bar_result))
+                    y_fitted_result.push(y_point)
+                }
+                break;
+            default:
+                console.log("Error: no model function selected");
+        }
+
+        return [x_original_result, y_fitted_result, parameters[-1]]; //returns x and y data for model curve and slop_y
+    }
+
+    function convertData(inputDataContents){ //convert from new format to old format
+      var has_Weights = $('#Weighted').data('clicked');
+      var has_ErrorBars = $('#ErrorBars').data('clicked');
+
+      var x_data = [];
+      var y_data = []; //these are lists of strings
+	    var w_data = [];
+
+      console.log("inputDataContents: " + inputDataContents);
+
+      mainDataContents = "";
+      xDataContents = "";
+      var inputData_Arr_unfiltered = inputDataContents.split("\n");
+	    var inputData_Arr = [];
+
+	    for (var i = 0; i < inputData_Arr_unfiltered.length; i++){ //gets rid of blank lines
+		    if ((inputData_Arr_unfiltered[i] != "") && (inputData_Arr_unfiltered[i] != " "))
+			    inputData_Arr.push(inputData_Arr_unfiltered[i]);
+	    }
+	    var N = inputData_Arr.length;
+
+      console.log("inputData_Arr: " + inputData_Arr);
+
+      if (has_Weights || has_ErrorBars){ //creates lists of data (list of strings)
+        for (var i = 0; i < N; i++){
+    	    datapoint = inputData_Arr[i].split("\t");
+    	    if (datapoint.length < 3){ //if not tab seperated, try space seperated
+    		    datapoint = inputData_Arr[i].split(" ");
+    	    }
+            x_data.push(datapoint[0]);
+            y_data.push(datapoint[1]);
+            w_data.push(datapoint[2]);
+		    }
+	    } else {
+          for (var i = 0; i < N; i++){
+      	    datapoint = inputData_Arr[i].split("\t");
+      	    if (datapoint.length < 2){ //if not tab seperated, try space seperated
+      		    datapoint = inputData_Arr[i].split(" ");
+      	    }
+              x_data.push(datapoint[0]);
+              y_data.push(datapoint[1]);
+  		    }
+		    }
+
+      for (var i = 0; i < N; i++){
+        xDataContents += x_data[i] + "\n";
+      }
+
+      if (has_Weights || has_ErrorBars){ //adds data to old format strings
+        for (var i = 0; i < N; i++){
+    	    mainDataContents += y_data[i] + " " + w_data[i] + "\n";
+		    }
+	    }
+      else {
+        for (var i = 0; i < N; i++){
+    	    mainDataContents += y_data[i] + "\n";
+		    }
+	    }
+
+      console.log(xDataContents);
+      console.log(mainDataContents);
+
+      return [mainDataContents, xDataContents];
+    }
+
+    function functionSelector(functionName){
+      chosenFunctionType = functionName;
+      console.log('Function chosen: ' + chosenFunctionType)
+    }
+    /*
+    function getBar(xArr, fType, params, wArr = []){ //gets custom "bar" function, ie xBar, logxBar, etc depending on model
+      if (wArr === []){ //if equal weights
+        for (var i = 0; i < xArr.length; i++){
+          wArr.push(1.0);
+        }
+      }
+
+      var lowerSum = 0;
+      var upperSum = 0;
+      for (var i = 0; i < xArr.length; i++){
+      switch (fType){
+        case 'PowerLaw':
+        for (var i = 0; i < xArr.length; i++){
+          double y_i = f(xArr[i], params);
+  		    uppersum += wArr[i] * Math.log10(xArr[i]) * Math.pow(y_i, 2.0);
+  		    lowersum += wArr[i] * Math.pow(10.0, -2.0*y_i);
+        }
+        break;
+
+        case 'Exponential':
+        case 'Logarithmic':
+        default:
+          for (var i = 0; i < xArr.length; i++){
+            uppersum += (xArr[i] * wArr[i]);
+            lowersum += w[i];
+          }
+          break;
+      }
+      return (upperSum / lowerSum);
+    }
+    */
+    function displayChosenFunction(t){
+      document.getElementById("SelectedFunction").innerHTML = t.innerHTML;
+      return;
+    }
+    /*
+    function displayBar(){
+      var has_Weights = $('#Weighted').data('clicked');
+	    var has_ErrorBars = $('#ErrorBars').data('clicked');
+      var res = getData();
+
+      var x = res[0];
+      var xBar;
+
+      if (has_Weights){
+        var w = res[2];
+        xBar = getWeightedXBar(x, w);
+        document.getElementById("XBarDisplay").innerHTML = String(Math.round(xBar * 1000) / 1000);
+
+      } else if (has_ErrorBars){
+        var w = res[2].map(x => 1.0/Math.pow(x, 2.0));
+        xBar = getWeightedXBar(x, w);
+        document.getElementById("XBarDisplay").innerHTML = String(Math.round(xBar * 1000) / 1000);
+      } else  {
+        xBar = getXBar(x);
+        document.getElementById("XBarDisplay").innerHTML = String(Math.round(xBar * 1000) / 1000);
+      }
+      return;
+    }
+
+    function displayLogBar(){
+
+    }
+    */
+    function displayBar(t){
+      var chosenFn = t.id;
+      switch (chosenFn){
+        case "PowerLaw":
+          document.getElementById("XBarDisplay").innerHTML = "<span style=\"text-decoration:overline\">log x</span> = Σ<sub>i</sub>w<sub>i</sub>(log x<sub>i</sub>)y<sup>2</sup>(x<sub>i</sub>) / Σ<sub>i</sub>w<sub>i</sub>y<sup>2</sup>(x<sub>i</sub>)";
+          document.getElementById("xBarType").innerHTML = "log x";
+          document.getElementById("xBarInp").innerHTML = "log x";
+          document.getElementById("xBarOut").innerHTML = "log x";
+          break;
+        case "Exponential":
+          document.getElementById("XBarDisplay").innerHTML = "<span style=\"text-decoration:overline\">x</span> = Σ<sub>i</sub>w<sub>i</sub>x<sub>i</sub>y<sup>2</sup>(x<sub>i</sub>) / Σ<sub>i</sub>w<sub>i</sub>y<sup>2</sup>(x<sub>i</sub>)";
+          document.getElementById("xBarType").innerHTML = "x";
+          document.getElementById("xBarInp").innerHTML = "x";
+          document.getElementById("xBarOut").innerHTML = "x";
+          break;
+        case "Logarithmic":
+          document.getElementById("XBarDisplay").innerHTML = "<span style=\"text-decoration:overline\">log x</span> = Σ<sub>i</sub>w<sub>i</sub>(log x<sub>i</sub>)10<sup>-2y(x<sub>i</sub>)</sup> / Σ<sub>i</sub>w<sub>i</sub>10<sup>-2y(x<sub>i</sub>)</sup>";
+          document.getElementById("xBarType").innerHTML = "log x";
+          document.getElementById("xBarInp").innerHTML = "log x";
+          document.getElementById("xBarOut").innerHTML = "log x";
+          break;
+        default:
+          document.getElementById("XBarDisplay").innerHTML = "<span style=\"text-decoration:overline\">x</span> = Σ<sub>i</sub>w<sub>i</sub>x<sub>i</sub> / Σ<sub>i</sub>w<sub>i</sub>";
+          document.getElementById("xBarType").innerHTML = "x";
+          document.getElementById("xBarInp").innerHTML = "x";
+          document.getElementById("xBarOut").innerHTML = "x";
+          break;
+      }
+      return;
+    }
+
+    function createBasisNotice(){
+      switch(y_basis){
+        case 'linear':
+          $('#BasisNotice').css('display','none');
+          break;
+        case 'log':
+          document.getElementById("BasisNotice").innerHTML = "Notice: All results shown below are in the chosen logarithmic basis for y(x)."
+          $('#BasisNotice').css('display','block');
+          break;
+        case 'exp':
+          document.getElementById("BasisNotice").innerHTML = "Notice: All results shown below are in the chosen exponential basis for y(x)."
+          $('#BasisNotice').css('display','block');
+          break;
+        default:
+          break;
+      }
+    }
+
+    function overRejPercentage(N){
+ 		    //N is data size/ number of data points
+		    var percentageArray = [46.435,65.717,65.717,0.127,
+													    25.547,48.491,48.491,0.039,
+													    25.442,29.97,32.381,0.014,
+													    14.362,20.828,24.589,0.007,
+													    10.112,14.305,19.601,0.002,
+													    7.554,9.961,15.853,0.003,
+													    5.941,7.138,13.151,0.003,
+													    4.155,5.06,10.952,0,
+													    3.576,3.702,9.448,0,
+													    2.694,2.665,7.915,0,
+													    2.199,2.063,6.912,0,
+													    1.736,1.506,5.813,0,
+													    1.405,1.17,5.061,0,
+													    1.161,0.945,4.377,0,
+													    1.039,0.719,3.802,0,
+													    0.867,0.53,3.282,0,
+													    0.726,0.468,2.961,0,
+													    0.657,0.346,2.573,0,
+													    0.597,0.304,2.326,0,
+													    0.495,0.239,2.037,0,
+													    0.416,0.183,1.856,0,
+													    0.365,0.168,1.642,0,
+													    0.289,0.126,1.51,0,
+													    0.277,0.109,1.347,0,
+													    0.256,0.091,1.22,0,
+													    0.251,0.075,1.149,0,
+													    0.21,0.056,1.023,0,
+													    0.209,0.044,0.918,0,
+													    0.189,0.043,0.874,0,
+													    0.178,0.033,0.811,0,
+													    0.17,0.024,0.722,0,
+													    0.153,0.024,0.649,0,
+													    0.132,0.014,0.592,0,
+													    0.113,0.021,0.566,0,
+													    0.1,0.018,0.537,0,
+													    0.09,0.014,0.479,0,
+													    0.083,0.021,0.451,0,
+													    0.075,0.013,0.418,0,
+													    0.074,0.013,0.418,0,
+													    0.067,0.007,0.375,0,
+													    0.054,0.009,0.365,0,
+													    0.047,0.006,0.323,0,
+													    0.045,0.004,0.314,0,
+													    0.044,0.004,0.287,0,
+													    0.045,0.002,0.286,0,
+													    0.037,0.003,0.251,0,
+													    0.028,0,0.223,0,
+													    0.026,0.004,0.221,0,
+													    0.021,0.003,0.221,0,
+													    0.025,0.003,0.224,0,
+													    0.021,0.001,0.201,0,
+													    0.019,0.001,0.189,0,
+													    0.016,0.001,0.18,0,
+													    0.017,0.003,0.176,0,
+													    0.014,0.003,0.162,0,
+													    0.014,0.002,0.145,0,
+													    0.013,0.003,0.137,0,
+													    0.012,0.004,0.132,0,
+													    0.008,0.002,0.122,0,
+													    0.009,0.002,0.105,0,
+													    0.011,0.001,0.103,0,
+													    0.01,0.001,0.095,0,
+													    0.009,0.002,0.086,0,
+													    0.008,0.003,0.086,0,
+													    0.011,0.001,0.085,0,
+													    0.013,0.002,0.088,0,
+													    0.011,0.001,0.08,0,
+													    0.007,0.001,0.086,0,
+													    0.004,0,0.078,0,
+													    0.005,0,0.075,0,
+													    0.007,0,0.074,0,
+													    0.004,0.002,0.06,0,
+													    0.005,0,0.062,0,
+													    0.008,0,0.063,0,
+													    0.008,0.002,0.06,4,0,
+													    0.008,0.001,0.057,0,
+													    0.006,0.001,0.062,0,
+													    0.006,0.001,0.055,0,
+													    0.008,0,0.053,0,
+													    0.005,0,0.05,0,
+													    0.005,0.001,0.048,0,
+													    0.004,0,0.046,0,
+													    0.005,0,0.049,0,
+													    0.005,0,0.045,0,
+													    0.004,0,0.043,0,
+													    0.005,0,0.039,0,
+													    0.004,0,0.036,0,
+													    0.004,0,0.042,0,
+													    0.004,0.001,0.042,0,
+													    0.003,0,0.034,0,
+													    0.004,0,0.037,0,
+													    0.004,0,0.035,0,
+													    0.003,0,0.028,0,
+													    0.003,0,0.028,0,
+													    0.002,0,0.029,0,
+													    0.002,0,0.027,0,
+													    0.002,0,0.027,0];
+
+		    var percentage2DArr = []; //converts the percentage data to a 2d array
+  	    for (var i = 0; i < 97; i++){
+  		    percentage2DArr.push(percentageArray.slice(0 + 4*i, 4 + 4*i));
+  	    }
+
+		    var hasSymm = $('#Symmetric').data('clicked');
+        var hasEq = $('#Equal').data('clicked');
+        var hasOne = $('#OneSided').data('clicked');
+        var hasInBet = $('#Between').data('clicked');
+
+		    var rej; //rej corresponds to the number of the column of rcr_overrejectionprecentages.csv
+
+		    if (hasSymm){
+			    if (hasEq){
+				    rej = 0; //'ss_med_dl'
+			    } else if (hasOne){
+				    rej = 1;
+			    } else if (hasInBet){
+				    rej = 2;
+			    }
+		    } else {
+			    rej = 3;
+		    }
+
+		    var percentage = Math.round( percentage2DArr[N-3][rej] * 10) / 10;
+		    //rounds to first decimal place
+		    return percentage;
+    }
+
+    function createOverRejectionNotice(){
+      var N = (getData()[0]).length;
+
+      if (N < 3){
+        document.getElementById("OverRejectionNotice").innerHTML = "Note: Please enter at least three, properly formatted data points.";
+        $('#OutputTableWrapper').css('display','none');
+        $('#OverRejectionNote').css('display','block');
+        return true;
+      }
+
+      if (N >= 3 && N <= 99){
+        var perc = overRejPercentage(N);
+        if (perc < 0.1){
+          document.getElementById("OverRejectionNotice").innerHTML = "Note: Chance of runaway overrejection is <0.1%."
+        } else if (perc >= 0.1){
+        document.getElementById("OverRejectionNotice").innerHTML = "Note: Chance of runaway overrejection is " + perc.toString() +"%.";
+        }
+      } else if (N > 99){
+        document.getElementById("OverRejectionNotice").innerHTML = "Note: Chance of runaway overrejection is <0.1%.";
+      }
+      $('#OverRejectionNote').css('display','block');
+
+      return;
+    }
+
+    function showPriorsBox(show){
+      if (show){
+        $('#priorsBox').css('display','inline');
+        $('#priorsInput').css('display','inline');
+      }
+      else {
         $('#priorsBox').css('display','none');
         $('#priorsInput').css('display','none');
-        $('#RCRNote').css('display','block');
-        $('#NonRCRNote').css('display','none');
-        $('#BasisNotice').css('display','none');
-        $('#SelectContaminantSection').css('display','block');
-        $('#OutputTableWrapper').css('display','inline');
-        $('#LinearImage').css('display', 'none');
-				$('#QuadraticImage').css('display', 'none');
-				$('#CubicImage').css('display', 'none');
-        $('#PowerLawImage').css('display', 'none');
-				$('#ExponentialImage').css('display', 'none');
-				$('#LogarithmicImage').css('display', 'none');
-        $('#functionImage').css('display', 'none');
-        $('#SymmetricImage').css('display', 'none');
-        $('#AsymmetricImage').css('display', 'none');
-        $('#Plot').css('display', 'none');
-      	document.getElementById("SelectContaminantSectionTitle").innerHTML = "Select Contaminant Type:";
-      	document.getElementById("PerformRCR").innerHTML = "Perform RCR!";
-        $('#OutputTableWrapper').css('display','none');
-        document.getElementById('nonRejectedData').value = '';
-        document.getElementById('rejectedData').value = '';
-        document.getElementById('allData').value = '';
-        switch (true)
-		{
-            case ($('#Symmetric').data('clicked') && $('#Equal').data('clicked')):
-				$('.RejectionMethods').css('display','none')
-				$('#Option11').css('display','block');
-				$('#OptionAll').css('display','block');
-        $('#SymmetricImage').css('display', 'block');
-                break;
-			case ($('#Symmetric').data('clicked') &&  $('#OneSided').data('clicked')):
-				$('.RejectionMethods').css('display','none')
-				$('#Option12').css('display','block');
-				$('#OptionAll').css('display','block');
-        $('#SymmetricImage').css('display', 'block');
-                break;
-			case ($('#Symmetric').data('clicked') && $('#Between').data('clicked')):
-				$('.RejectionMethods').css('display','none')
-				$('#Option13').css('display','block');
-				$('#OptionAll').css('display','block');
-        $('#SymmetricImage').css('display', 'block');
-                break;
-			case ($('#Asymmetric').data('clicked')):
-				$('.RejectionMethods').css('display','none')
-				$('#Option2All').css('display','block');
-				$('#OptionAll').css('display','block');
-        $('#AsymmetricImage').css('display', 'block');
-                break;
+      }
+    }
 
-      case ($('#Linear').data('clicked')):
-        $('#LinearImage').css('display', 'block');
-                break;
-      case ($('#Quadratic').data('clicked')):
-        $('#QuadraticImage').css('display', 'block');
-                break;
-      case ($('#Cubic').data('clicked')):
-        $('#CubicImage').css('display', 'block');
-                break;
-      case ($('#PowerLaw').data('clicked')):
-        $('#PowerLawImage').css('display', 'block');
-                break;
-      case ($('#Exponential').data('clicked')):
-        $('#ExponentialImage').css('display', 'block');
-                break;
-      case ($('#Logarithmic').data('clicked')):
-        $('#LogarithmicImage').css('display', 'block');
-                break;
+    function convertSigmaData(bestFit_123SigmasData) {
+        let bestFit_123Sigmas = [];
 
+        bestFit_123SigmasData = bestFit_123SigmasData.split("\n")
+        for (let m = 0; m < bestFit_123SigmasData.length; m++) {
+            let inner = bestFit_123SigmasData[m].split("\t");
+            let bothsigs = [];
+            for (let n = 0; n < 2; n++) {
+                let inter = inner[n].split(" ");
+                let sigs = [];
+                for (let i = 0; i < 3; i++) {
+                    sigs.push(Number(inter[i]));
+                }
+                bothsigs.push(sigs);
+            }
+            bestFit_123Sigmas.push(bothsigs);
+        }
 
-      /*
-			case ($('#Nongaussian').data('clicked')):
-				$('.RejectionMethods').css('display','none')
-				$('#Option3').css('display','block');
-				$('#Option3Image').css('display', 'block');
+        return bestFit_123Sigmas;
+    }
 
-                $('#RCRNote').css('display','none');
-                $('#SelectContaminantSection').css('display','none');
-        	$('#OutputTableWrapper').css('display','none');
-      */
+    function displayOutputs(data) {
+        document.getElementById('finalParameters').value = data['finalParametersData'];
+        document.getElementById('scales').value = data['scales']; //assuming scales = "s0\na\nb"
+        document.getElementById('bestFit_123SigmasData');
+    }
 
-		document.getElementById("SelectContaminantSectionTitle").innerHTML = "We do not perform outlier rejection in this case.";
-		document.getElementById("PerformRCR").innerHTML = "Characterize!";
+    function performTRK(){
 
-                $('#NonRCRNote').css('display','block');
+      //createBasisNotice();
+      //hide = createOverRejectionNotice();
+      //if (hide){
+      //  return;
+      //}
 
-                break;
-			default:
-				$('.RejectionMethods').css('display','none')
+  
 
-        };
-};
-function outputSelection(){
-       switch (true)
-		{
-            case ($('#showNonRejected').data('clicked')):
-				$('#nonRejectedData').css('display','inline')
-				$('#rejectedData').css('display','none');
-				$('#allData').css('display','none');
-                break;
-            case ($('#showRejected').data('clicked')):
-				$('#nonRejectedData').css('display','none')
-				$('#rejectedData').css('display','inline');
-				$('#allData').css('display','none');
-                break;
-            case ($('#showAll').data('clicked')):
-				$('#nonRejectedData').css('display','none')
-				$('#rejectedData').css('display','none');
-				$('#allData').css('display','inline');
-                break;
-			default:
-				$('.RejectionMethods').css('display','none')
+      var mainDataContents = changeInputBasis(); //either doesn't change the data, or changes it to fit correct basis (only changes y, not w/errors)
 
-        };
-}
+      //var convertedData = convertData(inputDataContents); //also converts error bars to weights
 
-function toggleBool(button)	{
-		if ($(button).data('clicked') === false)
-		{
-			$(button).data('clicked',true);
-			return;
-		}
-		else if ($(button).data('clicked') === true)
-		{
-			$(button).data('clicked', false);
-		}
-	};
+      //mainDataContents = convertedData[0];
+      //xDataContents = convertedData[1];
 
-function SingleActiveButtonCheck(button1, button2){
-	if ($(button1).data('clicked') === true && $(button2).data('clicked') === true)
-	{
-		toggleBool($(button2))
-		$(button2).toggleClass('ButtonActive');
-	}
-};
+      //mainDataContents = document.getElementById('ydataarea').value
+      //xDataContents = document.getElementById('xdataarea').value
+      guessDataContents = document.getElementById('guessarea').value
+      //barDataContents = document.getElementById('barArea').value
+      priorsDataContents = document.getElementById('priorsArea').value
 
-function SingleActiveButtonCheckNoBool(button1, button2){
-	if ($(button1).hasClass('ButtonActive')&& $(button2).hasClass('ButtonActive'))
-	{
-    //console.log(chosenFunctionType);
-		$(button2).toggleClass('ButtonActive');
-	}
-};
+      $('#OutputTableWrapper').css('display', 'inline');
+        $('#OutputPlot').css('display', 'inline');
+        $('#Histogram').css('display', 'inline');
 
-function main(){
+      doScale = $('#OpScale').data('clicked');
+      doMCMC = $('#YesMCMC').data('clicked');
 
-	$('#Symmetric').data('clicked',true);
-	$('#Asymmetric').data('clicked',false);
-	//$('#Nongaussian').data('clicked',false);
-
-	$('#Equal').data('clicked',false);
-	$('#Between').data('clicked',true);
-	$('#OneSided').data('clicked',false);
-
-	$('#Unweighted').data('clicked', true);
-	$('#Weighted').data('clicked',false);
-  $('#ErrorBars').data('clicked',false);
-
-  $('#NoPriors').data('clicked', true);
-	$('#YesPriors').data('clicked',false);
-
-  $('#showNonRejected').data('clicked',true);
-	$('#showRejected').data('clicked',false);
-	$('#showAll').data('clicked',false);
-
-  $('#Linear').data('clicked',true);
-
-	$('#showNonRejected').toggleClass('ButtonActive');
-	$('#Symmetric').toggleClass('ButtonActive');
-	$('#Between').toggleClass('ButtonActive');
-	$('#Unweighted').toggleClass("ButtonActive");
-  $('#NoPriors').toggleClass('ButtonActive');
+      hasWeights = $('#Weighted').data('clicked');
+      hasPriors = $('#YesPriors').data('clicked');
 
 
 
-	type();
-    outputSelection();
+      console.log("mainDataContents:" + mainDataContents);
+      console.log("guessDataContents:" + guessDataContents);
+      console.log("doScale: " + doScale);
+	    console.log("doMCMC: " + doMCMC);
+	    console.log("hasWeights: " + hasWeights);
+      console.log("chosenFunctionType: " + chosenFunctionType);
+      console.log("hasPriors: " + hasPriors);
+      //console.log(correct_barData);
 
-    //the below are handlers for when buttons are clicked
+      //Rejection tech determination:
 
-    $('#Symmetric').click(function() {
-        if ($('#Symmetric').data('clicked') === false)
+      var request = $.ajax
+          (
+              {
+                  url: '/rcr/calculator/callTRK',
+                  type: "POST",
+                  data: { mainData : mainDataContents,
+                          guessData : guessDataContents,
+                          weighted :  hasWeights,
+                          functionType : chosenFunctionType,
+                          priorsData : priorsDataContents,
+                          priorsCheck : hasPriors
+
+
+                        },
+                  dataType: "json",
+                  success: function(data, textStatus, jqXHR)
+                  {
+                      console.log('yes');
+                      console.log(data);
+
+                      var parameters_result = data['finalParametersData'].split("\n");
+                      parameters = parameters_result.map(Number);
+
+                      bestFit_123Sigmas = convertSigmaData(data['bestFit_123SigmasData']);
+                      paramHistograms = getHistData(data['paramHistogramsData']);
+                  },
+                  error: function (jqXHR, textStatus, errorThrown)
+                  {
+                      console.log(errorThrown)
+                      console.log('no');
+                      console.log(jqXHR);
+                      console.log(textStatus);
+                  }
+              }
+          );
+
+
+
+      //this function will use a different parametric function, and corresponding c++ function based off of what parametric function was chosen
+      }
+
+    function type(){
+            $('#priorsBox').css('display','none');
+            $('#priorsInput').css('display','none');
+            $('#RCRNote').css('display','block');
+            $('#NonRCRNote').css('display','none');
+            $('#BasisNotice').css('display','none');
+            $('#SelectContaminantSection').css('display','block');
+            $('#OutputTableWrapper').css('display','inline');
+            $('#LinearImage').css('display', 'none');
+				    $('#QuadraticImage').css('display', 'none');
+				    $('#CubicImage').css('display', 'none');
+            $('#PowerLawImage').css('display', 'none');
+				    $('#ExponentialImage').css('display', 'none');
+				    $('#LogarithmicImage').css('display', 'none');
+            $('#functionImage').css('display', 'none');
+            $('#SymmetricImage').css('display', 'none');
+            $('#AsymmetricImage').css('display', 'none');
+            $('#Plot').css('display', 'none');
+      	    document.getElementById("SelectContaminantSectionTitle").innerHTML = "Select Contaminant Type:";
+      	    document.getElementById("PerformRCR").innerHTML = "Perform RCR!";
+            $('#OutputTableWrapper').css('display','none');
+            document.getElementById('nonRejectedData').value = '';
+            document.getElementById('rejectedData').value = '';
+            document.getElementById('allData').value = '';
+            switch (true)
+		    {
+                case ($('#Symmetric').data('clicked') && $('#Equal').data('clicked')):
+				    $('.RejectionMethods').css('display','none')
+				    $('#Option11').css('display','block');
+				    $('#OptionAll').css('display','block');
+            $('#SymmetricImage').css('display', 'block');
+                    break;
+			    case ($('#Symmetric').data('clicked') &&  $('#OneSided').data('clicked')):
+				    $('.RejectionMethods').css('display','none')
+				    $('#Option12').css('display','block');
+				    $('#OptionAll').css('display','block');
+            $('#SymmetricImage').css('display', 'block');
+                    break;
+			    case ($('#Symmetric').data('clicked') && $('#Between').data('clicked')):
+				    $('.RejectionMethods').css('display','none')
+				    $('#Option13').css('display','block');
+				    $('#OptionAll').css('display','block');
+            $('#SymmetricImage').css('display', 'block');
+                    break;
+			    case ($('#Asymmetric').data('clicked')):
+				    $('.RejectionMethods').css('display','none')
+				    $('#Option2All').css('display','block');
+				    $('#OptionAll').css('display','block');
+            $('#AsymmetricImage').css('display', 'block');
+                    break;
+
+          case ($('#Linear').data('clicked')):
+            $('#LinearImage').css('display', 'block');
+                    break;
+          case ($('#Quadratic').data('clicked')):
+            $('#QuadraticImage').css('display', 'block');
+                    break;
+          case ($('#Cubic').data('clicked')):
+            $('#CubicImage').css('display', 'block');
+                    break;
+          case ($('#PowerLaw').data('clicked')):
+            $('#PowerLawImage').css('display', 'block');
+                    break;
+          case ($('#Exponential').data('clicked')):
+            $('#ExponentialImage').css('display', 'block');
+                    break;
+          case ($('#Logarithmic').data('clicked')):
+            $('#LogarithmicImage').css('display', 'block');
+                    break;
+
+
+          /*
+			    case ($('#Nongaussian').data('clicked')):
+				    $('.RejectionMethods').css('display','none')
+				    $('#Option3').css('display','block');
+				    $('#Option3Image').css('display', 'block');
+
+                    $('#RCRNote').css('display','none');
+                    $('#SelectContaminantSection').css('display','none');
+        	    $('#OutputTableWrapper').css('display','none');
+          */
+
+		    document.getElementById("SelectContaminantSectionTitle").innerHTML = "We do not perform outlier rejection in this case.";
+		    document.getElementById("PerformRCR").innerHTML = "Characterize!";
+
+                    $('#NonRCRNote').css('display','block');
+
+                    break;
+			    default:
+				    $('.RejectionMethods').css('display','none')
+
+            };
+    };
+
+    function outputSelection(){
+           switch (true)
+		    {
+                case ($('#showNonRejected').data('clicked')):
+				    $('#nonRejectedData').css('display','inline')
+				    $('#rejectedData').css('display','none');
+				    $('#allData').css('display','none');
+                    break;
+                case ($('#showRejected').data('clicked')):
+				    $('#nonRejectedData').css('display','none')
+				    $('#rejectedData').css('display','inline');
+				    $('#allData').css('display','none');
+                    break;
+                case ($('#showAll').data('clicked')):
+				    $('#nonRejectedData').css('display','none')
+				    $('#rejectedData').css('display','none');
+				    $('#allData').css('display','inline');
+                    break;
+			    default:
+				    $('.RejectionMethods').css('display','none')
+
+            };
+    }
+
+    function toggleBool(button)	{
+		    if ($(button).data('clicked') === false)
+		    {
+			    $(button).data('clicked',true);
+			    return;
+		    }
+		    else if ($(button).data('clicked') === true)
+		    {
+			    $(button).data('clicked', false);
+		    }
+	    };
+
+    function SingleActiveButtonCheck(button1, button2){
+	    if ($(button1).data('clicked') === true && $(button2).data('clicked') === true)
+	    {
+		    toggleBool($(button2))
+		    $(button2).toggleClass('ButtonActive');
+	    }
+    };
+
+    function SingleActiveButtonCheckNoBool(button1, button2){
+	    if ($(button1).hasClass('ButtonActive')&& $(button2).hasClass('ButtonActive'))
+	    {
+        //console.log(chosenFunctionType);
+		    $(button2).toggleClass('ButtonActive');
+	    }
+    };
+
+    function main(){
+
+	    $('#Symmetric').data('clicked',true);
+	    $('#Asymmetric').data('clicked',false);
+	    //$('#Nongaussian').data('clicked',false);
+
+	    $('#Equal').data('clicked',false);
+	    $('#Between').data('clicked',true);
+	    $('#OneSided').data('clicked',false);
+
+	    $('#Unweighted').data('clicked', true);
+	    $('#Weighted').data('clicked',false);
+      $('#ErrorBars').data('clicked',false);
+
+      $('#NoPriors').data('clicked', true);
+	    $('#YesPriors').data('clicked',false);
+
+      $('#showNonRejected').data('clicked',true);
+	    $('#showRejected').data('clicked',false);
+	    $('#showAll').data('clicked',false);
+
+      $('#Linear').data('clicked',true);
+
+	    $('#showNonRejected').toggleClass('ButtonActive');
+	    $('#Symmetric').toggleClass('ButtonActive');
+	    $('#Between').toggleClass('ButtonActive');
+	    $('#Unweighted').toggleClass("ButtonActive");
+      $('#NoPriors').toggleClass('ButtonActive');
+
+
+
+	    type();
+        outputSelection();
+
+        //the below are handlers for when buttons are clicked
+
+        $('#Symmetric').click(function() {
+            if ($('#Symmetric').data('clicked') === false)
+            {
+                toggleBool('#Symmetric');
+                $('#Symmetric').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#Symmetric','#Asymmetric');
+                //SingleActiveButtonCheck('#Symmetric','#Nongaussian');
+                type();
+            }
+	    });
+        $('#Asymmetric').click(function() {
+            if ($('#Asymmetric').data('clicked') === false)
+            {
+                toggleBool('#Asymmetric');
+                $('#Asymmetric').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#Asymmetric','#Symmetric');
+                //SingleActiveButtonCheck('#Asymmetric','#Nongaussian');
+                type();
+            }
+        });
+        /*
+        $('#Nongaussian').click(function() {
+            if ($('#Nongaussian').data('clicked') === false)
+            {
+                toggleBool('#Nongaussian');
+                $('#Nongaussian').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#Nongaussian','#Symmetric');
+                SingleActiveButtonCheck('#Nongaussian','#Asymmetric');
+                type();
+            }
+        });
+        */
+        $('#Equal').click(function() {
+            if ($('#Equal').data('clicked') === false)
+            {
+                toggleBool('#Equal');
+                $('#Equal').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#Equal','#OneSided');
+                SingleActiveButtonCheck('#Equal','#Between');
+                type();
+            }
+        });
+        $('#OneSided').click(function() {
+            if ($('#OneSided').data('clicked') === false)
+            {
+                toggleBool('#OneSided');
+                $('#OneSided').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#OneSided','#Between');
+                SingleActiveButtonCheck('#OneSided','#Equal');
+                type();
+            }
+        });
+        $('#Between').click(function() {
+            if ($('#Between').data('clicked') === false)
+            {
+                toggleBool('#Between');
+                $('#Between').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#Between','#Equal');
+                SingleActiveButtonCheck('#Between','#OneSided');
+                type();
+            }
+        });
+
+        $('#showNonRejected').click(function() {
+            if ($('#showNonRejected').data('clicked') === false)
+            {
+                toggleBool('#showNonRejected');
+                $('#showNonRejected').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#showNonRejected','#showRejected');
+                SingleActiveButtonCheck('#showNonRejected','#showAll');
+                outputSelection();
+            }
+        });
+
+        $('#showRejected').click(function() {
+            if ($('#showRejected').data('clicked') === false)
+            {
+                toggleBool('#showRejected');
+                $('#showRejected').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#showRejected','#showNonRejected');
+                SingleActiveButtonCheck('#showRejected','#showAll');
+                outputSelection();
+            }
+        });
+
+        $('#showAll').click(function() {
+            if ($('#showAll').data('clicked') === false)
+            {
+                toggleBool('#showAll');
+                $('#showAll').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#showAll','#showNonRejected');
+                SingleActiveButtonCheck('#showAll','#showRejected');
+                outputSelection();
+            }
+        });
+
+        $('#Unweighted').click(function()	{
+              if ($('#Unweighted').data('clicked') === false)
+              {
+                  $('#Unweighted').toggleClass("ButtonActive");
+                  toggleBool('#Unweighted');
+                  SingleActiveButtonCheck('#Unweighted','#Weighted');
+  						    SingleActiveButtonCheck('#Unweighted','#ErrorBars');
+              }
+  	    });
+  	    $('#Weighted').click(function()	{
+              if ($('#Weighted').data('clicked') === false)
+              {
+                  $('#Weighted').toggleClass("ButtonActive");
+                  toggleBool('#Weighted');
+                  SingleActiveButtonCheck('#Weighted','#Unweighted');
+  						    SingleActiveButtonCheck('#Weighted','#ErrorBars');
+              }
+  	    });
+
+        $('#ErrorBars').click(function()	{
+              if ($('#ErrorBars').data('clicked') === false)
+              {
+                  $('#ErrorBars').toggleClass("ButtonActive");
+                  toggleBool('#ErrorBars');
+                  SingleActiveButtonCheck('#ErrorBars','#Unweighted');
+  						    SingleActiveButtonCheck('#ErrorBars','#Weighted');
+              }
+  	    });
+        $('#NoPriors').click(function()	{
+              if ($('#NoPriors').data('clicked') === false)
+              {
+                  $('#NoPriors').toggleClass("ButtonActive");
+                  toggleBool('#NoPriors');
+                  SingleActiveButtonCheck('#NoPriors','#YesPriors');
+              }
+  	    });
+        $('#YesPriors').click(function()	{
+              if ($('#YesPriors').data('clicked') === false)
+              {
+                  $('#YesPriors').toggleClass("ButtonActive");
+                  toggleBool('#YesPriors');
+                  SingleActiveButtonCheck('#YesPriors','#NoPriors');
+              }
+  	    });
+
+
+      $('#Linear').click(function()	{
+            functionSelector('Linear');
+            $('#Linear').toggleClass("ButtonActive");
+            //console.log('hey')
+            SingleActiveButtonCheckNoBool('#Linear','#Quadratic');
+            SingleActiveButtonCheckNoBool('#Linear','#Cubic');
+            SingleActiveButtonCheckNoBool('#Linear','#PowerLaw');
+            SingleActiveButtonCheckNoBool('#Linear','#Exponential');
+            SingleActiveButtonCheckNoBool('#Linear','#Logarithmic');
+
+            $('#functionImage').css('display', 'inline');
+
+            $('#LinearImage').css('display', 'inline');
+				    $('#QuadraticImage').css('display', 'none');
+				    $('#CubicImage').css('display', 'none');
+            $('#PowerLawImage').css('display', 'none');
+				    $('#ExponentialImage').css('display', 'none');
+				    $('#LogarithmicImage').css('display', 'none');
+	    });
+
+      $('#Quadratic').click(function()	{
+            functionSelector('Quadratic');
+            $('#Quadratic').toggleClass("ButtonActive");
+            SingleActiveButtonCheckNoBool('#Quadratic','#Linear');
+            SingleActiveButtonCheckNoBool('#Quadratic','#Cubic');
+            SingleActiveButtonCheckNoBool('#Quadratic','#PowerLaw');
+            SingleActiveButtonCheckNoBool('#Quadratic','#Exponential');
+            SingleActiveButtonCheckNoBool('#Quadratic','#Logarithmic');
+
+            $('#functionImage').css('display', 'inline');
+
+            $('#LinearImage').css('display', 'none');
+				    $('#QuadraticImage').css('display', 'inline');
+				    $('#CubicImage').css('display', 'none');
+            $('#PowerLawImage').css('display', 'none');
+				    $('#ExponentialImage').css('display', 'none');
+				    $('#LogarithmicImage').css('display', 'none');
+	    });
+
+      $('#Cubic').click(function()	{
+            functionSelector('Cubic');
+            $('#Cubic').toggleClass("ButtonActive");
+            SingleActiveButtonCheckNoBool('#Cubic','#Linear');
+            SingleActiveButtonCheckNoBool('#Cubic','#Quadratic');
+            SingleActiveButtonCheckNoBool('#Cubic','#PowerLaw');
+            SingleActiveButtonCheckNoBool('#Cubic','#Exponential');
+            SingleActiveButtonCheckNoBool('#Cubic','#Logarithmic');
+
+            $('#functionImage').css('display', 'inline');
+
+            $('#LinearImage').css('display', 'none');
+				    $('#QuadraticImage').css('display', 'none');
+				    $('#CubicImage').css('display', 'inline');
+            $('#PowerLawImage').css('display', 'none');
+				    $('#ExponentialImage').css('display', 'none');
+				    $('#LogarithmicImage').css('display', 'none');
+	    });
+
+      $('#PowerLaw').click(function()	{
+            functionSelector('PowerLaw');
+            $('#PowerLaw').toggleClass("ButtonActive");
+            SingleActiveButtonCheckNoBool('#PowerLaw','#Linear');
+            SingleActiveButtonCheckNoBool('#PowerLaw','#Quadratic');
+            SingleActiveButtonCheckNoBool('#PowerLaw','#Cubic');
+            SingleActiveButtonCheckNoBool('#PowerLaw','#Exponential');
+            SingleActiveButtonCheckNoBool('#PowerLaw','#Logarithmic');
+
+            $('#functionImage').css('display', 'inline');
+
+            $('#LinearImage').css('display', 'none');
+				    $('#QuadraticImage').css('display', 'none');
+				    $('#CubicImage').css('display', 'none');
+            $('#PowerLawImage').css('display', 'inline');
+				    $('#ExponentialImage').css('display', 'none');
+				    $('#LogarithmicImage').css('display', 'none');
+	    });
+
+      $('#Exponential').click(function()	{
+            functionSelector('Exponential');
+            $('#Exponential').toggleClass("ButtonActive");
+            SingleActiveButtonCheckNoBool('#Exponential','#Linear');
+            SingleActiveButtonCheckNoBool('#Exponential','#Quadratic');
+            SingleActiveButtonCheckNoBool('#Exponential','#Cubic');
+            SingleActiveButtonCheckNoBool('#Exponential','#PowerLaw');
+            SingleActiveButtonCheckNoBool('#Exponential','#Logarithmic');
+
+            $('#functionImage').css('display', 'inline');
+
+            $('#LinearImage').css('display', 'none');
+				    $('#QuadraticImage').css('display', 'none');
+				    $('#CubicImage').css('display', 'none');
+            $('#PowerLawImage').css('display', 'none');
+				    $('#ExponentialImage').css('display', 'inline');
+				    $('#LogarithmicImage').css('display', 'none');
+      });
+
+      $('#Logarithmic').click(function()	{
+            functionSelector('Logarithmic');
+            $('#Logarithmic').toggleClass("ButtonActive");
+            SingleActiveButtonCheckNoBool('#Logarithmic','#Linear');
+            SingleActiveButtonCheckNoBool('#Logarithmic','#Quadratic');
+            SingleActiveButtonCheckNoBool('#Logarithmic','#Cubic');
+            SingleActiveButtonCheckNoBool('#Logarithmic','#PowerLaw');
+            SingleActiveButtonCheckNoBool('#Logarithmic','#Exponential');
+
+            $('#functionImage').css('display', 'inline');
+
+            $('#LinearImage').css('display', 'none');
+				    $('#QuadraticImage').css('display', 'none');
+				    $('#CubicImage').css('display', 'none');
+            $('#PowerLawImage').css('display', 'none');
+				    $('#ExponentialImage').css('display', 'none');
+				    $('#LogarithmicImage').css('display', 'inline');
+      });
+
+
+
+	    var oldVal = "";
+        $("#inputTextAreaData").on("change keyup paste", function()
         {
-            toggleBool('#Symmetric');
-            $('#Symmetric').toggleClass('ButtonActive');
-            SingleActiveButtonCheck('#Symmetric','#Asymmetric');
-            //SingleActiveButtonCheck('#Symmetric','#Nongaussian');
+            var currentVal = $(this).val();
+            if(currentVal == oldVal)
+            {
+                return; //check to prevent multiple simultaneous triggers
+            }
+
+            oldVal = currentVal;
+            //action to be performed on textarea changed
             type();
-        }
-	});
-    $('#Asymmetric').click(function() {
-        if ($('#Asymmetric').data('clicked') === false)
-        {
-            toggleBool('#Asymmetric');
-            $('#Asymmetric').toggleClass('ButtonActive');
-            SingleActiveButtonCheck('#Asymmetric','#Symmetric');
-            //SingleActiveButtonCheck('#Asymmetric','#Nongaussian');
-            type();
-        }
-    });
-    /*
-    $('#Nongaussian').click(function() {
-        if ($('#Nongaussian').data('clicked') === false)
-        {
-            toggleBool('#Nongaussian');
-            $('#Nongaussian').toggleClass('ButtonActive');
-            SingleActiveButtonCheck('#Nongaussian','#Symmetric');
-            SingleActiveButtonCheck('#Nongaussian','#Asymmetric');
-            type();
-        }
-    });
-    */
-    $('#Equal').click(function() {
-        if ($('#Equal').data('clicked') === false)
-        {
-            toggleBool('#Equal');
-            $('#Equal').toggleClass('ButtonActive');
-            SingleActiveButtonCheck('#Equal','#OneSided');
-            SingleActiveButtonCheck('#Equal','#Between');
-            type();
-        }
-    });
-    $('#OneSided').click(function() {
-        if ($('#OneSided').data('clicked') === false)
-        {
-            toggleBool('#OneSided');
-            $('#OneSided').toggleClass('ButtonActive');
-            SingleActiveButtonCheck('#OneSided','#Between');
-            SingleActiveButtonCheck('#OneSided','#Equal');
-            type();
-        }
-    });
-    $('#Between').click(function() {
-        if ($('#Between').data('clicked') === false)
-        {
-            toggleBool('#Between');
-            $('#Between').toggleClass('ButtonActive');
-            SingleActiveButtonCheck('#Between','#Equal');
-            SingleActiveButtonCheck('#Between','#OneSided');
-            type();
-        }
-    });
+        });
 
-    $('#showNonRejected').click(function() {
-        if ($('#showNonRejected').data('clicked') === false)
-        {
-            toggleBool('#showNonRejected');
-            $('#showNonRejected').toggleClass('ButtonActive');
-            SingleActiveButtonCheck('#showNonRejected','#showRejected');
-            SingleActiveButtonCheck('#showNonRejected','#showAll');
-            outputSelection();
-        }
-    });
+    };
 
-    $('#showRejected').click(function() {
-        if ($('#showRejected').data('clicked') === false)
-        {
-            toggleBool('#showRejected');
-            $('#showRejected').toggleClass('ButtonActive');
-            SingleActiveButtonCheck('#showRejected','#showNonRejected');
-            SingleActiveButtonCheck('#showRejected','#showAll');
-            outputSelection();
-        }
-    });
-
-    $('#showAll').click(function() {
-        if ($('#showAll').data('clicked') === false)
-        {
-            toggleBool('#showAll');
-            $('#showAll').toggleClass('ButtonActive');
-            SingleActiveButtonCheck('#showAll','#showNonRejected');
-            SingleActiveButtonCheck('#showAll','#showRejected');
-            outputSelection();
-        }
-    });
-
-    $('#Unweighted').click(function()	{
-          if ($('#Unweighted').data('clicked') === false)
-          {
-              $('#Unweighted').toggleClass("ButtonActive");
-              toggleBool('#Unweighted');
-              SingleActiveButtonCheck('#Unweighted','#Weighted');
-  						SingleActiveButtonCheck('#Unweighted','#ErrorBars');
-          }
-  	});
-  	$('#Weighted').click(function()	{
-          if ($('#Weighted').data('clicked') === false)
-          {
-              $('#Weighted').toggleClass("ButtonActive");
-              toggleBool('#Weighted');
-              SingleActiveButtonCheck('#Weighted','#Unweighted');
-  						SingleActiveButtonCheck('#Weighted','#ErrorBars');
-          }
-  	});
-
-    $('#ErrorBars').click(function()	{
-          if ($('#ErrorBars').data('clicked') === false)
-          {
-              $('#ErrorBars').toggleClass("ButtonActive");
-              toggleBool('#ErrorBars');
-              SingleActiveButtonCheck('#ErrorBars','#Unweighted');
-  						SingleActiveButtonCheck('#ErrorBars','#Weighted');
-          }
-  	});
-    $('#NoPriors').click(function()	{
-          if ($('#NoPriors').data('clicked') === false)
-          {
-              $('#NoPriors').toggleClass("ButtonActive");
-              toggleBool('#NoPriors');
-              SingleActiveButtonCheck('#NoPriors','#YesPriors');
-          }
-  	});
-    $('#YesPriors').click(function()	{
-          if ($('#YesPriors').data('clicked') === false)
-          {
-              $('#YesPriors').toggleClass("ButtonActive");
-              toggleBool('#YesPriors');
-              SingleActiveButtonCheck('#YesPriors','#NoPriors');
-          }
-  	});
-
-
-  $('#Linear').click(function()	{
-        functionSelector('Linear');
-        $('#Linear').toggleClass("ButtonActive");
-        //console.log('hey')
-        SingleActiveButtonCheckNoBool('#Linear','#Quadratic');
-        SingleActiveButtonCheckNoBool('#Linear','#Cubic');
-        SingleActiveButtonCheckNoBool('#Linear','#PowerLaw');
-        SingleActiveButtonCheckNoBool('#Linear','#Exponential');
-        SingleActiveButtonCheckNoBool('#Linear','#Logarithmic');
-
-        $('#functionImage').css('display', 'inline');
-
-        $('#LinearImage').css('display', 'inline');
-				$('#QuadraticImage').css('display', 'none');
-				$('#CubicImage').css('display', 'none');
-        $('#PowerLawImage').css('display', 'none');
-				$('#ExponentialImage').css('display', 'none');
-				$('#LogarithmicImage').css('display', 'none');
-	});
-
-  $('#Quadratic').click(function()	{
-        functionSelector('Quadratic');
-        $('#Quadratic').toggleClass("ButtonActive");
-        SingleActiveButtonCheckNoBool('#Quadratic','#Linear');
-        SingleActiveButtonCheckNoBool('#Quadratic','#Cubic');
-        SingleActiveButtonCheckNoBool('#Quadratic','#PowerLaw');
-        SingleActiveButtonCheckNoBool('#Quadratic','#Exponential');
-        SingleActiveButtonCheckNoBool('#Quadratic','#Logarithmic');
-
-        $('#functionImage').css('display', 'inline');
-
-        $('#LinearImage').css('display', 'none');
-				$('#QuadraticImage').css('display', 'inline');
-				$('#CubicImage').css('display', 'none');
-        $('#PowerLawImage').css('display', 'none');
-				$('#ExponentialImage').css('display', 'none');
-				$('#LogarithmicImage').css('display', 'none');
-	});
-
-  $('#Cubic').click(function()	{
-        functionSelector('Cubic');
-        $('#Cubic').toggleClass("ButtonActive");
-        SingleActiveButtonCheckNoBool('#Cubic','#Linear');
-        SingleActiveButtonCheckNoBool('#Cubic','#Quadratic');
-        SingleActiveButtonCheckNoBool('#Cubic','#PowerLaw');
-        SingleActiveButtonCheckNoBool('#Cubic','#Exponential');
-        SingleActiveButtonCheckNoBool('#Cubic','#Logarithmic');
-
-        $('#functionImage').css('display', 'inline');
-
-        $('#LinearImage').css('display', 'none');
-				$('#QuadraticImage').css('display', 'none');
-				$('#CubicImage').css('display', 'inline');
-        $('#PowerLawImage').css('display', 'none');
-				$('#ExponentialImage').css('display', 'none');
-				$('#LogarithmicImage').css('display', 'none');
-	});
-
-  $('#PowerLaw').click(function()	{
-        functionSelector('PowerLaw');
-        $('#PowerLaw').toggleClass("ButtonActive");
-        SingleActiveButtonCheckNoBool('#PowerLaw','#Linear');
-        SingleActiveButtonCheckNoBool('#PowerLaw','#Quadratic');
-        SingleActiveButtonCheckNoBool('#PowerLaw','#Cubic');
-        SingleActiveButtonCheckNoBool('#PowerLaw','#Exponential');
-        SingleActiveButtonCheckNoBool('#PowerLaw','#Logarithmic');
-
-        $('#functionImage').css('display', 'inline');
-
-        $('#LinearImage').css('display', 'none');
-				$('#QuadraticImage').css('display', 'none');
-				$('#CubicImage').css('display', 'none');
-        $('#PowerLawImage').css('display', 'inline');
-				$('#ExponentialImage').css('display', 'none');
-				$('#LogarithmicImage').css('display', 'none');
-	});
-
-  $('#Exponential').click(function()	{
-        functionSelector('Exponential');
-        $('#Exponential').toggleClass("ButtonActive");
-        SingleActiveButtonCheckNoBool('#Exponential','#Linear');
-        SingleActiveButtonCheckNoBool('#Exponential','#Quadratic');
-        SingleActiveButtonCheckNoBool('#Exponential','#Cubic');
-        SingleActiveButtonCheckNoBool('#Exponential','#PowerLaw');
-        SingleActiveButtonCheckNoBool('#Exponential','#Logarithmic');
-
-        $('#functionImage').css('display', 'inline');
-
-        $('#LinearImage').css('display', 'none');
-				$('#QuadraticImage').css('display', 'none');
-				$('#CubicImage').css('display', 'none');
-        $('#PowerLawImage').css('display', 'none');
-				$('#ExponentialImage').css('display', 'inline');
-				$('#LogarithmicImage').css('display', 'none');
-  });
-
-  $('#Logarithmic').click(function()	{
-        functionSelector('Logarithmic');
-        $('#Logarithmic').toggleClass("ButtonActive");
-        SingleActiveButtonCheckNoBool('#Logarithmic','#Linear');
-        SingleActiveButtonCheckNoBool('#Logarithmic','#Quadratic');
-        SingleActiveButtonCheckNoBool('#Logarithmic','#Cubic');
-        SingleActiveButtonCheckNoBool('#Logarithmic','#PowerLaw');
-        SingleActiveButtonCheckNoBool('#Logarithmic','#Exponential');
-
-        $('#functionImage').css('display', 'inline');
-
-        $('#LinearImage').css('display', 'none');
-				$('#QuadraticImage').css('display', 'none');
-				$('#CubicImage').css('display', 'none');
-        $('#PowerLawImage').css('display', 'none');
-				$('#ExponentialImage').css('display', 'none');
-				$('#LogarithmicImage').css('display', 'inline');
-  });
-
-
-
-	var oldVal = "";
-    $("#inputTextAreaData").on("change keyup paste", function()
-    {
-        var currentVal = $(this).val();
-        if(currentVal == oldVal)
-        {
-            return; //check to prevent multiple simultaneous triggers
-        }
-
-        oldVal = currentVal;
-        //action to be performed on textarea changed
-        type();
-    });
-
-};
-
-$(document).ready(main);
+    $(document).ready(main);
 
 </script>
