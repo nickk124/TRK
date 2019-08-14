@@ -78,10 +78,10 @@
         <div id="StepOne">
             <div>
                 <div id="Plot_input" style="padding:25px">
-                    <div class="bk-root" id="79829cd4-e985-4119-b5fb-cfa833304c0b" data-root-id="1002"></div>
+                    <div class="bk-root" id="0eead7ee-b809-4b27-8dc4-9bd92d5ccb2d" data-root-id="1002"></div>
 
-                    <script type="application/json" id="1146">
-                        {"fc9ffd37-52d5-49b5-ac76-aae923163108":{"roots":{"references":[{"attributes":{"level":"underlay","size":10},"id":"1040","type":"TeeHead"},{"attributes":{"formatter":{"id":"1046","type":"BasicTickFormatter"},"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1011","type":"LinearAxis"},{"attributes":{},"id":"1012","type":"BasicTicker"},{"attributes":{"level":"underlay","size":10},"id":"1041","type":"TeeHead"},{"attributes":{"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1015","type":"Grid"},{"attributes":{"level":"underlay","size":10},"id":"1042","type":"TeeHead"},{"attributes":{"active_drag":{"id":"1021","type":"PanTool"},"active_inspect":"auto","active_multi":null,"active_scroll":{"id":"1022","type":"WheelZoomTool"},"active_tap":"auto","tools":[{"id":"1021","type":"PanTool"},{"id":"1022","type":"WheelZoomTool"},{"id":"1023","type":"ResetTool"}]},"id":"1024","type":"Toolbar"},{"attributes":{"level":"underlay","size":10},"id":"1043","type":"TeeHead"},{"attributes":{},"id":"1044","type":"BasicTickFormatter"},{"attributes":{"fill_alpha":{"value":0.6},"fill_color":{"value":"blue"},"line_alpha":{"value":0.6},"line_color":{"value":"blue"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1029","type":"Scatter"},{"attributes":{},"id":"1017","type":"BasicTicker"},{"attributes":{"background_fill_color":{"value":"#fafafa"},"below":[{"id":"1011","type":"LinearAxis"}],"center":[{"id":"1015","type":"Grid"},{"id":"1020","type":"Grid"},{"id":"1033","type":"Whisker"},{"id":"1035","type":"Whisker"}],"js_event_callbacks":{"mouseenter":[{"id":"1037","type":"CustomJS"}]},"left":[{"id":"1016","type":"LinearAxis"}],"min_border":10,"min_border_left":50,"plot_height":500,"plot_width":500,"renderers":[{"id":"1031","type":"GlyphRenderer"}],"title":{"id":"1038","type":"Title"},"toolbar":{"id":"1024","type":"Toolbar"},"toolbar_location":"above","x_range":{"id":"1003","type":"DataRange1d"},"x_scale":{"id":"1007","type":"LinearScale"},"y_range":{"id":"1005","type":"DataRange1d"},"y_scale":{"id":"1009","type":"LinearScale"}},"id":"1002","subtype":"Figure","type":"Plot"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1029","type":"Scatter"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1030","type":"Scatter"},"selection_glyph":null,"view":{"id":"1032","type":"CDSView"}},"id":"1031","type":"GlyphRenderer"},{"attributes":{},"id":"1046","type":"BasicTickFormatter"},{"attributes":{"formatter":{"id":"1044","type":"BasicTickFormatter"},"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1016","type":"LinearAxis"},{"attributes":{},"id":"1048","type":"Selection"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1032","type":"CDSView"},{"attributes":{},"id":"1049","type":"UnionRenderers"},{"attributes":{"callback":null},"id":"1003","type":"DataRange1d"},{"attributes":{"dimension":1,"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1020","type":"Grid"},{"attributes":{},"id":"1021","type":"PanTool"},{"attributes":{"callback":null,"data":{"err_x_down":[],"err_x_up":[],"err_y_down":[],"err_y_up":[],"x":[],"y":[]},"selected":{"id":"1048","type":"Selection"},"selection_policy":{"id":"1049","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{},"id":"1022","type":"WheelZoomTool"},{"attributes":{},"id":"1023","type":"ResetTool"},{"attributes":{},"id":"1007","type":"LinearScale"},{"attributes":{"args":{"p":{"id":"1002","subtype":"Figure","type":"Plot"},"srcData":{"id":"1001","type":"ColumnDataSource"},"xaxis":{"id":"1011","type":"LinearAxis"},"yaxis":{"id":"1016","type":"LinearAxis"}},"code":"\n    p.reset.emit();\n\n    let input_data = getData();\n\n    let x_data = input_data[0];\n    let err_x_data = input_data[1];\n    let y_data = input_data[2];\n    let err_y_data = input_data[3];\n\n    let x = [];\n    let err_x_up = [];\n    let err_x_down = [];\n    let y = []; \n    let err_y_up = [];\n    let err_y_down = [];\n    \n    var dataData = srcData.data;\n\n    dataData['x'] = [];\n    dataData['y'] = [];\n    dataData['err_x_up'] = [];\n    dataData['err_y_up'] = [];\n    dataData['err_x_down'] = [];\n    dataData['err_y_down'] = [];\n\n    x = dataData['x'];\n    y = dataData['y'];\n    err_x_up = dataData['err_x_up']\n    err_y_up = dataData['err_y_up']\n    err_x_down = dataData['err_x_down']\n    err_y_down = dataData['err_y_down']\n\n    for (let i = 0; i &lt; x_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n        err_x_up[i] = x_data[i] + err_x_data[i];\n        err_y_up[i] = y_data[i] + err_y_data[i];\n        err_x_down[i] = x_data[i] - err_x_data[i];\n        err_y_down[i] = y_data[i] - err_y_data[i];\n    }\n\n    dataData['x'] = x;\n    dataData['y'] = y;\n    dataData['err_x_up'] = err_x_up;\n    dataData['err_y_up'] = err_y_up;\n    dataData['err_x_down'] = err_x_down;\n    dataData['err_y_down'] = err_y_down;\n\n    //xaxis.axis_label = playerPlotAxes[0];\n    //yaxis.axis_label = playerPlotAxes[1];\n\n    srcData.change.emit();   \n    p.change.emit();\n"},"id":"1037","type":"CustomJS"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1030","type":"Scatter"},{"attributes":{"base":{"field":"x","units":"data"},"lower":{"field":"err_y_down","units":"data"},"lower_head":{"id":"1041","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_y_up","units":"data"},"upper_head":{"id":"1040","type":"TeeHead"}},"id":"1033","type":"Whisker"},{"attributes":{"base":{"field":"y","units":"data"},"dimension":"width","lower":{"field":"err_x_down","units":"data"},"lower_head":{"id":"1043","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_x_up","units":"data"},"upper_head":{"id":"1042","type":"TeeHead"}},"id":"1035","type":"Whisker"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{"text":""},"id":"1038","type":"Title"}],"root_ids":["1002"]},"title":"Input Data","version":"1.2.0"}}
+                    <script type="application/json" id="1139">
+                        {"11195ec1-9a71-4e9f-9aa2-998d0d3ae3e5":{"roots":{"references":[{"attributes":{},"id":"1041","type":"BasicTickFormatter"},{"attributes":{},"id":"1011","type":"LinearScale"},{"attributes":{"formatter":{"id":"1043","type":"BasicTickFormatter"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1013","type":"LinearAxis"},{"attributes":{},"id":"1043","type":"BasicTickFormatter"},{"attributes":{},"id":"1014","type":"BasicTicker"},{"attributes":{"level":"underlay","size":10},"id":"1045","type":"TeeHead"},{"attributes":{"level":"underlay","size":10},"id":"1046","type":"TeeHead"},{"attributes":{"level":"underlay","size":10},"id":"1047","type":"TeeHead"},{"attributes":{"fill_alpha":{"value":0.6},"fill_color":{"value":"blue"},"line_alpha":{"value":0.6},"line_color":{"value":"blue"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1031","type":"Scatter"},{"attributes":{"formatter":{"id":"1041","type":"BasicTickFormatter"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1018","type":"LinearAxis"},{"attributes":{"background_fill_color":{"value":"#fafafa"},"below":[{"id":"1013","type":"LinearAxis"}],"center":[{"id":"1017","type":"Grid"},{"id":"1022","type":"Grid"},{"id":"1035","type":"Whisker"},{"id":"1037","type":"Whisker"}],"js_event_callbacks":{"mouseenter":[{"id":"1039","type":"CustomJS"}]},"left":[{"id":"1018","type":"LinearAxis"}],"min_border":10,"min_border_left":50,"plot_height":500,"plot_width":500,"renderers":[{"id":"1033","type":"GlyphRenderer"}],"title":{"id":"1003","type":"Title"},"toolbar":{"id":"1026","type":"Toolbar"},"toolbar_location":"above","x_range":{"id":"1005","type":"DataRange1d"},"x_scale":{"id":"1009","type":"LinearScale"},"y_range":{"id":"1007","type":"DataRange1d"},"y_scale":{"id":"1011","type":"LinearScale"}},"id":"1002","subtype":"Figure","type":"Plot"},{"attributes":{"level":"underlay","size":10},"id":"1048","type":"TeeHead"},{"attributes":{},"id":"1025","type":"ResetTool"},{"attributes":{"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1017","type":"Grid"},{"attributes":{},"id":"1049","type":"Selection"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1032","type":"Scatter"},{"attributes":{},"id":"1050","type":"UnionRenderers"},{"attributes":{"text":"Inputted Data"},"id":"1003","type":"Title"},{"attributes":{},"id":"1019","type":"BasicTicker"},{"attributes":{"dimension":1,"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1022","type":"Grid"},{"attributes":{"base":{"field":"x","units":"data"},"lower":{"field":"err_y_down","units":"data"},"lower_head":{"id":"1045","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_y_up","units":"data"},"upper_head":{"id":"1046","type":"TeeHead"}},"id":"1035","type":"Whisker"},{"attributes":{"callback":null,"data":{"err_x_down":[],"err_x_up":[],"err_y_down":[],"err_y_up":[],"x":[],"y":[]},"selected":{"id":"1049","type":"Selection"},"selection_policy":{"id":"1050","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"active_drag":{"id":"1023","type":"PanTool"},"active_inspect":"auto","active_multi":null,"active_scroll":{"id":"1024","type":"WheelZoomTool"},"active_tap":"auto","tools":[{"id":"1023","type":"PanTool"},{"id":"1024","type":"WheelZoomTool"},{"id":"1025","type":"ResetTool"}]},"id":"1026","type":"Toolbar"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{},"id":"1023","type":"PanTool"},{"attributes":{},"id":"1024","type":"WheelZoomTool"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1031","type":"Scatter"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1032","type":"Scatter"},"selection_glyph":null,"view":{"id":"1034","type":"CDSView"}},"id":"1033","type":"GlyphRenderer"},{"attributes":{"callback":null},"id":"1007","type":"DataRange1d"},{"attributes":{"base":{"field":"y","units":"data"},"dimension":"width","lower":{"field":"err_x_down","units":"data"},"lower_head":{"id":"1047","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_x_up","units":"data"},"upper_head":{"id":"1048","type":"TeeHead"}},"id":"1037","type":"Whisker"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1034","type":"CDSView"},{"attributes":{"args":{"p":{"id":"1002","subtype":"Figure","type":"Plot"},"srcData":{"id":"1001","type":"ColumnDataSource"},"xaxis":{"id":"1013","type":"LinearAxis"},"yaxis":{"id":"1018","type":"LinearAxis"}},"code":"\n    p.reset.emit();\n\n    let input_data = getData();\n\n    let x_data = input_data[0];\n    let err_x_data = input_data[1];\n    let y_data = input_data[2];\n    let err_y_data = input_data[3];\n\n    let x = [];\n    let err_x_up = [];\n    let err_x_down = [];\n    let y = []; \n    let err_y_up = [];\n    let err_y_down = [];\n    \n    var dataData = srcData.data;\n\n    dataData['x'] = [];\n    dataData['y'] = [];\n    dataData['err_x_up'] = [];\n    dataData['err_y_up'] = [];\n    dataData['err_x_down'] = [];\n    dataData['err_y_down'] = [];\n\n    x = dataData['x'];\n    y = dataData['y'];\n    err_x_up = dataData['err_x_up']\n    err_y_up = dataData['err_y_up']\n    err_x_down = dataData['err_x_down']\n    err_y_down = dataData['err_y_down']\n\n    for (let i = 0; i &lt; x_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n        err_x_up[i] = x_data[i] + err_x_data[i];\n        err_y_up[i] = y_data[i] + err_y_data[i];\n        err_x_down[i] = x_data[i] - err_x_data[i];\n        err_y_down[i] = y_data[i] - err_y_data[i];\n    }\n\n    dataData['x'] = x;\n    dataData['y'] = y;\n    dataData['err_x_up'] = err_x_up;\n    dataData['err_y_up'] = err_y_up;\n    dataData['err_x_down'] = err_x_down;\n    dataData['err_y_down'] = err_y_down;\n\n    //xaxis.axis_label = playerPlotAxes[0];\n    //yaxis.axis_label = playerPlotAxes[1];\n\n    srcData.change.emit();   \n    p.change.emit();\n"},"id":"1039","type":"CustomJS"},{"attributes":{},"id":"1009","type":"LinearScale"}],"root_ids":["1002"]},"title":"Input Data","version":"1.2.0"}}
                     </script>
                     <script type="text/javascript">
                         (function () {
@@ -90,8 +90,8 @@
                                     (function (root) {
                                         function embed_document(root) {
 
-                                            var docs_json = document.getElementById('1146').textContent;
-                                            var render_items = [{ "docid": "fc9ffd37-52d5-49b5-ac76-aae923163108", "roots": { "1002": "79829cd4-e985-4119-b5fb-cfa833304c0b" } }];
+                                            var docs_json = document.getElementById('1139').textContent;
+                                            var render_items = [{ "docid": "11195ec1-9a71-4e9f-9aa2-998d0d3ae3e5", "roots": { "1002": "0eead7ee-b809-4b27-8dc4-9bd92d5ccb2d" } }];
                                             root.Bokeh.embed.embed_items(docs_json, render_items);
 
                                         }
@@ -243,7 +243,7 @@
                     
                 </p>
                 <p id="OptionAll" class="RejectionMethods">
-                    Note: Rejection method is iterative, preceded by iterative bulk rejection (§5), and proceeded by both (1) iterative "median + 68.3%-value technique" rejection, and (2) iterative "mean + standard deviation " rejection (§4).
+                    (this displays for all ooptions selected)
                 </p>
 
             </div>
@@ -255,7 +255,7 @@
 
         <h1 style="font-size:2.5em; padding-top:25px;"> Output </h1>
         <div id="StepOne">
-            <div id="FinalPlot" style="float:left; width:24%; padding-right:25px">
+            <div id="Results" style="float:left; width:24%; padding-right:25px">
                 <br>
                 <div style="float:left; width:400px">
                     <button id="PerformRCR" class="Button RejectButton" onclick="performTRK();">Perform Fit!</button>
@@ -288,10 +288,10 @@
                 </div>
             </div>
             <div id="OutputPlot" style="float:left; width:36%">
-                <div class="bk-root" id="9112dff6-2954-4ac8-ba70-55a9771bcf90" data-root-id="1087"></div>
+                <div class="bk-root" id="00936b2e-b351-4313-9762-58ac2a7dfdbe" data-root-id="1003"></div>
 
-                <script type="application/json" id="1284">
-                    {"5da963a5-8078-45ac-a721-e61f2b698c6b":{"roots":{"references":[{"attributes":{"callback":null,"data":{"x_rejected":[],"y_rejected":[]},"selected":{"id":"1082","type":"Selection"},"selection_policy":{"id":"1081","type":"UnionRenderers"}},"id":"1002","type":"ColumnDataSource"},{"attributes":{},"id":"1014","type":"BasicTicker"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1039","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1040","type":"Circle"},"selection_glyph":null,"view":{"id":"1042","type":"CDSView"}},"id":"1041","type":"GlyphRenderer"},{"attributes":{},"id":"1027","type":"ResetTool"},{"attributes":{"label":{"value":"nonrejected data of size"},"renderers":[{"id":"1041","type":"GlyphRenderer"}]},"id":"1051","type":"LegendItem"},{"attributes":{"line_color":"green","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1068","type":"Line"},{"attributes":{},"id":"1028","type":"HelpTool"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b4","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1069","type":"Line"},{"attributes":{"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1017","type":"Grid"},{"attributes":{"data_source":{"id":"1003","type":"ColumnDataSource"},"glyph":{"id":"1068","type":"Line"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1069","type":"Line"},"selection_glyph":null,"view":{"id":"1071","type":"CDSView"}},"id":"1070","type":"GlyphRenderer"},{"attributes":{"callback":null,"data":{"x_nonrejected":[],"y_nonrejected":[]},"selected":{"id":"1065","type":"Selection"},"selection_policy":{"id":"1064","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1023","type":"PanTool"},{"id":"1024","type":"WheelZoomTool"},{"id":"1025","type":"BoxZoomTool"},{"id":"1026","type":"SaveTool"},{"id":"1027","type":"ResetTool"},{"id":"1028","type":"HelpTool"}]},"id":"1029","type":"Toolbar"},{"attributes":{"axis_label":"y","formatter":{"id":"1047","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1018","type":"LinearAxis"},{"attributes":{},"id":"1064","type":"UnionRenderers"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"plot":null,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1031","type":"BoxAnnotation"},{"attributes":{"source":{"id":"1003","type":"ColumnDataSource"}},"id":"1071","type":"CDSView"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{},"id":"1081","type":"UnionRenderers"},{"attributes":{},"id":"1019","type":"BasicTicker"},{"attributes":{},"id":"1082","type":"Selection"},{"attributes":{"label":{"value":"fitted model"},"renderers":[{"id":"1070","type":"GlyphRenderer"}]},"id":"1083","type":"LegendItem"},{"attributes":{"plot":null,"text":""},"id":"1044","type":"Title"},{"attributes":{"below":[{"id":"1013","type":"LinearAxis"}],"left":[{"id":"1018","type":"LinearAxis"}],"renderers":[{"id":"1013","type":"LinearAxis"},{"id":"1017","type":"Grid"},{"id":"1018","type":"LinearAxis"},{"id":"1022","type":"Grid"},{"id":"1031","type":"BoxAnnotation"},{"id":"1050","type":"Legend"},{"id":"1041","type":"GlyphRenderer"},{"id":"1055","type":"GlyphRenderer"},{"id":"1070","type":"GlyphRenderer"}],"title":{"id":"1044","type":"Title"},"toolbar":{"id":"1029","type":"Toolbar"},"x_range":{"id":"1005","type":"DataRange1d"},"x_scale":{"id":"1009","type":"LinearScale"},"y_range":{"id":"1007","type":"DataRange1d"},"y_scale":{"id":"1011","type":"LinearScale"}},"id":"1004","subtype":"Figure","type":"Plot"},{"attributes":{"callback":null,"data":{"x_original":[],"y_fitted":[]},"selected":{"id":"1100","type":"Selection"},"selection_policy":{"id":"1099","type":"UnionRenderers"}},"id":"1003","type":"ColumnDataSource"},{"attributes":{"args":{"sourceall":{"id":"1003","type":"ColumnDataSource"},"sourcenon":{"id":"1001","type":"ColumnDataSource"},"sourcerej":{"id":"1002","type":"ColumnDataSource"}},"code":"\n    console.log('Plot Generating...');\n    var datanon = sourcenon.data;\n    var datarej = sourcerej.data;\n    var dataall = sourceall.data;\n\n    var x_rejected = datarej['x_rejected']\n    var y_rejected = datarej['y_rejected']\n    var x_nonrejected = datanon['x_nonrejected']\n    var y_nonrejected = datanon['y_nonrejected']\n    var x_original = dataall['x_original']\n    var y_fitted = dataall['y_fitted']\n\n    for (var i = 0; i &lt; x_rejected_result.length; i++) {\n        x_rejected[i] = x_rejected_result[i]\n        y_rejected[i] = y_rejected_result[i]\n    }\n    for (var i = 0; i &lt; x_nonrejected_result.length; i++) {\n        x_nonrejected[i] = x_nonrejected_result[i]\n        y_nonrejected[i] = y_nonrejected_result[i]\n    }\n    for (var i = 0; i &lt; x_original_result.length; i++) {\n        x_original[i] = x_original_result[i]\n        y_fitted[i] = y_fitted_result[i]\n    }\n\n    console.log(datarej['x_rejected']);\n    console.log(datarej['y_rejected']);\n    console.log(datanon['x_nonrejected']);\n    console.log(datanon['y_nonrejected']);\n    console.log(dataall['x_original']);\n    console.log(dataall['y_fitted']);\n\n    sourcenon.change.emit();\n    sourcerej.change.emit();\n    sourceall.change.emit();\n"},"id":"1084","type":"CustomJS"},{"attributes":{},"id":"1045","type":"BasicTickFormatter"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1084","type":"CustomJS"}]},"label":"Plot Results"},"id":"1085","type":"Button"},{"attributes":{},"id":"1047","type":"BasicTickFormatter"},{"attributes":{"callback":null},"id":"1007","type":"DataRange1d"},{"attributes":{"children":[{"id":"1086","type":"WidgetBox"},{"id":"1004","subtype":"Figure","type":"Plot"}]},"id":"1087","type":"Column"},{"attributes":{"dimension":1,"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1022","type":"Grid"},{"attributes":{"items":[{"id":"1051","type":"LegendItem"},{"id":"1066","type":"LegendItem"},{"id":"1083","type":"LegendItem"}],"plot":{"id":"1004","subtype":"Figure","type":"Plot"}},"id":"1050","type":"Legend"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1040","type":"Circle"},{"attributes":{"children":[{"id":"1085","type":"Button"}]},"id":"1086","type":"WidgetBox"},{"attributes":{},"id":"1023","type":"PanTool"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1042","type":"CDSView"},{"attributes":{},"id":"1024","type":"WheelZoomTool"},{"attributes":{"label":{"value":"rejected data"},"renderers":[{"id":"1055","type":"GlyphRenderer"}]},"id":"1066","type":"LegendItem"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"navy"},"line_alpha":{"value":0.5},"line_color":{"value":"navy"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1039","type":"Circle"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"red"},"line_alpha":{"value":0.5},"line_color":{"value":"red"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1053","type":"Circle"},{"attributes":{"overlay":{"id":"1031","type":"BoxAnnotation"}},"id":"1025","type":"BoxZoomTool"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1054","type":"Circle"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{},"id":"1099","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1002","type":"ColumnDataSource"},"glyph":{"id":"1053","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1054","type":"Circle"},"selection_glyph":null,"view":{"id":"1056","type":"CDSView"}},"id":"1055","type":"GlyphRenderer"},{"attributes":{},"id":"1011","type":"LinearScale"},{"attributes":{},"id":"1100","type":"Selection"},{"attributes":{"source":{"id":"1002","type":"ColumnDataSource"}},"id":"1056","type":"CDSView"},{"attributes":{"axis_label":"x","formatter":{"id":"1045","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1013","type":"LinearAxis"},{"attributes":{},"id":"1065","type":"Selection"},{"attributes":{},"id":"1026","type":"SaveTool"}],"root_ids":["1087"]},"title":"Bokeh Application","version":"1.0.4"}}
+                <script type="application/json" id="1169">
+                    {"15b67290-5f48-4704-9671-e191231d6352":{"roots":{"references":[{"attributes":{"level":"underlay","size":10},"id":"1055","type":"TeeHead"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1035","type":"CDSView"},{"attributes":{"level":"underlay","size":10},"id":"1056","type":"TeeHead"},{"attributes":{"level":"underlay","size":10},"id":"1057","type":"TeeHead"},{"attributes":{"level":"underlay","size":10},"id":"1058","type":"TeeHead"},{"attributes":{"callback":null},"id":"1008","type":"DataRange1d"},{"attributes":{},"id":"1059","type":"BasicTickFormatter"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1032","type":"Scatter"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1033","type":"Scatter"},"selection_glyph":null,"view":{"id":"1035","type":"CDSView"}},"id":"1034","type":"GlyphRenderer"},{"attributes":{},"id":"1010","type":"LinearScale"},{"attributes":{},"id":"1061","type":"UnionRenderers"},{"attributes":{"line_alpha":0.6,"line_width":3,"x":{"field":"x_m"},"y":{"field":"y_m"}},"id":"1041","type":"Line"},{"attributes":{},"id":"1012","type":"LinearScale"},{"attributes":{},"id":"1062","type":"Selection"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b4","line_width":3,"x":{"field":"x_m"},"y":{"field":"y_m"}},"id":"1042","type":"Line"},{"attributes":{"formatter":{"id":"1059","type":"BasicTickFormatter"},"ticker":{"id":"1015","type":"BasicTicker"}},"id":"1014","type":"LinearAxis"},{"attributes":{},"id":"1063","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1002","type":"ColumnDataSource"},"glyph":{"id":"1041","type":"Line"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1042","type":"Line"},"selection_glyph":null,"view":{"id":"1044","type":"CDSView"}},"id":"1043","type":"GlyphRenderer"},{"attributes":{},"id":"1064","type":"Selection"},{"attributes":{"source":{"id":"1002","type":"ColumnDataSource"}},"id":"1044","type":"CDSView"},{"attributes":{"fill_color":{"value":"red"},"line_color":{"value":"red"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1032","type":"Scatter"},{"attributes":{},"id":"1024","type":"PanTool"},{"attributes":{"ticker":{"id":"1015","type":"BasicTicker"}},"id":"1018","type":"Grid"},{"attributes":{"base":{"field":"x_m","units":"data"},"fill_alpha":{"value":0.3},"fill_color":{"value":"blue"},"level":"underlay","line_color":{"value":"black"},"line_width":{"value":2},"lower":{"field":"lower1","units":"data"},"source":{"id":"1002","type":"ColumnDataSource"},"upper":{"field":"upper1","units":"data"}},"id":"1045","type":"Band"},{"attributes":{"callback":null,"data":{"lower1":[],"lower2":[],"lower3":[],"upper1":[],"upper2":[],"upper3":[],"x_m":[],"y_m":[]},"selected":{"id":"1064","type":"Selection"},"selection_policy":{"id":"1063","type":"UnionRenderers"}},"id":"1002","type":"ColumnDataSource"},{"attributes":{},"id":"1025","type":"WheelZoomTool"},{"attributes":{},"id":"1015","type":"BasicTicker"},{"attributes":{},"id":"1026","type":"ResetTool"},{"attributes":{"background_fill_color":{"value":"#fafafa"},"below":[{"id":"1014","type":"LinearAxis"}],"center":[{"id":"1018","type":"Grid"},{"id":"1023","type":"Grid"},{"id":"1036","type":"Whisker"},{"id":"1038","type":"Whisker"},{"id":"1045","type":"Band"},{"id":"1047","type":"Band"},{"id":"1049","type":"Band"}],"js_event_callbacks":{"mouseenter":[{"id":"1051","type":"CustomJS"}]},"left":[{"id":"1019","type":"LinearAxis"}],"min_border":10,"min_border_left":50,"renderers":[{"id":"1034","type":"GlyphRenderer"},{"id":"1043","type":"GlyphRenderer"}],"title":{"id":"1004","type":"Title"},"toolbar":{"id":"1027","type":"Toolbar"},"toolbar_location":"above","x_range":{"id":"1006","type":"DataRange1d"},"x_scale":{"id":"1010","type":"LinearScale"},"y_range":{"id":"1008","type":"DataRange1d"},"y_scale":{"id":"1012","type":"LinearScale"}},"id":"1003","subtype":"Figure","type":"Plot"},{"attributes":{"base":{"field":"x_m","units":"data"},"fill_alpha":{"value":0.2},"fill_color":{"value":"blue"},"level":"underlay","line_color":{"value":"black"},"line_width":{"value":2},"lower":{"field":"lower2","units":"data"},"source":{"id":"1002","type":"ColumnDataSource"},"upper":{"field":"upper2","units":"data"}},"id":"1047","type":"Band"},{"attributes":{"base":{"field":"x_m","units":"data"},"fill_alpha":{"value":0.1},"fill_color":{"value":"blue"},"level":"underlay","line_color":{"value":"black"},"line_width":{"value":2},"lower":{"field":"lower3","units":"data"},"source":{"id":"1002","type":"ColumnDataSource"},"upper":{"field":"upper3","units":"data"}},"id":"1049","type":"Band"},{"attributes":{"formatter":{"id":"1053","type":"BasicTickFormatter"},"ticker":{"id":"1020","type":"BasicTicker"}},"id":"1019","type":"LinearAxis"},{"attributes":{},"id":"1020","type":"BasicTicker"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1033","type":"Scatter"},{"attributes":{"dimension":1,"ticker":{"id":"1020","type":"BasicTicker"}},"id":"1023","type":"Grid"},{"attributes":{"args":{"p":{"id":"1003","subtype":"Figure","type":"Plot"},"srcData":{"id":"1001","type":"ColumnDataSource"},"srcModel":{"id":"1002","type":"ColumnDataSource"},"xaxis":{"id":"1014","type":"LinearAxis"},"yaxis":{"id":"1019","type":"LinearAxis"}},"code":"\n    p.reset.emit();\n\n    let input_data = getData();\n    let model_plot = getModelData();\n\n    let x_data = input_data[0];\n    let err_x_data = input_data[1];\n    let y_data = input_data[2];\n    let err_y_data = input_data[3];\n\n    let x_m_data = model_plot[0];\n    let y_m_data = model_plot[1];\n    let slop_y = model_plot[2];\n\n    let x = [];\n    let err_x_up = [];\n    let err_x_down = [];\n    let y = []; \n    let err_y_up = [];\n    let err_y_down = [];\n\n    let x_m = [];\n    let y_m = [];\n    let lower1 = [];\n    let lower2 = [];\n    let lower3 = [];\n    let upper1 = [];\n    let upper2 = [];\n    let upper3 = [];\n    \n    var dataData = srcData.data;\n    var dataModel = srcModel.data;\n\n    dataData['x'] = [];\n    dataData['y'] = [];\n    dataData['err_x_up'] = [];\n    dataData['err_y_up'] = [];\n    dataData['err_x_down'] = [];\n    dataData['err_y_down'] = [];\n\n    dataModel['x_m'] = [];\n    dataModel['y_m'] = [];\n    dataModel['lower1'] = [];\n    dataModel['lower2'] = [];\n    dataModel['lower3'] = [];\n    dataModel['upper1'] = [];\n    dataModel['upper2'] = [];\n    dataModel['upper3'] = [];\n\n    x = dataData['x'];\n    y = dataData['y'];\n    err_x_up = dataData['err_x_up']\n    err_y_up = dataData['err_y_up']\n    err_x_down = dataData['err_x_down']\n    err_y_down = dataData['err_y_down']\n    \n    x_m = dataModel['x_m'];\n    y_m = dataModel['y_m'];\n    lower1 = dataModel['lower1'];\n    lower2 = dataModel['lower2'];\n    lower3 = dataModel['lower3'];\n    upper1 = dataModel['upper1'];\n    upper2 = dataModel['upper2'];\n    upper3 = dataModel['upper3'];\n\n    let bands = getBands(y_m_data, slop_y);\n\n    for (let i = 0; i &lt; x_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n        err_x_up[i] = x_data[i] + err_x_data[i];\n        err_y_up[i] = y_data[i] + err_y_data[i];\n        err_x_down[i] = x_data[i] - err_x_data[i];\n        err_y_down[i] = y_data[i] - err_y_data[i];\n\n        x_m[i] = x_m_data[i];\n        y_m[i] = y_m_data[i];\n\n        lower1[i] = bands[0][i];\n        lower2[i] = bands[1][i];\n        lower3[i] = bands[2][i];\n        upper1[i] = bands[3][i];\n        upper2[i] = bands[4][i];\n        upper3[i] = bands[5][i];\n    }\n\n    dataData['x'] = x;\n    dataData['y'] = y;\n    dataData['err_x_up'] = err_x_up;\n    dataData['err_y_up'] = err_y_up;\n    dataData['err_x_down'] = err_x_down;\n    dataData['err_y_down'] = err_y_down;\n\n    dataModel['x_m'] = x_m;\n    dataModel['y_m'] = y_m;\n    dataModel['lower1'] = lower1;\n    dataModel['lower2'] = lower2;\n    dataModel['lower3'] = lower3;\n    dataModel['upper1'] = upper1;\n    dataModel['upper2'] = upper2;\n    dataModel['upper3'] = upper3;\n\n    //xaxis.axis_label = playerPlotAxes[0];\n    //yaxis.axis_label = playerPlotAxes[1];\n\n    srcData.change.emit();   \n    p.change.emit();\n"},"id":"1051","type":"CustomJS"},{"attributes":{"callback":null,"data":{"err_x_down":[],"err_x_up":[],"err_y_down":[],"err_y_up":[],"x":[],"y":[]},"selected":{"id":"1062","type":"Selection"},"selection_policy":{"id":"1061","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"base":{"field":"x","units":"data"},"lower":{"field":"err_y_down","units":"data"},"lower_head":{"id":"1055","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_y_up","units":"data"},"upper_head":{"id":"1056","type":"TeeHead"}},"id":"1036","type":"Whisker"},{"attributes":{"text":"Fitted Model"},"id":"1004","type":"Title"},{"attributes":{"active_drag":{"id":"1024","type":"PanTool"},"active_inspect":"auto","active_multi":null,"active_scroll":{"id":"1025","type":"WheelZoomTool"},"active_tap":"auto","tools":[{"id":"1024","type":"PanTool"},{"id":"1025","type":"WheelZoomTool"},{"id":"1026","type":"ResetTool"}]},"id":"1027","type":"Toolbar"},{"attributes":{"base":{"field":"y","units":"data"},"dimension":"width","lower":{"field":"err_x_down","units":"data"},"lower_head":{"id":"1057","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_x_up","units":"data"},"upper_head":{"id":"1058","type":"TeeHead"}},"id":"1038","type":"Whisker"},{"attributes":{},"id":"1053","type":"BasicTickFormatter"},{"attributes":{"callback":null},"id":"1006","type":"DataRange1d"}],"root_ids":["1003"]},"title":"Fitted Model","version":"1.2.0"}}
                 </script>
                 <script type="text/javascript">
                     (function () {
@@ -300,8 +300,8 @@
                                 (function (root) {
                                     function embed_document(root) {
 
-                                        var docs_json = document.getElementById('1284').textContent;
-                                        var render_items = [{ "docid": "5da963a5-8078-45ac-a721-e61f2b698c6b", "roots": { "1087": "9112dff6-2954-4ac8-ba70-55a9771bcf90" } }];
+                                        var docs_json = document.getElementById('1169').textContent;
+                                        var render_items = [{ "docid": "15b67290-5f48-4704-9671-e191231d6352", "roots": { "1003": "00936b2e-b351-4313-9762-58ac2a7dfdbe" } }];
                                         root.Bokeh.embed.embed_items(docs_json, render_items);
 
                                     }
@@ -330,10 +330,10 @@
                 </script>
             </div>
             <div id="Histogram" style="float:left; width:36%">
-                <div class="bk-root" id="9112dff6-2954-4ac8-ba70-55a9771bcf90" data-root-id="1087"></div>
+                <div class="bk-root" id="f9c19ba7-5a03-4fbe-be12-51b9718e62c4" data-root-id="1036"></div>
 
-                <script type="application/json" id="1284">
-                    {"5da963a5-8078-45ac-a721-e61f2b698c6b":{"roots":{"references":[{"attributes":{"callback":null,"data":{"x_rejected":[],"y_rejected":[]},"selected":{"id":"1082","type":"Selection"},"selection_policy":{"id":"1081","type":"UnionRenderers"}},"id":"1002","type":"ColumnDataSource"},{"attributes":{},"id":"1014","type":"BasicTicker"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1039","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1040","type":"Circle"},"selection_glyph":null,"view":{"id":"1042","type":"CDSView"}},"id":"1041","type":"GlyphRenderer"},{"attributes":{},"id":"1027","type":"ResetTool"},{"attributes":{"label":{"value":"nonrejected data of size"},"renderers":[{"id":"1041","type":"GlyphRenderer"}]},"id":"1051","type":"LegendItem"},{"attributes":{"line_color":"green","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1068","type":"Line"},{"attributes":{},"id":"1028","type":"HelpTool"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b4","line_width":2,"x":{"field":"x_original"},"y":{"field":"y_fitted"}},"id":"1069","type":"Line"},{"attributes":{"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1017","type":"Grid"},{"attributes":{"data_source":{"id":"1003","type":"ColumnDataSource"},"glyph":{"id":"1068","type":"Line"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1069","type":"Line"},"selection_glyph":null,"view":{"id":"1071","type":"CDSView"}},"id":"1070","type":"GlyphRenderer"},{"attributes":{"callback":null,"data":{"x_nonrejected":[],"y_nonrejected":[]},"selected":{"id":"1065","type":"Selection"},"selection_policy":{"id":"1064","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"active_drag":"auto","active_inspect":"auto","active_multi":null,"active_scroll":"auto","active_tap":"auto","tools":[{"id":"1023","type":"PanTool"},{"id":"1024","type":"WheelZoomTool"},{"id":"1025","type":"BoxZoomTool"},{"id":"1026","type":"SaveTool"},{"id":"1027","type":"ResetTool"},{"id":"1028","type":"HelpTool"}]},"id":"1029","type":"Toolbar"},{"attributes":{"axis_label":"y","formatter":{"id":"1047","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1018","type":"LinearAxis"},{"attributes":{},"id":"1064","type":"UnionRenderers"},{"attributes":{"bottom_units":"screen","fill_alpha":{"value":0.5},"fill_color":{"value":"lightgrey"},"left_units":"screen","level":"overlay","line_alpha":{"value":1.0},"line_color":{"value":"black"},"line_dash":[4,4],"line_width":{"value":2},"plot":null,"render_mode":"css","right_units":"screen","top_units":"screen"},"id":"1031","type":"BoxAnnotation"},{"attributes":{"source":{"id":"1003","type":"ColumnDataSource"}},"id":"1071","type":"CDSView"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{},"id":"1081","type":"UnionRenderers"},{"attributes":{},"id":"1019","type":"BasicTicker"},{"attributes":{},"id":"1082","type":"Selection"},{"attributes":{"label":{"value":"fitted model"},"renderers":[{"id":"1070","type":"GlyphRenderer"}]},"id":"1083","type":"LegendItem"},{"attributes":{"plot":null,"text":""},"id":"1044","type":"Title"},{"attributes":{"below":[{"id":"1013","type":"LinearAxis"}],"left":[{"id":"1018","type":"LinearAxis"}],"renderers":[{"id":"1013","type":"LinearAxis"},{"id":"1017","type":"Grid"},{"id":"1018","type":"LinearAxis"},{"id":"1022","type":"Grid"},{"id":"1031","type":"BoxAnnotation"},{"id":"1050","type":"Legend"},{"id":"1041","type":"GlyphRenderer"},{"id":"1055","type":"GlyphRenderer"},{"id":"1070","type":"GlyphRenderer"}],"title":{"id":"1044","type":"Title"},"toolbar":{"id":"1029","type":"Toolbar"},"x_range":{"id":"1005","type":"DataRange1d"},"x_scale":{"id":"1009","type":"LinearScale"},"y_range":{"id":"1007","type":"DataRange1d"},"y_scale":{"id":"1011","type":"LinearScale"}},"id":"1004","subtype":"Figure","type":"Plot"},{"attributes":{"callback":null,"data":{"x_original":[],"y_fitted":[]},"selected":{"id":"1100","type":"Selection"},"selection_policy":{"id":"1099","type":"UnionRenderers"}},"id":"1003","type":"ColumnDataSource"},{"attributes":{"args":{"sourceall":{"id":"1003","type":"ColumnDataSource"},"sourcenon":{"id":"1001","type":"ColumnDataSource"},"sourcerej":{"id":"1002","type":"ColumnDataSource"}},"code":"\n    console.log('Plot Generating...');\n    var datanon = sourcenon.data;\n    var datarej = sourcerej.data;\n    var dataall = sourceall.data;\n\n    var x_rejected = datarej['x_rejected']\n    var y_rejected = datarej['y_rejected']\n    var x_nonrejected = datanon['x_nonrejected']\n    var y_nonrejected = datanon['y_nonrejected']\n    var x_original = dataall['x_original']\n    var y_fitted = dataall['y_fitted']\n\n    for (var i = 0; i &lt; x_rejected_result.length; i++) {\n        x_rejected[i] = x_rejected_result[i]\n        y_rejected[i] = y_rejected_result[i]\n    }\n    for (var i = 0; i &lt; x_nonrejected_result.length; i++) {\n        x_nonrejected[i] = x_nonrejected_result[i]\n        y_nonrejected[i] = y_nonrejected_result[i]\n    }\n    for (var i = 0; i &lt; x_original_result.length; i++) {\n        x_original[i] = x_original_result[i]\n        y_fitted[i] = y_fitted_result[i]\n    }\n\n    console.log(datarej['x_rejected']);\n    console.log(datarej['y_rejected']);\n    console.log(datanon['x_nonrejected']);\n    console.log(datanon['y_nonrejected']);\n    console.log(dataall['x_original']);\n    console.log(dataall['y_fitted']);\n\n    sourcenon.change.emit();\n    sourcerej.change.emit();\n    sourceall.change.emit();\n"},"id":"1084","type":"CustomJS"},{"attributes":{},"id":"1045","type":"BasicTickFormatter"},{"attributes":{"button_type":"primary","callback":null,"icon":null,"js_property_callbacks":{"change:clicks":[{"id":"1084","type":"CustomJS"}]},"label":"Plot Results"},"id":"1085","type":"Button"},{"attributes":{},"id":"1047","type":"BasicTickFormatter"},{"attributes":{"callback":null},"id":"1007","type":"DataRange1d"},{"attributes":{"children":[{"id":"1086","type":"WidgetBox"},{"id":"1004","subtype":"Figure","type":"Plot"}]},"id":"1087","type":"Column"},{"attributes":{"dimension":1,"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1019","type":"BasicTicker"}},"id":"1022","type":"Grid"},{"attributes":{"items":[{"id":"1051","type":"LegendItem"},{"id":"1066","type":"LegendItem"},{"id":"1083","type":"LegendItem"}],"plot":{"id":"1004","subtype":"Figure","type":"Plot"}},"id":"1050","type":"Legend"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1040","type":"Circle"},{"attributes":{"children":[{"id":"1085","type":"Button"}]},"id":"1086","type":"WidgetBox"},{"attributes":{},"id":"1023","type":"PanTool"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1042","type":"CDSView"},{"attributes":{},"id":"1024","type":"WheelZoomTool"},{"attributes":{"label":{"value":"rejected data"},"renderers":[{"id":"1055","type":"GlyphRenderer"}]},"id":"1066","type":"LegendItem"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"navy"},"line_alpha":{"value":0.5},"line_color":{"value":"navy"},"size":{"units":"screen","value":5},"x":{"field":"x_nonrejected"},"y":{"field":"y_nonrejected"}},"id":"1039","type":"Circle"},{"attributes":{"fill_alpha":{"value":0.5},"fill_color":{"value":"red"},"line_alpha":{"value":0.5},"line_color":{"value":"red"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1053","type":"Circle"},{"attributes":{"overlay":{"id":"1031","type":"BoxAnnotation"}},"id":"1025","type":"BoxZoomTool"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":5},"x":{"field":"x_rejected"},"y":{"field":"y_rejected"}},"id":"1054","type":"Circle"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{},"id":"1099","type":"UnionRenderers"},{"attributes":{"data_source":{"id":"1002","type":"ColumnDataSource"},"glyph":{"id":"1053","type":"Circle"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1054","type":"Circle"},"selection_glyph":null,"view":{"id":"1056","type":"CDSView"}},"id":"1055","type":"GlyphRenderer"},{"attributes":{},"id":"1011","type":"LinearScale"},{"attributes":{},"id":"1100","type":"Selection"},{"attributes":{"source":{"id":"1002","type":"ColumnDataSource"}},"id":"1056","type":"CDSView"},{"attributes":{"axis_label":"x","formatter":{"id":"1045","type":"BasicTickFormatter"},"plot":{"id":"1004","subtype":"Figure","type":"Plot"},"ticker":{"id":"1014","type":"BasicTicker"}},"id":"1013","type":"LinearAxis"},{"attributes":{},"id":"1065","type":"Selection"},{"attributes":{},"id":"1026","type":"SaveTool"}],"root_ids":["1087"]},"title":"Bokeh Application","version":"1.0.4"}}
+                <script type="application/json" id="1109">
+                    {"455ca3c8-aa7b-43ae-a7a9-d3cb62729ad6":{"roots":{"references":[{"attributes":{"dimension":1,"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1020","type":"Grid"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1030","type":"CDSView"},{"attributes":{"text":""},"id":"1038","type":"Title"},{"attributes":{"active_drag":{"id":"1021","type":"PanTool"},"active_inspect":"auto","active_multi":null,"active_scroll":{"id":"1022","type":"WheelZoomTool"},"active_tap":"auto","tools":[{"id":"1021","type":"PanTool"},{"id":"1022","type":"WheelZoomTool"}]},"id":"1023","type":"Toolbar"},{"attributes":{},"id":"1039","type":"BasicTickFormatter"},{"attributes":{"axis_label":"parameter","formatter":{"id":"1039","type":"BasicTickFormatter"},"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1011","type":"LinearAxis"},{"attributes":{"callback":null},"id":"1003","type":"Range1d"},{"attributes":{"dimensions":"width"},"id":"1022","type":"WheelZoomTool"},{"attributes":{},"id":"1012","type":"BasicTicker"},{"attributes":{},"id":"1041","type":"BasicTickFormatter"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{"callback":null,"data":{"arr_hist":[],"left":[],"right":[]},"selected":{"id":"1043","type":"Selection"},"selection_policy":{"id":"1044","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1015","type":"Grid"},{"attributes":{},"id":"1043","type":"Selection"},{"attributes":{"code":"\n    let val = this.value;\n    whichParam = Number(val.slice(-1));\n"},"id":"1032","type":"CustomJS"},{"attributes":{"dimensions":"width"},"id":"1021","type":"PanTool"},{"attributes":{"bottom":{"value":0},"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"left":{"field":"left"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"right":{"field":"right"},"top":{"field":"arr_hist"}},"id":"1028","type":"Quad"},{"attributes":{},"id":"1044","type":"UnionRenderers"},{"attributes":{"children":[{"id":"1033","type":"Select"}]},"id":"1035","type":"Row"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1027","type":"Quad"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1028","type":"Quad"},"selection_glyph":null,"view":{"id":"1030","type":"CDSView"}},"id":"1029","type":"GlyphRenderer"},{"attributes":{},"id":"1007","type":"LinearScale"},{"attributes":{"callback":null,"js_event_callbacks":{"mouseenter":[{"id":"1034","type":"CustomJS"}]},"js_property_callbacks":{"change:value":[{"id":"1032","type":"CustomJS"},{"id":"1031","type":"CustomJS"}]},"options":[],"title":"Select Model Parameter"},"id":"1033","type":"Select"},{"attributes":{"args":{"select":{"id":"1033","type":"Select"}},"code":"\n    let options = [];\n    for (let m = 0; m &lt; parameters.length - 2; m++){ //excluding slop\n        options.push(\"a\" + m.toString());\n    }\n    select.options = options;\n"},"id":"1034","type":"CustomJS"},{"attributes":{},"id":"1017","type":"BasicTicker"},{"attributes":{"args":{"axis":{"id":"1011","type":"LinearAxis"},"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"},"x_range":{"id":"1003","type":"Range1d"}},"code":"\n\n    p.reset.emit();\n\n\n    var hist_result = paramHistograms[whichParam];\n\n    var arr_hist_result = hist_result[0];\n    var left_result = hist_result[1].slice(0,-1);\n    var right_result = hist_result[1].slice(1);\n\n    let bincount = arr_hist_result.length;\n\n    var data = src.data;\n\n    var arr_hist = [];\n    var left = [];\n    var right = [];\n\n    data['arr_hist'] = [];\n    data['left'] = [];\n    data['right'] = [];\n\n    arr_hist = data['arr_hist'];\n    left = data['left'];\n    right = data['right'];\n\n    for (var i = 0; i &lt; bincount; i++){\n        arr_hist[i] = arr_hist_result[i];\n        left[i] = left_result[i];\n        right[i] = right_result[i];\n    }\n\n    data['arr_hist'] = arr_hist;\n    data['left'] = left;\n    data['right'] = right;\n\n    x_range.start = left[0];\n    x_range.end = right[bincount-1];\n\n    p.change.emit();\n    src.change.emit();\n\n"},"id":"1031","type":"CustomJS"},{"attributes":{"below":[{"id":"1011","type":"LinearAxis"}],"center":[{"id":"1015","type":"Grid"},{"id":"1020","type":"Grid"}],"js_event_callbacks":{"mouseenter":[{"id":"1034","type":"CustomJS"},{"id":"1031","type":"CustomJS"}]},"left":[{"id":"1016","type":"LinearAxis"}],"renderers":[{"id":"1029","type":"GlyphRenderer"}],"title":{"id":"1038","type":"Title"},"toolbar":{"id":"1023","type":"Toolbar"},"x_range":{"id":"1003","type":"Range1d"},"x_scale":{"id":"1007","type":"LinearScale"},"y_range":{"id":"1005","type":"DataRange1d"},"y_scale":{"id":"1009","type":"LinearScale"}},"id":"1002","subtype":"Figure","type":"Plot"},{"attributes":{"axis_label":"probability","formatter":{"id":"1041","type":"BasicTickFormatter"},"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1016","type":"LinearAxis"},{"attributes":{"bottom":{"value":0},"fill_color":{"value":"cornflowerblue"},"left":{"field":"left"},"right":{"field":"right"},"top":{"field":"arr_hist"}},"id":"1027","type":"Quad"},{"attributes":{"children":[{"id":"1035","type":"Row"},{"id":"1002","subtype":"Figure","type":"Plot"}]},"id":"1036","type":"Column"}],"root_ids":["1036"]},"title":"Histogram of Parameter Distributions","version":"1.2.0"}}
                 </script>
                 <script type="text/javascript">
                     (function () {
@@ -342,8 +342,8 @@
                                 (function (root) {
                                     function embed_document(root) {
 
-                                        var docs_json = document.getElementById('1284').textContent;
-                                        var render_items = [{ "docid": "5da963a5-8078-45ac-a721-e61f2b698c6b", "roots": { "1087": "9112dff6-2954-4ac8-ba70-55a9771bcf90" } }];
+                                        var docs_json = document.getElementById('1109').textContent;
+                                        var render_items = [{ "docid": "455ca3c8-aa7b-43ae-a7a9-d3cb62729ad6", "roots": { "1036": "f9c19ba7-5a03-4fbe-be12-51b9718e62c4" } }];
                                         root.Bokeh.embed.embed_items(docs_json, render_items);
 
                                     }
@@ -1472,72 +1472,63 @@
     function type(){
             $('#priorsBox').css('display','none');
             $('#priorsInput').css('display','none');
-            $('#RCRNote').css('display','block');
-            $('#NonRCRNote').css('display','none');
-            $('#BasisNotice').css('display','none');
             $('#SelectContaminantSection').css('display','block');
-            $('#OutputTableWrapper').css('display','inline');
-            $('#LinearImage').css('display', 'none');
-				    $('#QuadraticImage').css('display', 'none');
-				    $('#CubicImage').css('display', 'none');
-            $('#PowerLawImage').css('display', 'none');
-				    $('#ExponentialImage').css('display', 'none');
-				    $('#LogarithmicImage').css('display', 'none');
-            $('#functionImage').css('display', 'none');
-            $('#SymmetricImage').css('display', 'none');
-            $('#AsymmetricImage').css('display', 'none');
-            $('#Plot').css('display', 'none');
-      	    document.getElementById("SelectContaminantSectionTitle").innerHTML = "Select Contaminant Type:";
-      	    document.getElementById("PerformRCR").innerHTML = "Perform RCR!";
+            $('#OutputTableWrapper').css('display', 'inline');
+
+            $('#YesScaleYesMCMC').css('display', 'block');
+            $('#NoScaleYesMCMC').css('display', 'none');
+            $('#NoScaleNoMCMC').css('display', 'none');
+            $('#YesScaleNoMCMC').css('display', 'none');
+
+            document.getElementById("SelectContaminantSectionTitle").innerHTML = "Generate Model Parameter Distributions/Uncertainties?";
+      	    document.getElementById("PerformTRK").innerHTML = "Perform Fit!";
             $('#OutputTableWrapper').css('display','none');
-            document.getElementById('nonRejectedData').value = '';
-            document.getElementById('rejectedData').value = '';
-            document.getElementById('allData').value = '';
+
             switch (true)
 		    {
-                case ($('#Symmetric').data('clicked') && $('#Equal').data('clicked')):
+                case ($('#OpScale').data('clicked') && $('#YesMCMC').data('clicked')):
 				    $('.RejectionMethods').css('display','none')
 				    $('#Option11').css('display','block');
 				    $('#OptionAll').css('display','block');
-            $('#SymmetricImage').css('display', 'block');
+                    $('#YesScaleYesMCMC').css('display', 'block');
                     break;
-			    case ($('#Symmetric').data('clicked') &&  $('#OneSided').data('clicked')):
-				    $('.RejectionMethods').css('display','none')
-				    $('#Option12').css('display','block');
-				    $('#OptionAll').css('display','block');
-            $('#SymmetricImage').css('display', 'block');
+                case ($('#OpScale').data('clicked') && $('#NoMCMC').data('clicked')):
+                    $('.RejectionMethods').css('display', 'none')
+                    $('#Option10').css('display', 'block');
+                    $('#OptionAll').css('display', 'block');
+                    $('#YesScaleNoMCMC').css('display', 'block');
                     break;
-			    case ($('#Symmetric').data('clicked') && $('#Between').data('clicked')):
-				    $('.RejectionMethods').css('display','none')
-				    $('#Option13').css('display','block');
-				    $('#OptionAll').css('display','block');
-            $('#SymmetricImage').css('display', 'block');
+                case ($('#NoOpScale').data('clicked') && $('#YesMCMC').data('clicked')):
+                    $('.RejectionMethods').css('display', 'none')
+                    $('#Option01').css('display', 'block');
+                    $('#OptionAll').css('display', 'block');
+                    $('#NoScaleYesMCMC').css('display', 'block');
                     break;
-			    case ($('#Asymmetric').data('clicked')):
-				    $('.RejectionMethods').css('display','none')
-				    $('#Option2All').css('display','block');
-				    $('#OptionAll').css('display','block');
-            $('#AsymmetricImage').css('display', 'block');
+                case ($('#NoOpScale').data('clicked') && $('#NoMCMC').data('clicked')):
+                    $('.RejectionMethods').css('display', 'none')
+                    $('#Option00').css('display', 'block');
+                    $('#OptionAll').css('display', 'block');
+                    $('#NoScaleNoMCMC').css('display', 'block');
                     break;
 
-          case ($('#Linear').data('clicked')):
-            $('#LinearImage').css('display', 'block');
-                    break;
-          case ($('#Quadratic').data('clicked')):
-            $('#QuadraticImage').css('display', 'block');
-                    break;
-          case ($('#Cubic').data('clicked')):
-            $('#CubicImage').css('display', 'block');
-                    break;
-          case ($('#PowerLaw').data('clicked')):
-            $('#PowerLawImage').css('display', 'block');
-                    break;
-          case ($('#Exponential').data('clicked')):
-            $('#ExponentialImage').css('display', 'block');
-                    break;
-          case ($('#Logarithmic').data('clicked')):
-            $('#LogarithmicImage').css('display', 'block');
-                    break;
+          //case ($('#Linear').data('clicked')):
+          //  $('#LinearImage').css('display', 'block');
+          //          break;
+          //case ($('#Quadratic').data('clicked')):
+          //  $('#QuadraticImage').css('display', 'block');
+          //          break;
+          //case ($('#Cubic').data('clicked')):
+          //  $('#CubicImage').css('display', 'block');
+          //          break;
+          //case ($('#PowerLaw').data('clicked')):
+          //  $('#PowerLawImage').css('display', 'block');
+          //          break;
+          //case ($('#Exponential').data('clicked')):
+          //  $('#ExponentialImage').css('display', 'block');
+          //          break;
+          //case ($('#Logarithmic').data('clicked')):
+          //  $('#LogarithmicImage').css('display', 'block');
+          //          break;
 
 
           /*
@@ -1551,10 +1542,10 @@
         	    $('#OutputTableWrapper').css('display','none');
           */
 
-		    document.getElementById("SelectContaminantSectionTitle").innerHTML = "We do not perform outlier rejection in this case.";
-		    document.getElementById("PerformRCR").innerHTML = "Characterize!";
+		    //document.getElementById("SelectContaminantSectionTitle").innerHTML = "We do not perform outlier rejection in this case.";
+		    //document.getElementById("PerformRCR").innerHTML = "Characterize!";
 
-                    $('#NonRCRNote').css('display','block');
+                    //$('#NonRCRNote').css('display','block');
 
                     break;
 			    default:
@@ -1562,30 +1553,6 @@
 
             };
     };
-
-    function outputSelection(){
-           switch (true)
-		    {
-                case ($('#showNonRejected').data('clicked')):
-				    $('#nonRejectedData').css('display','inline')
-				    $('#rejectedData').css('display','none');
-				    $('#allData').css('display','none');
-                    break;
-                case ($('#showRejected').data('clicked')):
-				    $('#nonRejectedData').css('display','none')
-				    $('#rejectedData').css('display','inline');
-				    $('#allData').css('display','none');
-                    break;
-                case ($('#showAll').data('clicked')):
-				    $('#nonRejectedData').css('display','none')
-				    $('#rejectedData').css('display','none');
-				    $('#allData').css('display','inline');
-                    break;
-			    default:
-				    $('.RejectionMethods').css('display','none')
-
-            };
-    }
 
     function toggleBool(button)	{
 		    if ($(button).data('clicked') === false)
@@ -1616,136 +1583,66 @@
     };
 
     function main(){
+        //Initialize buttons
+	    $('#OpScale').data('clicked',true);
+	    $('#NoOpScale').data('clicked',false);
 
-	    $('#Symmetric').data('clicked',true);
-	    $('#Asymmetric').data('clicked',false);
-	    //$('#Nongaussian').data('clicked',false);
-
-	    $('#Equal').data('clicked',false);
-	    $('#Between').data('clicked',true);
-	    $('#OneSided').data('clicked',false);
+	    $('#YesMCMC').data('clicked',true);
+	    $('#NoMCMC').data('clicked',false);
 
 	    $('#Unweighted').data('clicked', true);
 	    $('#Weighted').data('clicked',false);
-      $('#ErrorBars').data('clicked',false);
 
-      $('#NoPriors').data('clicked', true);
+        $('#NoPriors').data('clicked', true);
 	    $('#YesPriors').data('clicked',false);
 
-      $('#showNonRejected').data('clicked',true);
-	    $('#showRejected').data('clicked',false);
-	    $('#showAll').data('clicked',false);
+        $('#Linear').data('clicked',true);
 
-      $('#Linear').data('clicked',true);
-
-	    $('#showNonRejected').toggleClass('ButtonActive');
-	    $('#Symmetric').toggleClass('ButtonActive');
-	    $('#Between').toggleClass('ButtonActive');
-	    $('#Unweighted').toggleClass("ButtonActive");
-      $('#NoPriors').toggleClass('ButtonActive');
-
-
+        $('#NoPriors').toggleClass('ButtonActive');
 
 	    type();
-        outputSelection();
 
         //the below are handlers for when buttons are clicked
 
-        $('#Symmetric').click(function() {
-            if ($('#Symmetric').data('clicked') === false)
+        $('#OpScale').click(function() {
+            if ($('#OpScale').data('clicked') === false)
             {
-                toggleBool('#Symmetric');
-                $('#Symmetric').toggleClass('ButtonActive');
-                SingleActiveButtonCheck('#Symmetric','#Asymmetric');
+                toggleBool('#OpScale');
+                $('#OpScale').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#OpScale','#NoOpScale');
                 //SingleActiveButtonCheck('#Symmetric','#Nongaussian');
                 type();
             }
 	    });
-        $('#Asymmetric').click(function() {
-            if ($('#Asymmetric').data('clicked') === false)
+        $('#NoOpScale').click(function() {
+            if ($('#NoOpScale').data('clicked') === false)
             {
-                toggleBool('#Asymmetric');
-                $('#Asymmetric').toggleClass('ButtonActive');
-                SingleActiveButtonCheck('#Asymmetric','#Symmetric');
+                toggleBool('#NoOpScale');
+                $('#NoOpScale').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#NoOpScale','#OpScale');
                 //SingleActiveButtonCheck('#Asymmetric','#Nongaussian');
                 type();
             }
         });
-        /*
-        $('#Nongaussian').click(function() {
-            if ($('#Nongaussian').data('clicked') === false)
+        $('#YesMCMC').click(function() {
+            if ($('#YesMCMC').data('clicked') === false)
             {
-                toggleBool('#Nongaussian');
-                $('#Nongaussian').toggleClass('ButtonActive');
-                SingleActiveButtonCheck('#Nongaussian','#Symmetric');
-                SingleActiveButtonCheck('#Nongaussian','#Asymmetric');
+                toggleBool('#YesMCMC');
+                $('#YesMCMC').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#YesMCMC','#NoMCMC');
                 type();
             }
         });
-        */
-        $('#Equal').click(function() {
-            if ($('#Equal').data('clicked') === false)
+        $('#NoMCMC').click(function() {
+            if ($('#NoMCMC').data('clicked') === false)
             {
-                toggleBool('#Equal');
-                $('#Equal').toggleClass('ButtonActive');
-                SingleActiveButtonCheck('#Equal','#OneSided');
-                SingleActiveButtonCheck('#Equal','#Between');
+                toggleBool('#NoMCMC');
+                $('#NoMCMC').toggleClass('ButtonActive');
+                SingleActiveButtonCheck('#NoMCMC','#YesMCMC');
                 type();
             }
         });
-        $('#OneSided').click(function() {
-            if ($('#OneSided').data('clicked') === false)
-            {
-                toggleBool('#OneSided');
-                $('#OneSided').toggleClass('ButtonActive');
-                SingleActiveButtonCheck('#OneSided','#Between');
-                SingleActiveButtonCheck('#OneSided','#Equal');
-                type();
-            }
-        });
-        $('#Between').click(function() {
-            if ($('#Between').data('clicked') === false)
-            {
-                toggleBool('#Between');
-                $('#Between').toggleClass('ButtonActive');
-                SingleActiveButtonCheck('#Between','#Equal');
-                SingleActiveButtonCheck('#Between','#OneSided');
-                type();
-            }
-        });
-
-        $('#showNonRejected').click(function() {
-            if ($('#showNonRejected').data('clicked') === false)
-            {
-                toggleBool('#showNonRejected');
-                $('#showNonRejected').toggleClass('ButtonActive');
-                SingleActiveButtonCheck('#showNonRejected','#showRejected');
-                SingleActiveButtonCheck('#showNonRejected','#showAll');
-                outputSelection();
-            }
-        });
-
-        $('#showRejected').click(function() {
-            if ($('#showRejected').data('clicked') === false)
-            {
-                toggleBool('#showRejected');
-                $('#showRejected').toggleClass('ButtonActive');
-                SingleActiveButtonCheck('#showRejected','#showNonRejected');
-                SingleActiveButtonCheck('#showRejected','#showAll');
-                outputSelection();
-            }
-        });
-
-        $('#showAll').click(function() {
-            if ($('#showAll').data('clicked') === false)
-            {
-                toggleBool('#showAll');
-                $('#showAll').toggleClass('ButtonActive');
-                SingleActiveButtonCheck('#showAll','#showNonRejected');
-                SingleActiveButtonCheck('#showAll','#showRejected');
-                outputSelection();
-            }
-        });
+     
 
         $('#Unweighted').click(function()	{
               if ($('#Unweighted').data('clicked') === false)
@@ -1753,7 +1650,6 @@
                   $('#Unweighted').toggleClass("ButtonActive");
                   toggleBool('#Unweighted');
                   SingleActiveButtonCheck('#Unweighted','#Weighted');
-  						    SingleActiveButtonCheck('#Unweighted','#ErrorBars');
               }
   	    });
   	    $('#Weighted').click(function()	{
@@ -1762,17 +1658,6 @@
                   $('#Weighted').toggleClass("ButtonActive");
                   toggleBool('#Weighted');
                   SingleActiveButtonCheck('#Weighted','#Unweighted');
-  						    SingleActiveButtonCheck('#Weighted','#ErrorBars');
-              }
-  	    });
-
-        $('#ErrorBars').click(function()	{
-              if ($('#ErrorBars').data('clicked') === false)
-              {
-                  $('#ErrorBars').toggleClass("ButtonActive");
-                  toggleBool('#ErrorBars');
-                  SingleActiveButtonCheck('#ErrorBars','#Unweighted');
-  						    SingleActiveButtonCheck('#ErrorBars','#Weighted');
               }
   	    });
         $('#NoPriors').click(function()	{
@@ -1803,14 +1688,6 @@
             SingleActiveButtonCheckNoBool('#Linear','#Exponential');
             SingleActiveButtonCheckNoBool('#Linear','#Logarithmic');
 
-            $('#functionImage').css('display', 'inline');
-
-            $('#LinearImage').css('display', 'inline');
-				    $('#QuadraticImage').css('display', 'none');
-				    $('#CubicImage').css('display', 'none');
-            $('#PowerLawImage').css('display', 'none');
-				    $('#ExponentialImage').css('display', 'none');
-				    $('#LogarithmicImage').css('display', 'none');
 	    });
 
       $('#Quadratic').click(function()	{
@@ -1822,14 +1699,6 @@
             SingleActiveButtonCheckNoBool('#Quadratic','#Exponential');
             SingleActiveButtonCheckNoBool('#Quadratic','#Logarithmic');
 
-            $('#functionImage').css('display', 'inline');
-
-            $('#LinearImage').css('display', 'none');
-				    $('#QuadraticImage').css('display', 'inline');
-				    $('#CubicImage').css('display', 'none');
-            $('#PowerLawImage').css('display', 'none');
-				    $('#ExponentialImage').css('display', 'none');
-				    $('#LogarithmicImage').css('display', 'none');
 	    });
 
       $('#Cubic').click(function()	{
@@ -1841,14 +1710,6 @@
             SingleActiveButtonCheckNoBool('#Cubic','#Exponential');
             SingleActiveButtonCheckNoBool('#Cubic','#Logarithmic');
 
-            $('#functionImage').css('display', 'inline');
-
-            $('#LinearImage').css('display', 'none');
-				    $('#QuadraticImage').css('display', 'none');
-				    $('#CubicImage').css('display', 'inline');
-            $('#PowerLawImage').css('display', 'none');
-				    $('#ExponentialImage').css('display', 'none');
-				    $('#LogarithmicImage').css('display', 'none');
 	    });
 
       $('#PowerLaw').click(function()	{
@@ -1860,14 +1721,6 @@
             SingleActiveButtonCheckNoBool('#PowerLaw','#Exponential');
             SingleActiveButtonCheckNoBool('#PowerLaw','#Logarithmic');
 
-            $('#functionImage').css('display', 'inline');
-
-            $('#LinearImage').css('display', 'none');
-				    $('#QuadraticImage').css('display', 'none');
-				    $('#CubicImage').css('display', 'none');
-            $('#PowerLawImage').css('display', 'inline');
-				    $('#ExponentialImage').css('display', 'none');
-				    $('#LogarithmicImage').css('display', 'none');
 	    });
 
       $('#Exponential').click(function()	{
@@ -1879,14 +1732,6 @@
             SingleActiveButtonCheckNoBool('#Exponential','#PowerLaw');
             SingleActiveButtonCheckNoBool('#Exponential','#Logarithmic');
 
-            $('#functionImage').css('display', 'inline');
-
-            $('#LinearImage').css('display', 'none');
-				    $('#QuadraticImage').css('display', 'none');
-				    $('#CubicImage').css('display', 'none');
-            $('#PowerLawImage').css('display', 'none');
-				    $('#ExponentialImage').css('display', 'inline');
-				    $('#LogarithmicImage').css('display', 'none');
       });
 
       $('#Logarithmic').click(function()	{
@@ -1898,14 +1743,6 @@
             SingleActiveButtonCheckNoBool('#Logarithmic','#PowerLaw');
             SingleActiveButtonCheckNoBool('#Logarithmic','#Exponential');
 
-            $('#functionImage').css('display', 'inline');
-
-            $('#LinearImage').css('display', 'none');
-				    $('#QuadraticImage').css('display', 'none');
-				    $('#CubicImage').css('display', 'none');
-            $('#PowerLawImage').css('display', 'none');
-				    $('#ExponentialImage').css('display', 'none');
-				    $('#LogarithmicImage').css('display', 'inline');
       });
 
 

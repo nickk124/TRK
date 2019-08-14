@@ -31,50 +31,50 @@ upper3 = []
 
 # TESTING ################################################
 
-x = [1,4]
-y = [-1,4]
+#x = [1,4]
+#y = [-1,4]
 
-err_x = [2.0, 0.3] #first is right x EB on left point; second is same but on right point.
-err_y = [3.4, 1.6] #first is BOTH y EB on left point; second is same but on right point.
+#err_x = [2.0, 0.3] #first is right x EB on left point; second is same but on right point.
+#err_y = [3.4, 1.6] #first is BOTH y EB on left point; second is same but on right point.
 
-err_x_up = [x[0] + err_x[0], x[1] + err_x[1]]
-err_y_up = [y[0] + err_y[0], y[1] + err_y[1]]
-err_x_down = [x[0] - err_x[0], x[1] - err_x[1]]
-err_y_down = [y[0] - err_y[0], y[1] - err_y[1]]
+#err_x_up = [x[0] + err_x[0], x[1] + err_x[1]]
+#err_y_up = [y[0] + err_y[0], y[1] + err_y[1]]
+#err_x_down = [x[0] - err_x[0], x[1] - err_x[1]]
+#err_y_down = [y[0] - err_y[0], y[1] - err_y[1]]
 
-m = 5/3
-b = -8/3
-def testlin(x):
-    return m*x + b
+#m = 5/3
+#b = -8/3
+#def testlin(x):
+#    return m*x + b
 
 
-N = 1000
+#N = 1000
 
-x_m = np.linspace(min(np.array(err_x_down)) - 1, max(np.array(err_x_up )) + 1, N)
-y_m = testlin(x_m)
+#x_m = np.linspace(min(np.array(err_x_down)) - 1, max(np.array(err_x_up )) + 1, N)
+#y_m = testlin(x_m)
 
-x_m = x_m.tolist()
-y_m = y_m.tolist()
+#x_m = x_m.tolist()
+#y_m = y_m.tolist()
 
-testSlopy = 1.0
+#testSlopy = 1.0
 
-x_m = np.array(x_m)
-y_m = np.array(y_m)
-lower1 = y_m - testSlopy
-upper1 = y_m + testSlopy
-lower2 = y_m - 2*testSlopy
-upper2 = y_m + 2*testSlopy
-lower3 = y_m - 3*testSlopy
-upper3 = y_m + 3*testSlopy
+#x_m = np.array(x_m)
+#y_m = np.array(y_m)
+#lower1 = y_m - testSlopy
+#upper1 = y_m + testSlopy
+#lower2 = y_m - 2*testSlopy
+#upper2 = y_m + 2*testSlopy
+#lower3 = y_m - 3*testSlopy
+#upper3 = y_m + 3*testSlopy
 
-x_m.tolist()
-y_m.tolist()
-lower1.tolist()
-upper1.tolist()
-lower2.tolist()
-upper2.tolist()
-lower3.tolist()
-upper3.tolist()
+#x_m.tolist()
+#y_m.tolist()
+#lower1.tolist()
+#upper1.tolist()
+#lower2.tolist()
+#upper2.tolist()
+#lower3.tolist()
+#upper3.tolist()
 
 # ################################################
 

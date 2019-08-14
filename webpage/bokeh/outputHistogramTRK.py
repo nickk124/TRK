@@ -238,5 +238,5 @@ select.js_on_change('value', callback_plot)
 curdoc().add_root(layout) #any changes to layout will trigger on_change callbacks
 curdoc().title = "Histogram of Parameter Distributions"
 
-show(layout)
-#save(layout)
+#show(layout)
+save(layout)
