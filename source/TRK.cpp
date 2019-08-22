@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "TRK.h"
 
-#include <execution>
-
 // PRIORS
 
 // Constructors
@@ -322,12 +320,10 @@ double TRK::newtonRaphson(std::vector <double> params, double x_n, double y_n, d
 		df = (std::pow(dyc(x0, params), 2.0) + (yc(x0, params) - y_n)*ddyc(x0, params)) * Sig_xn2 + Sig_yn2; //derivative of above
 
 		x1 = x0 - f / df;
-		//std::cout << x1 << std::endl;
 
 		itercount += 1;
 	}
 
-	//std::cout << itercount << " iterations." << std::endl;
 	return x1;
 }
 
@@ -335,7 +331,6 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 {
 	double tol = 1e-9;
 	double xkm1 = xguess;
-	//double xk = xguess + xguess / 100.0;
 	double xk = xguessp1;
 
 	double xkp1;
@@ -347,11 +342,7 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 	int itercount = 0;
 
 	while (true) {
-		/*
-		if (std::isnan(xk) || std::isnan(xkm1)) {
-			printf("stop");
-		}
-		*/
+
 		ykm1 = (yc(xkm1, params) - y_n) * dyc(xkm1, params) * Sig_xn2 + (xkm1 - x_n) * Sig_yn2;
 		yk = (yc(xk, params) - y_n) * dyc(xk, params) * Sig_xn2 + (xk - x_n) * Sig_yn2;  //function we're finding zero of
 		dyk = (std::pow(dyc(xk, params), 2.0) + (yc(xk, params) - y_n)*ddyc(xk, params)) * Sig_xn2 + Sig_yn2; //derivative of above
@@ -365,14 +356,10 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 				xkp1 = xkp1 / 2.0;
 			}
 		}
-		//std::cout << xkp1 << std::endl;
-
 
 		//bisection?
 		
 		if (yk * ykm1 < 0) { //checks if xk and xkm1 can be used as bisection brackets
-
-			//std::cout << "beginning bisection (tangent point finder) \n";
 
 			double c, f_c, f_left, left, right;
 			double tol_brackets = 1e-9;
@@ -408,25 +395,13 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 			return c;
 		}
 		
-		/*
-		if (std::isnan(xkp1) || std::isnan(xk) || std::isnan(xkm1)) {
-			printf("stop");
-		}
-		*/
-
 		xkm1 = xk;
 		xk = xkp1;
 
 		itercount += 1;
 
-		/*
-		if (std::isnan(xkp1) || std::isnan(xk) || std::isnan(xkm1)) {
-			printf("stop");
-		}
-		*/
 
 		if (itercount > 5000) {
-			//std::cout << " itercount of >5000 reached; exiting NR" << std::endl;
 			return NAN;
 		}
 
@@ -434,9 +409,6 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 			break;
 		}
 	}
-
-	//std::cout << itercount << " iterations." << std::endl;
-	//printf("%i\n", itercount);
 	return xkp1;
 }
 
@@ -464,7 +436,7 @@ std::vector <double> TRK::avoidNegativeSlop(std::vector <double> vertex, int n) 
 	return vertex;
 }
 
-double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <double> vertex) {
+double TRK::evalWPriors(double(TRK::*f)(std::vector <double>, double), std::vector <double> vertex, double s) {
 	if (hasPriors) {
 		switch (priorsObject.priorType) {
 
@@ -502,10 +474,10 @@ double TRK::evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <doub
 		}
 	}
 
-	return (this->*f)(vertex);
+	return (this->*f)(vertex, s);
 }
 
-std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess) {
+std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s) {
 
 	double tol = simplexTol;
 
@@ -538,7 +510,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 			std::vector <int> orderedindices;
 			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
 			for (int i = 0; i < n + 1; i++) {
-				unorderedEvals.push_back(evalWPriors(f, vertices[i]));
+				unorderedEvals.push_back(evalWPriors(f, vertices[i], s));
 			}
 			orderedindices = getSortedIndices(unorderedEvals);
 
@@ -562,11 +534,9 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
 			}
 
-			//refpoint = pegToZeroSlop(refpoint);
-
-			double fr = evalWPriors(f, refpoint);
-			double f1 = evalWPriors(f, vertices[0]);
-			double fn = evalWPriors(f, vertices[n - 1]);
+			double fr = evalWPriors(f, refpoint, s);
+			double f1 = evalWPriors(f, vertices[0], s);
+			double fn = evalWPriors(f, vertices[n - 1], s);
 
 			if (f1 <= fr && fr < fn) {
 				result = refpoint;
@@ -581,9 +551,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
 				}
 
-				//exppoint = pegToZeroSlop(exppoint);
-
-				double fe = evalWPriors(f, exppoint);
+				double fe = evalWPriors(f, exppoint, s);
 
 
 				if (fe < fr) {
@@ -600,7 +568,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 
 			if (fr >= fn) {
 				//outside
-				double fnp1 = evalWPriors(f, vertices[n]);
+				double fnp1 = evalWPriors(f, vertices[n], s);
 
 				if (fn <= fr && fr < fnp1) {
 					std::vector <double> cpoint;
@@ -609,9 +577,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
 					}
 
-					//cpoint = pegToZeroSlop(cpoint);
-
-					double fc = evalWPriors(f, cpoint);
+					double fc = evalWPriors(f, cpoint, s);
 
 					if (fc <= fr) {
 						result = cpoint;
@@ -641,9 +607,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
 					}
 
-					//ccpoint = pegToZeroSlop(ccpoint);
-
-					double fcc = evalWPriors(f, ccpoint);
+					double fcc = evalWPriors(f, ccpoint, s);
 
 					if (fcc <= fnp1) {
 						result = ccpoint;
@@ -693,7 +657,6 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		}
 
 		//check that new node does not have negative slops (fixes it if it does)
-		//result = avoidNegativeSlop(result, n);
 
 		bettervertices.push_back(result);
 
@@ -705,46 +668,19 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>),
 		for (int i = 0; i < result.size(); i++) {
 			std::cout << result[i] << " ";
 		}
-		std::cout << "fitness = " << evalWPriors(f, result) << "\n";*/
-		
-
-		
-		/*
-		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
-		for (int j = 0; j < result.size() + 1; j++) {
-			for (int i = 0; i < result.size(); i++) {
-				std::cout << bettervertices[j][i] << " ";
-			}
-			double X = evalWPriors(f, bettervertices[j]);
-			std::cout << "          " << X << std::endl;
-		}
-		*/
+		std::cout << "fitness = " << evalWPriors(f, result, s) << "\n";*/
 		
 		
-
 		//test for termination
 
 		std::vector <double> evals;
 		for (int i = 0; i < n + 1; i++) {
-			evals.push_back(evalWPriors(f, vertices[i]));
+			evals.push_back(evalWPriors(f, vertices[i], s));
 		}
 
 		if (stDevUnweighted(evals) < tol) {
 			break;
 		}
-
-
-		//terminates based off of slop parameters solely
-		/*std::vector <double> sx, sy;
-		for (int i = 0; i < n + 1; i++) {
-			sx.push_back(vertices[i][M]);
-			sy.push_back(vertices[i][M+1]);
-		}
-
-		if ( (stDevUnweighted(sx) < slopTol ) && (stDevUnweighted(sy) < slopTol)) {
-			break;
-		}*/
-
 	}
 
 	fitted_params = vertices[n];
@@ -783,12 +719,6 @@ std::vector <double> TRK::cubicSolver(double A, double B, double C, double D) {
 		}
 	}
 
-	/*
-	if (goodroots.size() < 3) {
-		std::cout << "some roots out of reasonable boundary";
-	}
-	*/
-
 	return goodroots;
 }
 
@@ -805,7 +735,24 @@ double TRK::singlePointLnL(std::vector <double> params, double x_n, double y_n, 
 	return std::pow(y_n - y_tn - m_tn * (x_n - x_tn), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) - std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(Sig_yn2, 2.0)));
 }
 
-double TRK::modifiedChiSquared(std::vector <double> allparams)
+std::vector <double> TRK::tangentParallel(std::vector<double> params, double slop_x, double slop_y, int n, double s) {
+	double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
+	double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
+
+	std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sig_xn2, Sig_yn2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+
+	double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
+
+	double m_tn = dyc(x_t, params);
+	double y_tn = yc(x_t, params);
+
+	double subsum1 = w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2);
+	double subsum2 = w[n] * std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
+
+	return { x_t, subsum1, subsum2 };
+}
+
+double TRK::modifiedChiSquared(std::vector <double> allparams, double s)
 {
 	std::vector <double> SigXVec, SigYVec;
 	std::vector <double> all_x_t(N, 0.0);
@@ -822,22 +769,24 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 		params.push_back(allparams[i]);
 	}
 
-	std::vector <int> nn;
+	if (cpp17MultiThread) {
 
-	for (int n = 0; n < N; n++) {
-		nn.push_back(n);
-	}
+		std::vector <int> nn;
 
-	for (int n = 0; n < N; n++) {
-		SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
-		SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
-	}
+		for (int n = 0; n < N; n++) {
+			nn.push_back(n);
+		}
 
-	std::for_each( //parallel tangent point finding
-		std::execution::par_unseq,
-		nn.begin(),
-		nn.end(),
-		[&](auto&& n)
+		for (int n = 0; n < N; n++) {
+			SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
+			SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
+		}
+
+		std::for_each( //parallel tangent point finding
+			std::execution::par_unseq,
+			nn.begin(),
+			nn.end(),
+			[&](auto&& n)
 		{
 			std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
 
@@ -846,13 +795,72 @@ double TRK::modifiedChiSquared(std::vector <double> allparams)
 			all_x_t[n] = x_t;
 		});
 
-	for (int n = 0; n < N; n++) {
+		for (int n = 0; n < N; n++) {
 
-		double m_tn = dyc(all_x_t[n], params);
-		double y_tn = yc(all_x_t[n], params);
+			double m_tn = dyc(all_x_t[n], params);
+			double y_tn = yc(all_x_t[n], params);
 
-		sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]);
-		sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
+			sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]);
+			sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
+		}
+	} else if (openMPMultiThread && !cpp17MultiThread) {
+		//clock_t time = startTimer();
+
+		#pragma omp parallel for num_threads(maxThreads)
+		for (int i = 0; i < N; i++)
+		{
+			std::vector <double> results;
+			results = tangentParallel(params, slop_x, slop_y, i, s); //pointer to fn run through MT, arguments to fn
+			all_x_t[i] = results[0];
+			sum1 += results[1];
+			sum2 += results[2];
+		}
+
+		//double sec_elapsed = secElapsed(time);
+
+	} else {
+		//cpp11 multithreading
+
+		int counter = 0, completedThreads = 0, liveThreads = 0;
+		std::vector<double> results;
+		std::vector< std::future < std::vector < double > > > futureVec;
+		futureVec.resize(N);
+
+		for (int i = 0; i < N; i++)
+		{
+			futureVec[i] = std::async(std::launch::async, &TRK::tangentParallel, this, params, slop_x, slop_y, i, s); //pointer to fn run through MT, arguments to fn
+			counter++;
+			liveThreads++;
+
+			if (liveThreads >= maxThreads)
+			{
+				for (int i = completedThreads; i < counter; i++)
+				{
+					results = futureVec[i].get();
+					all_x_t[i] = results[0];
+					sum1 += results[1];
+					sum2 += results[2];
+				}
+				completedThreads += liveThreads;
+				liveThreads = 0;
+			}
+		}
+		for (int i = completedThreads; i < N; i++)
+		{
+			results = futureVec[i].get();
+			all_x_t[i] = results[0];
+			sum1 += results[1];
+			sum2 += results[2];
+		}
+
+		/*std::vector <std::thread> ths;
+		for (int n = 0; n < N; n++) {
+			ths.push_back(std::thread(&TRK::tangentParallel, this, params, slop_x, slop_y, n));
+		}
+		for (auto& th : ths) {
+			th.join();
+		}*/
+		
 	}
 
 	switch (whichExtrema) {
@@ -888,6 +896,23 @@ double TRK::regularChiSquared(std::vector <double> params) {
 	return sum;
 }
 
+std::vector <double> TRK::tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n) {
+	double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
+	double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
+
+	std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sig_xn2, Sig_yn2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+
+	double x_t = findBestTangent(params, x[n], y[n], Sig_xn2, Sig_yn2, x_tn_vec);
+
+	double m_tn = dyc(x_t, params);
+	double y_tn = yc(x_t, params);
+
+	double l = w[n] * std::sqrt((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
+	l *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2)));
+
+	return { x_t, l};
+}
+
 double TRK::likelihood(std::vector <double> allparams) {
 	std::vector <double> SigXVec, SigYVec;
 	std::vector <double> all_x_t(N, 0.0);
@@ -902,36 +927,86 @@ double TRK::likelihood(std::vector <double> allparams) {
 		params.push_back(allparams[i]);
 	}
 
-	std::vector <int> nn;
+	if (cpp17MultiThread) {
 
-	for (int n = 0; n < N; n++) {
-		nn.push_back(n);
+		std::vector <int> nn;
+
+		for (int n = 0; n < N; n++) {
+			nn.push_back(n);
+		}
+
+		for (int n = 0; n < N; n++) {
+			SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
+			SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
+		}
+
+		std::for_each( //parallel tangent point finding
+			std::execution::par_unseq,
+			nn.begin(),
+			nn.end(),
+			[&](auto&& n)
+		{
+			std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+
+			double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
+
+			all_x_t[n] = x_t;
+		});
+
+		for (int n = 0; n < N; n++) {
+			double m_tn = dyc(all_x_t[n], params);
+			double y_tn = yc(all_x_t[n], params);
+
+			L *= w[n] * std::sqrt((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
+			L *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n])));
+		}
+	} else if (openMPMultiThread && !cpp17MultiThread) {
+		//clock_t time = startTimer();
+
+		#pragma omp parallel for num_threads(maxThreads)
+		for (int i = 0; i < N; i++)
+		{
+			std::vector <double> results;
+			results = tangentParallelLikelihood(params, slop_x, slop_y, i); //pointer to fn run through MT, arguments to fn
+			all_x_t[i] = results[0];
+			L *= results[1];
+		}
+
+		//double sec_elapsed = secElapsed(time);
+
 	}
+	else {
+		//cpp11 multithreading
 
-	for (int n = 0; n < N; n++) {
-		SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
-		SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
-	}
+		int counter = 0, completedThreads = 0, liveThreads = 0;
+		std::vector<double> results;
+		std::vector< std::future < std::vector < double > > > futureVec;
+		futureVec.resize(N);
 
-	std::for_each( //parallel tangent point finding
-		std::execution::par_unseq,
-		nn.begin(),
-		nn.end(),
-		[&](auto&& n)
-	{
-		std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+		for (int i = 0; i < N; i++)
+		{
+			futureVec[i] = std::async(std::launch::async, &TRK::tangentParallelLikelihood, this, params, slop_x, slop_y, i); //pointer to fn run through MT, arguments to fn
+			counter++;
+			liveThreads++;
 
-		double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
-
-		all_x_t[n] = x_t;
-	});
-
-	for (int n = 0; n < N; n++) {
-		double m_tn = dyc(all_x_t[n], params);
-		double y_tn = yc(all_x_t[n], params);
-
-		L *= w[n]*std::sqrt((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
-		L *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n])));
+			if (liveThreads >= maxThreads)
+			{
+				for (int i = completedThreads; i < counter; i++)
+				{
+					results = futureVec[i].get();
+					all_x_t.push_back(results[0]);
+					L *= results[1];
+				}
+				completedThreads += liveThreads;
+				liveThreads = 0;
+			}
+		}
+		for (int i = completedThreads; i < N; i++)
+		{
+			results = futureVec[i].get();
+			all_x_t.push_back(results[0]);
+			L *= results[1];
+		}
 	}
 	return L;
 }
@@ -1072,7 +1147,6 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 	double xr1old;
 	
 	bool checkcheck = false;
-	//bool tryNewGuess = false;
 
 	int itcount = 0;
 
@@ -1098,14 +1172,11 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 		if (checkcheck) { //different guess gives same root;
 
 			if (std::abs(xr1 - xr1old) < 1e-3) {
-				//tryNewGuess = true;
 				result.push_back(xr1);
 				break;
 			}
 			if (xr1vec.size() >= 3){
 				if (std::abs(xr1vec[xr1vec.size() - 1] - xr1vec[xr1vec.size() - 3]) < 1e-3) { //root finder oscillating between two roots
-
-					//std::cout << "oscillation!" << std::endl;
 
 					std::vector <double> unorderedbrackets = { xr1vec[xr1vec.size() - 1], xr1vec[xr1vec.size() - 2] };
 
@@ -1128,8 +1199,6 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 		std::vector <double> allRoots = approxQuadraticRoots(params, x_n, y_n, Sig_xn2, Sig_yn2, xr1); //get approx. roots from quadratic taylor approximation
 		std::vector <double> extraRoots;
 
-		//std::cout << stDevUnweighted(allRoots) << "\n";
-
 		double ident_roots_tol = 1e-8;
 
 		if (allRoots.size() == 3) { //either add the two other roots, or no more roots (depending on discriminant of cubic equation)
@@ -1149,34 +1218,6 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			double xr2, xr3;
 			xg2 = extraRoots[0];
 			xg3 = extraRoots[1];
-
-			//if (tryNewGuess) {//if different guess couldn't find a new root, try using the two additional guesses
-			//	xr2 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg2, xg2 - std::sqrt(Sig_xn2) / 10.0);
-			//	xr3 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg3, xg3 + std::sqrt(Sig_xn2) / 10.0);
-
-			//	std::vector <double> all = { xr1, xr2, xr3 };
-
-			//	int c = 0;
-
-			//	for (int i = 0; i < 3; i++) {
-			//		for (int j = 0; j < 3; j++) {
-			//			if (std::abs(all[i] - all[j]) > ident_roots_tol) { //checks if roots are (numerically) identical or not
-			//				c += 1;
-			//			}
-			//		}
-			//	}
-
-			//	if (c == 0) { //if it still couldn't find additional roots, tries to find roots with guesses of leftmost and rightmost x values
-			//		double xr_left = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_min, x_min - std::sqrt(Sig_xn2) / 10.0);
-			//		double xr_right = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_max, x_max + std::sqrt(Sig_xn2) / 10.0);
-
-			//		result.push_back(xr1);
-			//		result.push_back(xr_left);
-			//		result.push_back(xr_right);
-
-			//		break;
-			//	}
-			//}
 
 			if (xg2 < xr1 && xr1 < xg3) {
 				xr2 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg2, xg2 - std::sqrt(Sig_xn2) / 10.0);
@@ -1212,13 +1253,6 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 			result = xr1vec;
 			break;
 		} else if (extraRoots.size() == 3) {//this can happen if the "root" found is very close to being a root but isn't actually one.
-			/*printf("3 extra roots!\t");
-			for (int j = 0; j < params.size(); j++) {
-				printf("%f ", params[j]);
-			}
-			printf("%f  %f  %f  %f \t", Sig_xn2, Sig_yn2, x_n, y_n);
-			printf("s = %f\n", s);*/
-
 			
 			//in this case, try again with a different guess.
 			double xr_left = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_min, x_min - std::sqrt(Sig_xn2) / 10.0);
@@ -1232,8 +1266,6 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 
 		itcount += 1;
 	}
-
-	//std::cout << itcount << std::endl;
 
 	return result;
 }
@@ -1267,13 +1299,17 @@ void TRK::getBetterSlopYGuess(double slop_y, double s) {
 }
 
 double TRK::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
-	s = ss[0];
+	//s = ss[0];
 
-	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
+	//clock_t time = startTimer();
 
-	//iterative_allparams_guess = allparams_s;
+	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess, ss[0]);
 
-	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
+	printf("%f \t %f \t %f \n", ss[0], allparams_s[M], allparams_s[M + 1]);
+
+	//double sec_elapsed = secElapsed(time);
+
+	//printf("%f sec, max threads = %i \n", sec_elapsed, maxThreads);
 
 	getBetterSlopYGuess(allparams_s[M + 1], s);
 
@@ -1281,27 +1317,23 @@ double TRK::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> all
 }
 
 double TRK::innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
-	s = ss[0];
+	//s = ss[0];
 
-	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
+	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess, ss[0]);
 
-	//iterative_allparams_guess = allparams_s;
-
-	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
+	printf("%f \t %f \t %f \n", ss[0], allparams_s[M], allparams_s[M + 1]);
 
 	return allparams_s[M + 1];
 }
 
 double TRK::innerR2_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
-	s = ss[0];
+	//s = ss[0];
 
 	whichExtrema = S;
-	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
+	std::vector <double> allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess, ss[0]);
 	whichExtrema = none;
 
-	//iterative_allparams_guess = allparams_s;
-
-	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
+	printf("%f \t %f \t %f \n", ss[0], allparams_s[M], allparams_s[M + 1]);
 
 	double R2as = R2TRK_prime_as();
 	double R2sb = R2TRK_prime_sb();
@@ -1310,15 +1342,13 @@ double TRK::innerR2_Simplex(std::vector <double> ss, std::vector <double> allpar
 }
 
 double TRK::innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> allparams_guess, double s0) {
-	s = ss[0];
+	//s = ss[0];
 
 	whichExtrema = S;
-	allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess);
+	allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess, ss[0]);
 	whichExtrema = none;
 
-	printf("%f \t %f \t %f \n", s, allparams_s[M], allparams_s[M + 1]);
-
-	//iterative_allparams_guess = allparams_s;
+	printf("%f \t %f \t %f \n", ss[0], allparams_s[M], allparams_s[M + 1]);
 
 	double R2as = R2TRK_prime_as0(s0, x_t_s, params_s);
 	double R2sb = R2TRK_prime_s0b(s0, x_t_s, params_s);
@@ -1349,7 +1379,6 @@ double TRK::optimize_s_SlopX() {
 
 		while (true) {
 			trial_a -= inc;
-			//std::cout << "trial a: " << trial_a << std::endl;
 
 			double slop_trial_a = innerSlopX_Simplex({ trial_a }, iterative_allparams_guess);
 
@@ -1371,7 +1400,6 @@ double TRK::optimize_s_SlopX() {
 
 		while (true) {
 			trial_b += inc;
-			//std::cout << "trial b: " << trial_b << std::endl;
 
 			double slop_trial_b = innerSlopX_Simplex({ trial_b }, iterative_allparams_guess);
 
@@ -1380,7 +1408,6 @@ double TRK::optimize_s_SlopX() {
 				break;
 			}
 			else if (slop_trial_b == 0) {
-				//inc *= 2.0;
 				a = trial_b;
 			}
 		}
@@ -1388,21 +1415,16 @@ double TRK::optimize_s_SlopX() {
 
 	//bisection, now that we have brackets [a,b]
 
-	//std::cout << "beginning bisection (slop x) \n";
-
 	double c, slop_c;
 	double tol_bisect = 2e-3;
 	double tol_brackets = 1e-3;
 
 	while (true) {
-		//std::cout << "a = " << a << "\t b = " << b << std::endl;
 		c = (a + b) / 2;
 
 		whichExtrema = slopx;
 		slop_c = innerSlopX_Simplex({ c }, iterative_allparams_guess);
 		whichExtrema = none;
-
-		//std::cout << "c = " << c << "\t slop_x_c = " << slop_c << "\n";
 
 		if (slop_c <= tol_bisect && slop_c > 0) { //convergence criterion
 			break;
@@ -1445,7 +1467,6 @@ double TRK::optimize_s_SlopY() {
 
 		while (true) {
 			trial_b += inc;
-			//std::cout << "trial b: " << trial_b << std::endl;
 
 			double slop_trial_b = innerSlopY_Simplex({ trial_b }, iterative_allparams_guess);
 
@@ -1454,7 +1475,6 @@ double TRK::optimize_s_SlopY() {
 				break;
 			}
 			else if (slop_trial_b > 0) {
-				//inc *= 2.0;
 				a = trial_b;
 			}
 		}
@@ -1466,7 +1486,6 @@ double TRK::optimize_s_SlopY() {
 
 		while (true) {
 			trial_a -= inc;
-			//std::cout << "trial a: " << trial_a << std::endl;
 
 			double slop_trial_a = innerSlopY_Simplex({ trial_a }, iterative_allparams_guess);
 
@@ -1483,21 +1502,16 @@ double TRK::optimize_s_SlopY() {
 
 	//bisection, now that we have brackets [a,b]
 
-	//std::cout << "beginning bisection (slop y) \n";
-
 	double c, slop_c;
 	double tol_bisect = 2e-3;
 	double tol_brackets = 1e-3;
 
 	while (true) {
-		//std::cout << "a = " << a << "\t b = " << b << std::endl;
 		c = (a + b) / 2;
 
 		whichExtrema = slopy;
 		slop_c = innerSlopY_Simplex({ c }, iterative_allparams_guess);
 		whichExtrema = none;
-
-		//std::cout << "c = " << c << "\t slop_y_c = " << slop_c << "\n";
 
 		if ((slop_c <= tol_bisect && slop_c > 0)) { //convergence criterion
 			break;
@@ -1613,21 +1627,16 @@ double TRK::optimize_s0_R2() {
 	left = a;
 	right = b;
 
-	//std::cout << "beginning bisection (optimum scale finder) \n";
-
 	double c, f_c;
 	double tol_bisect = 1e-4;
 	double tol_brackets = 1e-3;
 
 	while (true) {
-		//std::cout << "left = " << left << "\t right = " << right << std::endl;
 		c = (left + right) / 2;
 
 		whichExtrema = S;
 		f_c = innerR2_Simplex({ c }, iterative_allparams_guess);
 		whichExtrema = none;
-
-		//std::cout << "c = " << c << "\t R2(a,s) - R2(s,b)  = " << f_c << "\n";
 
 		if (std::abs(f_c) <= tol_bisect) { //convergence criterion
 			break;
@@ -1662,21 +1671,16 @@ double TRK::optimize_s_prime_R2(double s0) {
 	left = a;
 	right = b;
 
-	//std::cout << "beginning bisection (optimum scale finder, iterative step) \n";
-
 	double c, f_c;
 	double tol_bisect = 1e-4;
 	double tol_brackets = 1e-3;
 
 	while (true) {
-		//std::cout << "left = " << left << "\t right = " << right << std::endl;
 		c = (left + right) / 2;
 
 		whichExtrema = S;
 		f_c = innerR2_iter_Simplex({ c }, iterative_allparams_guess, s0);
 		whichExtrema = none;
-
-		//std::cout << "s0 = " << s0 << "\t c = " << c << "\t R2(a,s) - R2(s,b)  = " << f_c << "\n";
 
 		if (std::abs(f_c) <= tol_bisect) { //convergence criterion
 			break;
@@ -1724,14 +1728,31 @@ void TRK::optimizeScale() {
 
 	std::vector <double> scale_extrema;
 
-	std::cout << "minimizing x slop..." << std::endl;
+	std::vector <double> s_slops(2, 0.0);
 
-	double s_slopx = optimize_s_SlopX(); //computes scale which minizes slop_x, and scale which minimizes slop_y
+	//optimize simultaneously
+	if (cpp17MultiThread) {
+		std::vector <int> nn = { 0, 1 };
 
-	std::cout << "minimizing y slop..." << std::endl;
+		std::for_each( //parallel tangent point finding
+			std::execution::par_unseq,
+			nn.begin(),
+			nn.end(),
+			[&](auto&& n)
+		{
+			s_slops[n] = (this->*optimizeList[n])();
+		});
 
-	double s_slopy = optimize_s_SlopY();
+	} else {
+		#pragma omp parallel for //num_threads(8)
+		for (int i = 0; i < 2; i++)
+		{
+			s_slops[i] = (this->*optimizeList[i])();
+		}
+	}
 
+	double s_slopx = s_slops[0];
+	double s_slopy = s_slops[1];
 
 	scale_extrema.push_back(s_slopx); //scale_extrema = {s_slopx, s_slopy}
 
@@ -1833,9 +1854,7 @@ double TRK::innerMetHastSimplex(int burncount, std::vector <double> delta, doubl
 
 		for (int j = 0; j < M + 2; j++) {
 			allparams_trial.push_back(delta[j] * rnorm(0.0, 1.0) + allparams_0[j]);
-			//printf("%f \t ", allparams_0[j]);
 		}
-		//std::cout << std::endl;
 
 		a = posterior(allparams_trial) / posterior(allparams_0);
 		rand_unif = runiform(0.0, 1.0);
@@ -1944,7 +1963,6 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
 			}
 
-			//refpoint = pegToZeroSlop(refpoint);
 			refpoint = pegToNonZeroDelta(refpoint, vertices[n]);
 
 			double fr = innerMetHastSimplex(burncount, refpoint, optRatio);
@@ -1973,7 +1991,6 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
 				}
 
-				//exppoint = pegToZeroSlop(exppoint);
 				exppoint = pegToNonZeroDelta(exppoint, vertices[n]);
 
 				double fe = innerMetHastSimplex(burncount, exppoint, optRatio);
@@ -2008,7 +2025,6 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
 					}
 
-					//cpoint = pegToZeroSlop(cpoint);
 					cpoint = pegToNonZeroDelta(cpoint, vertices[n]);
 
 					double fc = innerMetHastSimplex(burncount, cpoint, optRatio);
@@ -2044,7 +2060,6 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
 					}
 
-					//ccpoint = pegToZeroSlop(ccpoint);
 					ccpoint = pegToNonZeroDelta(ccpoint, vertices[n]);
 
 					double fcc = innerMetHastSimplex(burncount, ccpoint, optRatio);
@@ -2100,7 +2115,6 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 		}
 
 		//check that new node does not have negative slops (fixes it if it does)
-		//result = avoidNegativeSlop(result, n);
 
 		bettervertices.push_back(result);
 
@@ -2114,20 +2128,6 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 		}
 		std::cout << "fitness = " << evalWPriors(f, vertices[i]) << "\n";
 		*/
-
-
-		/*
-		std::cout << "chi-square minimized parameters at s = " << s << std::endl;
-		for (int j = 0; j < result.size() + 1; j++) {
-			for (int i = 0; i < result.size(); i++) {
-				std::cout << bettervertices[j][i] << " ";
-			}
-			double X = evalWPriors(f, bettervertices[j]);
-			std::cout << "          " << X << std::endl;
-		}
-		*/
-
-
 
 		//test for termination
 
@@ -2183,9 +2183,7 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 
 		for (int j = 0; j < M + 2; j++) {
 			allparams_trial.push_back(delta[j] * rnorm(0.0, 1.0) + allparams_0[j]);
-			//printf("%f \t ", allparams_0[j]);
 		}
-		//std::cout << std::endl;
 
 		a = posterior(allparams_trial) / posterior(allparams_0);
 		rand_unif = runiform(0.0, 1.0);
@@ -2208,105 +2206,6 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 		}
 
 		accept_frac = (double) accept_count / (double)delta_count;
-		//printf("acceptance ratio: %f \t total: %i \n", accept_frac, delta_count);
-		
-		                                                                                                                                                                                        /*
-		if ((delta_count > 1000 + burncount) && (std::abs(accept_frac - 0.44) > 0.06)) {//tries new step sizes if acceptance frac is bad
-
-			delta_count = 0; //resets so that these big changes are only made after a number of drawn so that only large scale changes are analyzed
-			accept_count = 0;
-
-			//measure standard deviations from post-burn in data
-			std::vector <double> dev_data, devs;
-
-			for (int j = 0; j < M + 2; j++) {
-				for (int i = 0; i < 1000; i++) {
-					dev_data.push_back(result[burncount + i][j]);
-				}
-				//devs.push_back(2.38*stDevUnweighted(dev_data) / (M + 2));
-				devs.push_back(stDevUnweighted(dev_data)); 
-				dev_data.clear();
-			}
-
-			delta = devs; //make new delta based off of stdev of drawn data
-
-
-			printf("new delta:");
-			for (int j = 0; j < M + 2; j++) {
-				printf("%f ", delta[j]);
-			}
-			printf("acceptance ratio: %f", accept_frac);
-			std::cout << std::endl;
-
-
-
-			result.clear(); //clears the result since before the sampling was bad
-		}
-		*/
-
-		/*
-		if (delta_count > 500 && accept_frac < 0.40) {//deltas are too big
-			down_count += 1;
-
-			if (up_count >= 1) {
-				deltafactor *= 2.0;
-
-				if (deltafactor >= 10.0) {
-					deltafactor = 9.0;
-				}
-			}
-
-			printf("acceptance ratio: %f \t total: %i \n", accept_frac, delta_count);
-			delta_count = 0; //resets so that these big changes are only made after a number of drawn so that only large scale changes are analyzed
-			accept_count = 0;
-
-			for (int j = 0; j < M + 2; j++) {
-				delta[j] *= (0.1 * deltafactor);
-			}
-
-
-			printf("new delta:");
-			for (int j = 0; j < M + 2; j++) {
-				printf("%f ", delta[j]);
-			}
-			std::cout << std::endl;
-
-			
-
-			result.clear(); //clears the result since before the sampling was bad
-		}
-
-		else if (delta_count > 500 && accept_frac > 0.5) {//deltas are too small
-			up_count += 1;
-
-			if (down_count >= 1) {
-				deltafactor *= 2.0;
-
-				if (deltafactor >= 10.0) {
-					deltafactor = 9.0;
-				}
-			}
-
-			printf("acceptance ratio: %f \t total: %i \n", accept_frac, delta_count);
-			delta_count = 0; //resets so that these big changes are only made after a number of drawn so that only large scale changes are analyzed
-			accept_count = 0;
-
-			for (int j = 0; j < M + 2; j++) {
-				delta[j] *= (10.0 / deltafactor);
-			}
-
-			printf("new delta:");
-			for (int j = 0; j < M + 2; j++) {
-				printf("%f ", delta[j]);
-			}
-			std::cout << std::endl;
-
-			//deltafactor *= 2.0;
-
-			result.clear(); //clears the result since before the sampling was bad
-		}
-
-		*/
 	}
 
 	//cut off burn-in
@@ -2376,9 +2275,6 @@ std::vector <std::vector <double> > TRK::getHistogram(std::vector <double> data)
 	//making sure last bin goes to slightly above max
 	edges[bincount] = extrema[1] + extrema[1] *1e-9;
 
-	//std::vector <double> left = slice(edges, 0, edges.size() - 1);
-	//std::vector <double> right = slice(edges, 1, edges.size());
-
 	std::vector <double> bintemp;
 
 	for (int i = 0; i < bincount; i++) {
@@ -2410,6 +2306,8 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 	double bar;
 	double tolBar = 1e-6;
 
+	results.paramDistributionHistograms.clear();
+
 	for (int j = 0; j < M + 2; j++) { //for each model param plus slop
 		data.clear();
 
@@ -2418,6 +2316,9 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 		}
 
 		histResults = getHistogram(data); 
+
+		results.paramDistributionHistograms.push_back(histResults);
+
 		hist = histResults[0]; // each number in this is the number of samples within each bin
 		edges = histResults[1];
 
@@ -2455,9 +2356,6 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 
 				ratioIn = (double)aboveCount / (double)totalCount;
 
-				//printf("bisec: %f %f %f \t ratioIn: %f\n", low, bar, high, ratioIn);
-				//printf("%f \n", SIGMAS[sigNum]);
-
 				if (ratioIn < SIGMAS[sigNum]) { //bar too high
 					high = bar;
 				}
@@ -2471,8 +2369,6 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 			K = indicesIn.size();
 			leftBound = (edges[indicesIn[0]] + edges[indicesIn[0] + 1]) / 2.0;
 			rightBound = (edges[indicesIn[K - 1]] + edges[indicesIn[K - 1] + 1]) / 2.0;
-
-			//printf("left = %f, right = %f \n", leftBound, rightBound);
 
 			minusSig = leftBound - mean;
 			plusSig = rightBound - mean;
@@ -2497,27 +2393,30 @@ void TRK::calculateUncertainties() {
 
 	std::vector <std::vector <double >> allparam_samples = methastPosterior(R, burncount, allparams_sigmas_guess);
 
-	//std::string fileName = std::string("TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
+	if (outputDistributionToFile) {
 
-	//std::ofstream myfile;
-	//myfile.open(fileName, std::ofstream::trunc);
-	//if (myfile.is_open())
-	//{
-	//	// filename    a     b     optimum scale    total computation time (s)
-	//	for (int i = 0; i < allparam_samples.size(); i++) {
-	//		for (int j = 0; j < allparams_guess.size(); j++) {
-	//			myfile << allparam_samples[i][j] << " ";
-	//		}
-	//		myfile << std::endl;
-	//	}
+		std::string fileName = std::string("TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
 
-	//	myfile.close();
-	//}
-	//else std::cout << "Unable to open file";
+		std::ofstream myfile;
+		myfile.open(fileName, std::ofstream::trunc);
+		if (myfile.is_open())
+		{
+			// filename    a     b     optimum scale    total computation time (s)
+			for (int i = 0; i < allparam_samples.size(); i++) {
+				for (int j = 0; j < allparams_guess.size(); j++) {
+					myfile << allparam_samples[i][j] << " ";
+				}
+				myfile << std::endl;
+			}
+
+			myfile.close();
+		}
+		else std::cout << "Unable to open file";
+	}
 
 	std::cout << "Computing Uncertainties...\n";
 
-	allparam_uncertainties = lowerBar(allparam_samples); //for each parameter including slope, there is a vector containing 1 vector of +sigmas, 1 vector of -sigmas. This vector contains all of those 2-vectors.
+	allparam_uncertainties = lowerBar(allparam_samples); //for each parameter including slope, there is a vector containing 1 vector of -sigmas, 1 vector of +sigmas. This vector contains all of those 2-vectors.
 
 	results.bestFit_123Sigmas.clear();
 
@@ -2530,6 +2429,17 @@ void TRK::calculateUncertainties() {
 	return;
 }
 
+// PIVOT POINTS
+
+void TRK::findPivots() {
+	if (findPivotPoints) {
+
+	}
+	else {
+		return;
+	}
+}
+
 
 // CORE ALGORITHMS/TRK FITS
 
@@ -2540,6 +2450,19 @@ void TRK::performTRKFit() {//finds optimum scale AND performs TRK fit + uncertai
 }
 void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
 	s = scale;
+
+	results.bestFitParams.clear();
+
+	whichExtrema = S;
+	allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess, scale);
+	whichExtrema = none;
+
+	for (int j = 0; j < M; j++) {
+		results.bestFitParams.push_back(allparams_s[j]);
+	}
+
+	results.slop_x = allparams_s[M];
+	results.slop_y = allparams_s[M + 1];
 
 	calculateUncertainties();
 }
