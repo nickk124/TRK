@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "TRK.h"
 
+
+double TRK::pivot = 0.0;
+
 // PRIORS
 
 // Constructors
@@ -818,7 +821,7 @@ double TRK::modifiedChiSquared(std::vector <double> allparams, double s)
 
 		//double sec_elapsed = secElapsed(time);
 
-	} else {
+	} else if (cpp11MultiThread && !cpp17MultiThread) {
 		//cpp11 multithreading
 
 		int counter = 0, completedThreads = 0, liveThreads = 0;
@@ -862,6 +865,16 @@ double TRK::modifiedChiSquared(std::vector <double> allparams, double s)
 		}*/
 		
 	}
+	else {
+		for (int i = 0; i < N; i++)
+		{
+			std::vector <double> results;
+			results = tangentParallel(params, slop_x, slop_y, i, s); //pointer to fn run through MT, arguments to fn
+			all_x_t[i] = results[0];
+			sum1 += results[1];
+			sum2 += results[2];
+		}
+	}
 
 	switch (whichExtrema) {
 		case none:
@@ -870,16 +883,30 @@ double TRK::modifiedChiSquared(std::vector <double> allparams, double s)
 			x_t_s = all_x_t;
 			params_s = params;
 			break;
-		case slopx:
-			x_t_slopx = all_x_t;
-			params_slopx = params;
-			break;
-		case slopy:
-			x_t_slopy = all_x_t;
-			params_slopy = params;
-			break;
 		default:
 			break;
+	}
+
+	switch (whichExtremaX) {
+	case none:
+		break;
+	case slopx:
+		x_t_slopx = all_x_t;
+		params_slopx = params;
+		break;
+	default:
+		break;
+	}
+
+	switch (whichExtremaY) {
+	case none:
+		break;
+	case slopy:
+		x_t_slopy = all_x_t;
+		params_slopy = params;
+		break;
+	default:
+		break;
 	}
 
 	return sum1 - sum2;
@@ -975,7 +1002,7 @@ double TRK::likelihood(std::vector <double> allparams) {
 		//double sec_elapsed = secElapsed(time);
 
 	}
-	else {
+	else if (cpp11MultiThread && !cpp17MultiThread) {
 		//cpp11 multithreading
 
 		int counter = 0, completedThreads = 0, liveThreads = 0;
@@ -1005,6 +1032,15 @@ double TRK::likelihood(std::vector <double> allparams) {
 		{
 			results = futureVec[i].get();
 			all_x_t.push_back(results[0]);
+			L *= results[1];
+		}
+	}
+	else {
+		for (int i = 0; i < N; i++)
+		{
+			std::vector <double> results;
+			results = tangentParallelLikelihood(params, slop_x, slop_y, i); //pointer to fn run through MT, arguments to fn
+			all_x_t[i] = results[0];
 			L *= results[1];
 		}
 	}
@@ -1422,9 +1458,9 @@ double TRK::optimize_s_SlopX() {
 	while (true) {
 		c = (a + b) / 2;
 
-		whichExtrema = slopx;
+		whichExtremaX = slopx;
 		slop_c = innerSlopX_Simplex({ c }, iterative_allparams_guess);
-		whichExtrema = none;
+		whichExtremaX = none;
 
 		if (slop_c <= tol_bisect && slop_c > 0) { //convergence criterion
 			break;
@@ -1509,9 +1545,9 @@ double TRK::optimize_s_SlopY() {
 	while (true) {
 		c = (a + b) / 2;
 
-		whichExtrema = slopy;
+		whichExtremaY = slopy;
 		slop_c = innerSlopY_Simplex({ c }, iterative_allparams_guess);
-		whichExtrema = none;
+		whichExtremaY = none;
 
 		if ((slop_c <= tol_bisect && slop_c > 0)) { //convergence criterion
 			break;
@@ -1620,12 +1656,14 @@ double TRK::optimize_s0_R2() {
 
 	//bracket finding
 
-	double left, right;
+	double left, right, f_left;
 	
 	//bisection, now that we have brackets [left,right]
 
 	left = a;
 	right = b;
+
+	f_left = innerR2_Simplex({ a }, iterative_allparams_guess);
 
 	double c, f_c;
 	double tol_bisect = 1e-4;
@@ -1638,14 +1676,17 @@ double TRK::optimize_s0_R2() {
 		f_c = innerR2_Simplex({ c }, iterative_allparams_guess);
 		whichExtrema = none;
 
+		printf("%f %f \n", f_c, c);
+
 		if (std::abs(f_c) <= tol_bisect) { //convergence criterion
 			break;
 		}
 
-		if (f_c > 0) {
+		if (f_c * f_left > 0) {
 			left = c;
+			f_left = f_c;
 		}
-		else if (f_c < 0) {
+		else if (f_c * f_left < 0) {
 			right = c;
 		}
 
@@ -1664,7 +1705,9 @@ double TRK::optimize_s_prime_R2(double s0) {
 
 	//bracket finding
 
-	double left, right;
+	double left, right, f_left;
+
+	f_left = innerR2_iter_Simplex({ a }, iterative_allparams_guess, s0);
 
 	//bisection, now that we have brackets [left,right]
 
@@ -1676,6 +1719,7 @@ double TRK::optimize_s_prime_R2(double s0) {
 	double tol_brackets = 1e-3;
 
 	while (true) {
+		printf("brackets: %f %f \n", left, right);
 		c = (left + right) / 2;
 
 		whichExtrema = S;
@@ -1686,10 +1730,11 @@ double TRK::optimize_s_prime_R2(double s0) {
 			break;
 		}
 
-		if (f_c > 0) {
+		if (f_c * f_left > 0) {
 			left = c;
+			f_left = f_c;
 		}
-		else if (f_c < 0) {
+		else if (f_c * f_left < 0) {
 			right = c;
 		}
 
@@ -1754,6 +1799,8 @@ void TRK::optimizeScale() {
 	double s_slopx = s_slops[0];
 	double s_slopy = s_slops[1];
 
+	printf("%f %f \t %f %f\n", params_slopx[0], params_slopx[1], params_slopy[0], params_slopy[1]);
+
 	scale_extrema.push_back(s_slopx); //scale_extrema = {s_slopx, s_slopy}
 
 	scale_extrema.push_back(s_slopy);
@@ -1780,6 +1827,9 @@ void TRK::optimizeScale() {
 		params_a = params_slopy;
 		params_b = params_slopx;
 	}
+
+
+	printf("%f %f %f %f \n", x_t_a[0], x_t_b[0], params_a[0], params_b[0]);
 
 	//determine best s1 (new s) to satistfy R2TRKp(a,s) = R2TRKp(s,b)
 
@@ -2171,8 +2221,6 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 	int accept_count = 0;
 	int delta_count = 0;
 	double deltafactor = 1.0;
-	int down_count = 0;
-	int up_count = 0;
 
 	allparams_0 = allparams_guess;
 
@@ -2214,7 +2262,6 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 		result_final.push_back(result[i + burncount]);
 	}
 
-	printf("number of delta changes: %i \n", up_count + down_count);
 	printf("final delta:");
 	for (int j = 0; j < M + 2; j++) {
 		printf("%f ", delta[j]);
@@ -2433,7 +2480,7 @@ void TRK::calculateUncertainties() {
 
 void TRK::findPivots() {
 	if (findPivotPoints) {
-
+		std::vector <std::vector <double >> allparam_samples = methastPosterior(pivotR, burncount, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
 	}
 	else {
 		return;

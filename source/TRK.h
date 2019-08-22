@@ -74,9 +74,6 @@ class TRK
 		void performTRKFit(double scale); //perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
 		void performSimpleTRKFit(); //finds optimum scale and and performs TRK fit but without finding uncertainties
 
-		//pivot points
-		void findPivots();
-
 		//results
 		Results results;
 
@@ -91,7 +88,9 @@ class TRK
 
 		double s, s_sx, s_sy;
 		double a, b;
-		whichScaleExtrema whichExtrema;
+		whichScaleExtrema whichExtrema = none;			
+		whichScaleExtrema whichExtremaX = none;
+		whichScaleExtrema whichExtremaY = none;
 
 		//tolerances
 
@@ -176,6 +175,11 @@ class TRK
 		int R = 100000; //adjustable; could make accessible by users later
 		int burncount = 10000;
 
+		//pivot points
+		void findPivots();
+		int pivotR = 1000;
+		static double pivot;
+
 		// OTHER TOOLS
 		std::vector <double> minMax(std::vector <double> vec);
 		std::vector <double> slice(std::vector <double> vec, int l, int r);
@@ -183,7 +187,8 @@ class TRK
 
 		// SETTINGS
 		bool outputDistributionToFile = false;
-		bool cpp17MultiThread = false;
+		bool cpp17MultiThread = true;
+		bool cpp11MultiThread = true;
 		bool openMPMultiThread = false;
 		bool findPivotPoints = false;
 		int maxThreads = 8;
