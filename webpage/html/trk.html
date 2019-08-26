@@ -135,7 +135,7 @@
                                 <br>
                                 <button id="Exponential" class="Button Function" onclick="displayChosenFunction(this); displayBar(this);">y(x) = a<sub>0</sub>10<sup>a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>)</sup></button>
                                 <br>
-                                <button id="Logarithmic" class="Button Function" onclick="displayChosenFunction(this); displayBar(this);">y(x) = a<sub>0</sub>log(x/10<sup><span style="text-decoration:overline">log x</span></sup> )</button>
+                                <button id="Logarithmic" class="Button Function" onclick="displayChosenFunction(this); displayBar(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>log(x/10<sup><span style="text-decoration:overline">log x</span></sup> )</button>
                             </div>
                         </div>
                         <br>
@@ -436,8 +436,9 @@
 
     function logarithmic(x, params, bar){
       var a0 = params[0];
+	  var a1 = params[1];
 
-	    return a0 * Math.log10(x - bar);
+	    return a0 + a1 * Math.log10(x - bar);
     }
 
     function noOutput(){

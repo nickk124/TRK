@@ -8,11 +8,12 @@
 #include <random>
 #include <cfloat>
 #include <execution>
+#include <future>
+#include <functional>
+#include <thread>
 
 const double PI = 3.1415926535897932384626434;
 const std::vector <double> SIGMAS = { 0.682639, 0.954500, 0.997300 };
-
-const double PHI = (std::sqrt(5.0) + 1.0) / 2.0;
 
 enum whichScaleExtrema{ S, slopx, slopy, none };
 
@@ -22,7 +23,6 @@ class Priors
 {
 public:
 	//constructors:
-	//Priors(priorTypes priorType, std::vector <double>(*p)(std::vector <double>, std::vector <double>)); //custom priors
 	Priors(priorTypes priorType, std::vector < std::vector <double> > params); //Only Gaussian or only bounded/constrained
 	Priors(priorTypes priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds); //mixed
 	Priors(priorTypes priorType, std::vector <double(*)(double)> priorsPDFs); //custom
@@ -37,14 +37,15 @@ public:
 
 struct Results
 {
-public:
-	std::vector <double> bestFitParams;
-	double slop_x;
-	double slop_y;
-	double optimumScale, minimumScale, maximumScale;
-	std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
-	std::vector < std::vector <double> > slopX_123Sigmas;
-	std::vector < std::vector <double> > slopY_123Sigmas;
+	public:
+		std::vector <double> bestFitParams;
+		double slop_x;
+		double slop_y;
+		double optimumScale, minimumScale, maximumScale;
+		std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
+		std::vector < std::vector <double> > slopX_123Sigmas;
+		std::vector < std::vector <double> > slopY_123Sigmas;
+		std::vector < std::vector < std::vector <double> > > paramDistributionHistograms; // vector: {bins, edges}
 
 };
 
@@ -62,7 +63,7 @@ class TRK
 		TRK();
 
 		//dataset 
-		double N, M;
+		int N, M;
 		std::vector <double> SigXVec, SigYVec;
 		std::vector <double> x, y, sx, sy, w; //datapoints; errorbars
 		double datawidth, x_min, x_max;
@@ -73,21 +74,23 @@ class TRK
 		void performTRKFit(double scale); //perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
 		void performSimpleTRKFit(); //finds optimum scale and and performs TRK fit but without finding uncertainties
 
-
+		//results
 		Results results;
 
 		//simplex tools
 
 		std::vector <double> avoidNegativeSlop(std::vector <double> vertex, int n);
 		std::vector <double> pegToZeroSlop(std::vector <double> vertex);
-		double evalWPriors(double(TRK::*f)(std::vector <double>), std::vector <double> vertex);
+		double evalWPriors(double(TRK::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
 		double simplex_size = 0.1;
 
 		//scales
 
-		double s;
+		double s, s_sx, s_sy;
 		double a, b;
-		whichScaleExtrema whichExtrema;
+		whichScaleExtrema whichExtrema = none;			
+		whichScaleExtrema whichExtremaX = none;
+		whichScaleExtrema whichExtremaY = none;
 
 		//tolerances
 
@@ -103,18 +106,20 @@ class TRK
 		std::vector <double> allparams_guess, allparams_sigmas_guess;
 
 		//scale optimization
-		std::vector <double> downhillSimplex(double(TRK::*f)(std::vector <double>), std::vector <double> allparams_guess);
+		std::vector <double> downhillSimplex(double(TRK::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s);
 		double innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
 		double innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
 		double innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> allparams_guess, double s0);
 		double iterateR2_OptimumScale(double s0);
 
 		bool firstGuess = true;
-		double slopYScaleGuess, slopYGuess;
+		double slopYGuess;
+		double slopYScaleGuess = 1.0;
 		void getBetterSlopYGuess(double slop_y, double s);
 		void optimizeScale();
 		double optimize_s_SlopX();
 		double optimize_s_SlopY();
+		std::vector <double (TRK::*)()> optimizeList = {&TRK::optimize_s_SlopX, &TRK::optimize_s_SlopY};
 		double optimize_s0_R2();
 		double optimize_s_prime_R2(double s0);
 
@@ -133,20 +138,23 @@ class TRK
 		std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
 		double twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1);
 		double newtonRaphson(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess);
-		std::vector <double> cubicSolver(double A, double B, double C, double D);
+		std::vector <double> tangentCubicSolver(double A, double B, double C, double D);
 		double root_bound = 10;
+		std::vector <double> tangentParallel(std::vector<double> params, double slop_x, double slop_y, int n, double s);
 
 		//statistics
 		bool hasPriors;
 		Priors priorsObject;
 		double regularChiSquared(std::vector <double> params);
-		double modifiedChiSquared(std::vector <double> allparams);
+		double modifiedChiSquared(std::vector <double> allparams, double s);
 		double normal(double x, double mu, double sig);
 		double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn);
 		double likelihood(std::vector <double> allparams);
 		double priors(std::vector <double> allparams);
 		double posterior(std::vector <double> allparams);
 		double stDevUnweighted(std::vector <double> x);
+		std::vector <double> tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n);
+		double getMedian(std::vector<double> y);
 
 		//function pointers
 		double (*yc)(double, std::vector <double>);
@@ -168,16 +176,37 @@ class TRK
 		int R = 100000; //adjustable; could make accessible by users later
 		int burncount = 10000;
 
+		//pivot points
+		std::vector < std::vector <std::vector <double > > > NDcombos;
+		std::vector < std::vector <double> > NDcombination;
+		std::vector < std::vector <int> > combos_indices;
+		std::vector <int> combination_indices;
+		void getCombos(std::vector <std::vector <double> > total, int k, int offset);
+		void findPivots();
+		int pivotR = 200;
+		static double pivot;
+		double(*pf)(std::vector <double>, std::vector <double>); //pointer to pivotFunction: arguments of std::vector <double> params1, std::vector <double> params2
+
 		// OTHER TOOLS
-		std::vector <double> minMax(std::vector <double> vec);
 		std::vector <double> slice(std::vector <double> vec, int l, int r);
 		double getAverage(std::vector <double> x);
+
+		// SETTINGS
+		bool outputDistributionToFile = false;
+		bool cpp17MultiThread = true;
+		bool cpp11MultiThread = true;
+		bool openMPMultiThread = false;
+		bool findPivotPoints = false;
+		int maxThreads = 8;
 };
 
 double noPrior(double param);
 
+std::vector <double> minMax(std::vector <double> vec);
 
-//
+double twoPointNR(double(*y)(double, std::vector <double>), double(*dy)(double, std::vector <double>), double(*ddy)(double, std::vector <double>), std::vector <double> params, double xguess, double xguessp1);
+
+std::vector <double> cubicSolver(double A, double B, double C, double D);
 
 //for testing only
 

@@ -1,14 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\documents",
-    "\\Log10Normal",
-    "\\oldcode",
-    "\\source",
     "\\webpage",
     "\\webpage\\bokeh",
     "\\webpage\\html"
   ],
-  "SelectedNode": "\\webpage\\bokeh\\outputPlotTRK.py",
+  "SelectedNode": "\\webpage\\html\\trk.html",
   "PreviewInSolutionExplorer": false
 }
