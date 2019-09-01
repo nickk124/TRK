@@ -155,6 +155,7 @@ class TRK
 		double stDevUnweighted(std::vector <double> x);
 		std::vector <double> tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n);
 		double getMedian(std::vector<double> y);
+		double getMedian(int trueCount, std::vector<double> w, std::vector<double> y);
 
 		//function pointers
 		double (*yc)(double, std::vector <double>);
@@ -172,6 +173,8 @@ class TRK
 		std::vector <std::vector <std::vector <double> > >  lowerBar(std::vector <std::vector <double> > allparam_samples);
 		std::vector <std::vector <double> > getHistogram(std::vector <double> data);
 		void calculateUncertainties();
+		std::vector <double> allParamsFinalDeltas;
+		bool goodDeltasFound = false;
 
 		int R = 100000; //adjustable; could make accessible by users later
 		int burncount = 10000;
@@ -179,16 +182,22 @@ class TRK
 		//pivot points
 		std::vector < std::vector <std::vector <double > > > NDcombos;
 		std::vector < std::vector <double> > NDcombination;
-		std::vector < std::vector <int> > combos_indices;
-		std::vector <int> combination_indices;
 		void getCombos(std::vector <std::vector <double> > total, int k, int offset);
 		void findPivots();
-		int pivotR = 200;
+		int pivotR = 10000;
+		int randomSampleCount = 200;
+		int maxCombos = 100000;
 		static double pivot;
-		double(*pf)(std::vector <double>, std::vector <double>); //pointer to pivotFunction: arguments of std::vector <double> params1, std::vector <double> params2
+		//double(*pf)(std::vector <double>, std::vector <double>); //pointer to pivotFunction: arguments of std::vector <double> params1, std::vector <double> params2
+		double pivotTol = 1e-3;
+		double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot);
+		double pivotLinear(std::vector <double> params1, std::vector <double> params2);
+
+		bool getCombosFromSampleDirectly = true;
+		bool weightPivots = true;
+		bool writePivots = true;
 
 		// OTHER TOOLS
-		std::vector <double> slice(std::vector <double> vec, int l, int r);
 		double getAverage(std::vector <double> x);
 
 		// SETTINGS
@@ -198,6 +207,33 @@ class TRK
 		bool openMPMultiThread = false;
 		bool findPivotPoints = false;
 		int maxThreads = 8;
+};
+
+//global functions
+
+template <class vec>
+vec slice(vec v, int begin, int end) {
+	vec x;
+	int len = end - begin;
+
+	for (int i = 0; i < len; i++) {
+		x.push_back(v[begin + i]);
+	}
+
+	return x;
+};
+
+template <class BidiIter >
+BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
+	size_t left = std::distance(begin, end);
+	while (num_random--) {
+		BidiIter r = begin;
+		std::advance(r, rand() % left);
+		std::swap(*begin, *r);
+		++begin;
+		--left;
+	}
+	return begin;
 };
 
 double noPrior(double param);

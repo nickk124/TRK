@@ -36,25 +36,6 @@ double ddyC(double x, std::vector <double> params) {
 	return -1.0 * a0 * a1 * a1 * std::sin(a1 * x);
 }
 
-double linearFunc(double x, std::vector <double> params) {
-	double a0 = params[0];
-	double a1 = params[1];
-
-	return a0 + a1 * x;
-}
-
-double dLin(double x, std::vector <double> params) {
-	double a1 = params[1];
-
-	return a1;
-}
-
-double ddLin(double x, std::vector <double> params) {
-
-	return 0.0;
-}
-
-
 //c1 vs c2
 
 double c1c2(double c2, std::vector <double> params) {
@@ -73,6 +54,16 @@ double dc1c2(double c2, std::vector <double> params) {
 
 double ddc1c2(double c2, std::vector <double> params) {
 	return 0.0;
+}
+
+double pivotc1c2(std::vector <double> params1, std::vector <double> params2) {
+	double b1 = params1[0];
+	double t1 = params1[1];
+
+	double b2 = params2[0];
+	double t2 = params2[1];
+
+	return (b2 - b1) / (std::tan(t1) - std::tan(t2));
 }
 //BH vs c2
 
@@ -232,11 +223,11 @@ int main()
 
 	//filename = "bhc2_data.csv";
 	//filename = "rvc2_data.csv";
-	filename = "c1c2_data.csv";																									//**********
-	std::vector <std::vector <double> > data = getData(filename, 441);
+	//filename = "c1c2_data.csv";																									//**********
+	//std::vector <std::vector <double> > data = getData(filename, 441);
 
-	//filename = "simplelinear_data.csv";
-	//std::vector <std::vector <double> > data = getData(filename, 9);
+	filename = "simplelinear_data.csv";
+	std::vector <std::vector <double> > data = getData(filename, 9);
 
 	std::vector <double> x, y, sx, sy, w;
 
@@ -279,21 +270,21 @@ int main()
 
 	//std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };	//rvc2	
 	//std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };				//bhc2																					//**********
-	std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
-	//std::vector <double> params_guess = { 0.8, 1.0 };     //test lin
+	//std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
+	std::vector <double> params_guess = { 0.8, 1.0 };     //test lin
 
 	double slopx_guess = 0.3;																									//**********
 	double slopy_guess = 0.3;
 
-	//std::vector <double> testsigma_guess = { 0.212500, 0.106250}; //testlin
+	std::vector <double> testsigma_guess = { 0.212500, 0.106250}; //testlin
 	//std::vector <double> testsigma_guess = { 0.01, 0.005, 0.01, 0.01};  //bhc2/rvc2
-	std::vector <double> testsigma_guess = { 0.01, 0.005};  //c1c2
+	//std::vector <double> testsigma_guess = { 0.01, 0.005};  //c1c2
 
-	//double testslop_x_sigma_guess = 0.006250; //testlin
-	//double testslop_y_sigma_guess = 0.002500;
+	double testslop_x_sigma_guess = 0.006250; //testlin
+	double testslop_y_sigma_guess = 0.002500;
 
-	double testslop_x_sigma_guess = 0.0005; //bhc2/rvc2/c1c2
-	double testslop_y_sigma_guess = 0.0005;
+	//double testslop_x_sigma_guess = 0.0005; //bhc2/rvc2/c1c2
+	//double testslop_y_sigma_guess = 0.0005;
 
 	std::vector <double> allparams_guess = params_guess;
 
@@ -303,8 +294,8 @@ int main()
 
 	// constructors #############################################################################################################
 
-	//TRK TRKtest = TRK(linearFunc, dLin, ddLin, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
-	TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);															//**********
+	TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
+	//TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);															//**********
 	//TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, bhc2Priors);
 	//TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, rvc2Priors);
 	//TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
@@ -388,16 +379,38 @@ int main()
 
 	TRKtest.results.optimumScale = TRKtest.s;*/
 
+
+
+	// pivot point testing ##############################
+
+	/*std::vector <std::vector <double> > test = {{0,1}, {1,2}, {2,3}, {3,4}, {4,5} };
+
+	TRKtest.getCombos(test, 2, 0);
+
+	TRKtest.NDcombos;*/
+
 	// key algorithm testing #############################################################################################################
 
-	std::vector <double> testRoots = cubicSolver(2.6,6,3,0);
+	std::vector <std::vector <double> > test = { {0,1}, {1,2}, {2,3}, {3,4}, {4,5} };
+
+	TRKtest.getCombos(test, 2, 0);
+
+	TRKtest.NDcombos;
+
+	std::vector < std::vector < std::vector <double> > > drawnCombos;
+
+	random_unique(TRKtest.NDcombos.begin(), TRKtest.NDcombos.end(), 3);
+
+	TRKtest.findPivotPoints = true;
+	TRKtest.outputDistributionToFile = true;
+	TRKtest.performTRKFit(0.418573);
 
 
 	//TRKtest.outputDistributionToFile = true;
-	TRKtest.cpp17MultiThread = false;
+	/*TRKtest.cpp17MultiThread = false;
 	TRKtest.cpp11MultiThread = true;
 	TRKtest.outputDistributionToFile = true;
-	TRKtest.performTRKFit();
+	TRKtest.performTRKFit();*/
 
 	printf("Optimum scale: %f \n", TRKtest.results.optimumScale);
 	printf("Minimum scale: %f \n", TRKtest.results.minimumScale);

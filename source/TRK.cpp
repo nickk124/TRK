@@ -243,17 +243,6 @@ std::vector <double> minMax(std::vector <double> vec) {
 	return { min, max };
 }
 
-std::vector <double> TRK::slice(std::vector <double> vec, int begin, int end) {
-	std::vector <double> x;
-	int len = end - begin;
-
-	for (int i = 0; i < len; i++) {
-		x.push_back(vec[begin + i]);
-	}
-
-	return x;
-}
-
 std::vector <int> getSortedIndices(std::vector <double> x)
 {
 	std::vector<int> y(x.size());
@@ -1174,6 +1163,41 @@ double TRK::getMedian(std::vector<double> y)
 
 }
 
+double TRK::getMedian(int trueCount, std::vector<double> w, std::vector<double> y)
+{
+	size_t sumCounter = 0;
+	double median = 0, totalSum = 0, runningSum = 0;
+	for (int i = 0; i < trueCount; i++)
+	{
+		totalSum += w[i];
+	}
+	if (trueCount > 1)
+	{
+		runningSum = w[sumCounter] * .5;
+		while (runningSum < .5*totalSum)
+		{
+			sumCounter++;
+			runningSum += w[sumCounter - 1] * .5 + w[sumCounter] * .5;
+		}
+		if (sumCounter == 0)
+		{
+			median = y[0];
+			std::cout << median << std::endl;
+		}
+		else
+		{
+			median = y[sumCounter - 1] + (.5*totalSum - (runningSum - (w[sumCounter - 1] * .5 + w[sumCounter] * .5))) / (w[sumCounter - 1] * .5 + w[sumCounter] * .5)*(y[sumCounter] - y[sumCounter - 1]);
+			std::cout << median << std::endl;
+		}
+	}
+	else
+	{
+		median = y[0];
+		std::cout << median << std::endl;
+	}
+	return median;
+}
+
 // TANGENT-POINT ALGORITHMS
 std::vector <double> TRK::approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1) {
 	//using board derivation notation:
@@ -1979,7 +2003,6 @@ std::vector <double> TRK::pegToNonZeroDelta(std::vector <double> vertex, std::ve
 	return vertexfixed;
 }
 
-
 std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess) {
 	double tol = 0.05;
 	double optRatio = 0.45;
@@ -2216,6 +2239,11 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 
 	best_delta = vertices[n];
 
+
+	allParamsFinalDeltas = best_delta;
+
+	goodDeltasFound = true;
+
 	return best_delta;
 }
 
@@ -2232,7 +2260,12 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 
 	//optimize deltas
 
-	delta = optimizeMetHastDeltas(burncount, sigmas_guess);
+	if (!goodDeltasFound) {
+		delta = optimizeMetHastDeltas(burncount, sigmas_guess);
+	}
+	else if (goodDeltasFound) {
+		delta = allParamsFinalDeltas;
+	}
 
 	printf("final delta:");
 
@@ -2507,45 +2540,132 @@ void TRK::calculateUncertainties() {
 void TRK::getCombos(std::vector <std::vector <double> > total, int k, int offset) { //ND case in x
 
 	if (k == M) {
-
 		NDcombos.clear();
-		combos_indices.clear();
 	}
 	if (k == 0) {
 		NDcombos.push_back(NDcombination);
-		combos_indices.push_back(combination_indices);
 		return;
 	}
-	for (int i = offset; i <= N - k; ++i) {
+	for (int i = offset; i <= total.size() - k; ++i) {
 		NDcombination.push_back(total[i]);
-		combination_indices.push_back(i);
 		getCombos(total, k - 1, i + 1);
 		NDcombination.pop_back();
-		combination_indices.pop_back();
 	}
+}
+
+double TRK::pivotLinear(std::vector <double> params1, std::vector <double> params2) {
+	double a01 = params1[0];
+	double a11 = params1[1];
+
+	double a02 = params2[0];
+	double a12 = params2[1];
+
+	return (a02 - a01) / (a11 - a12);
+}
+
+double TRK::weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot) {
+	std::vector <double> squares(oldPivots.size(), 0.0);
+	double w;
+
+	for (int i = 0; i < oldPivots.size(); i++) {
+		squares[i] = std::pow(newPivot - oldPivots[i], 2.0);
+	}
+
+	double avg = getAverage(squares);
+
+	w = std::pow(avg / std::pow(params2[1] - params1[1], 2.0) + std::pow(params1[0] - params2[0], 2.0) / std::pow(params2[1] - params1[1], 4.0), -1.0);
+
+	return w;
 }
 
 void TRK::findPivots() {
 	if (findPivotPoints) {
-		std::vector <std::vector <double >> allparam_samples = methastPosterior(pivotR, burncount, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
-	
-		std::vector < std::vector <double> > param_samples;
-		std::vector <double> pivots;
-		double finalPivot;
+		std::vector < std::vector <double > > allparam_samples;
+		std::vector < std::vector <double> > param_samples(pivotR, { 0.0, 0.0 });
+		std::vector < std::vector < std::vector <double> > > drawnCombos;
+		std::vector <double> pivots, pivotWeights;
+		std::vector <double> oldPivots((int)(randomSampleCount*(randomSampleCount - 1)) / 2, pivot);
+		double finalPivot, onePivot;
+		int iter = 0;
 
-		for (int j = 0; j < allparam_samples.size(); j++) {
-			param_samples.push_back(slice(allparam_samples[j], 0, M));
+		while (true) {
+
+			pivots.clear();
+			pivotWeights.clear();
+
+			allparam_samples = methastPosterior(pivotR, burncount, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
+
+			for (int j = 0; j < allparam_samples.size(); j++) {
+				param_samples[j] = slice(allparam_samples[j], 0, M);
+			}
+
+			if (!getCombosFromSampleDirectly) {
+				random_unique(param_samples.begin(), param_samples.end(), randomSampleCount);
+
+				param_samples = slice(param_samples, 0, randomSampleCount);
+
+				getCombos(param_samples, 2, 0); //generates all 2-combos of the parameter space data points
+
+				drawnCombos = NDcombos;
+			}
+			else {
+				blah blah blah
+			}
+
+			for (int j = 0; j < drawnCombos.size(); j++) {
+				onePivot = pivot + pivotLinear(drawnCombos[j][0], drawnCombos[j][1]);
+				if (!std::isnan(onePivot)) {
+					pivots.push_back(onePivot);
+					//std::cout << onePivot << std::endl;
+				}
+			}
+
+			if (weightPivots) {
+				for (int i = 0; i < pivots.size(); i++) {
+					pivotWeights.push_back(weightPivot(drawnCombos[i][0], drawnCombos[i][1], oldPivots, pivots[i]));
+				}
+			}
+			else {
+				pivotWeights = std::vector <double>(pivots.size(), 1.0);
+			}
+
+			finalPivot = getMedian(pivots.size(), pivotWeights, pivots);
+
+			if (writePivots) {
+
+				std::string filename = std::string("TRKpivots") + std::to_string(iter) + std::string(".txt");
+
+				std::ofstream myfile(filename, std::ofstream::app);
+				if (myfile.is_open())
+				{
+					for (int i = 0; i < pivots.size(); i++) {
+						myfile << pivots[i] << "\n";
+					}
+
+					//myfile << "final pivot: " << finalPivot << "\n\n\n\n\n";
+
+					myfile.close();
+				}
+				else std::cout << "Unable to open file";
+			}
+
+			printf("new pivot: %f \n", finalPivot);
+
+			if (std::abs(finalPivot - pivot) < pivotTol) {
+				printf("new, old = %f \t %f \n", finalPivot, pivot);
+				break;
+			}
+
+			iter += 1;
+
+			pivot = finalPivot;
+
+			oldPivots = pivots;
 		}
 
-		getCombos(param_samples, 2, 0); //generates all 2-combos of the parameter space data points
+		//printf("pivot point: %f \n", pivot);
 
-		for (int j = 0; j < NDcombos.size(); j++) {
-			pivots.push_back(pf(NDcombos[j][0], NDcombos[j][1]));
-		}
-
-		finalPivot = getMedian(pivots);
-
-		pivot = finalPivot;
+		return;
 	
 	}
 	else {
@@ -2559,10 +2679,15 @@ void TRK::findPivots() {
 void TRK::performTRKFit() {//finds optimum scale AND performs TRK fit + uncertainty
 	optimizeScale();
 
+	findPivots();
+
 	calculateUncertainties();
 }
+
 void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
 	s = scale;
+
+	findPivots();
 
 	results.bestFitParams.clear();
 
@@ -2579,8 +2704,11 @@ void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for
 
 	calculateUncertainties();
 }
+
 void TRK::performSimpleTRKFit() {//finds optimum scale and and performs TRK fit but without finding uncertainties
 	optimizeScale(); // (stores results in TRK.results)
+
+	findPivots();
 
 	return;
 }
