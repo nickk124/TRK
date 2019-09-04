@@ -403,9 +403,13 @@ int main()
 //
 //    random_unique(TRKtest.NDcombos.begin(), TRKtest.NDcombos.end(), 3);
     
-    TRKtest.openMPMultiThread = true;
+    //TRKtest.openMPMultiThread = true;
 	TRKtest.findPivotPoints = true;
-	TRKtest.outputDistributionToFile = true;
+	TRKtest.writePivots = true;
+    
+    TRKtest.getCombosFromSampleDirectly = true;
+    TRKtest.weightPivots = true;
+    
 	TRKtest.performTRKFit(0.418573);
 
 

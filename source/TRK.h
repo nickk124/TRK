@@ -156,6 +156,7 @@ class TRK
 		std::vector <double> tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n);
 		double getMedian(std::vector<double> y);
 		double getMedian(int trueCount, std::vector<double> w, std::vector<double> y);
+        double getAverage(std::vector <double> x, std::vector <double> w);
 
 		//function pointers
 		double (*yc)(double, std::vector <double>);

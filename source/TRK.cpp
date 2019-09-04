@@ -282,13 +282,26 @@ void TRK::getDataWidth() {
 
 double TRK::getAverage(std::vector <double> x) {
 	double top = 0.0;
-	N = x.size();
+	unsigned long N = x.size();
 
 	for (int i = 0; i < N; i++) {
 		top += x[i];
 	}
 
 	return top / N;
+}
+
+double TRK::getAverage(std::vector <double> x, std::vector <double> w) {
+    double top = 0.0;
+    double bottom = 0.0;
+    unsigned long N = x.size();
+    
+    for (int i = 0; i < N; i++) {
+        top += x[i]*w[i];
+        bottom += w[i];
+    }
+    
+    return top / bottom;
 }
 
 // FITTING TOOLS
@@ -2020,6 +2033,13 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 	// simplex initialization
 
 	std::vector <double> init_point = delta_guess;
+    
+    printf("initial delta:");
+    
+    for (int j = 0; j < M + 2 ; j++) {
+        printf("%f ", delta_guess[j]);
+    }
+    std::cout << std::endl;
 
 	std::vector <std::vector <double> > vertices(n + 1, init_point);
 	std::vector <double> best_delta;
@@ -2257,9 +2277,6 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 
 	best_delta = vertices[n];
 
-
-	allParamsFinalDeltas = best_delta;
-
 	return best_delta;
 }
 
@@ -2267,29 +2284,26 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 	
 	//initialization of adaptive delta
 	std::vector <double> delta;
-	printf("initial delta:");
-
-	for (int j = 0; j < M + 2 ; j++) {
-		printf("%f ", sigmas_guess[j]);
-	}
-	std::cout << std::endl;
 
 	//optimize deltas
 
 	if (!goodDeltasFound) {
 		delta = optimizeMetHastDeltas(burncount, sigmas_guess);
+        
+        allParamsFinalDeltas = delta;
+        
+        printf("final delta:");
+        
+        for (int j = 0; j < M + 2; j++) {
+            printf("%f ", delta[j]);
+        }
+        std::cout << std::endl;
+        
         goodDeltasFound = true;
 	}
 	else if (goodDeltasFound) {
 		delta = allParamsFinalDeltas;
 	}
-
-	printf("final delta:");
-
-	for (int j = 0; j < M + 2; j++) {
-		printf("%f ", delta[j]);
-	}
-	std::cout << std::endl;
 
 	std::vector < std::vector <double > > result, result_final;
 	std::vector <double> allparams_trial, allparams_0; //allparams_0 is the previous step
@@ -2342,7 +2356,7 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 	for (int j = 0; j < M + 2; j++) {
 		printf("%f ", delta[j]);
 	}
-	printf("\t final acceptance ratio: %f \n", accept_frac);
+	printf("\t final full MCMC acceptance ratio: %f \n", accept_frac);
 
 	result_final = checkSlopSignMCMC(result_final);
 
@@ -2673,17 +2687,18 @@ void TRK::findPivots() {
             pivots = finalPivots;
             pivotWeights = finalWeights;
 
-			finalPivot = getMedian((int) pivots.size(), pivotWeights, pivots);
+            //finalPivot = getMedian((int) pivots.size(), pivotWeights, pivots);
+            finalPivot = getAverage(pivots, pivotWeights);
 
 			if (writePivots) {
 
-                std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo/diagnostics/") + std::string("TRKpivots") + std::to_string(iter) + std::string(".txt");
+                std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo/diagnostics/") + std::string("TRKpivots") + (getCombosFromSampleDirectly ? "1" : "0") + (weightPivots ? "1_" : "0_") + std::to_string(iter) + std::string("_") + std::to_string(finalPivot) + std::string(".txt");
 
-				std::ofstream myfile(filename, std::ofstream::app);
+				std::ofstream myfile(filename, std::ofstream::trunc);
 				if (myfile.is_open())
 				{
 					for (int i = 0; i < pivots.size(); i++) {
-						myfile << pivots[i] << "\n";
+						myfile << pivots[i] << " " << pivotWeights[i] << "\n";
 					}
 
 					//myfile << "final pivot: " << finalPivot << "\n\n\n\n\n";
@@ -2693,10 +2708,12 @@ void TRK::findPivots() {
 				else std::cout << "Unable to open file";
 			}
 
-			printf("new pivot: %f \n", finalPivot);
+			printf("new, old = %f \t %f \n", finalPivot, pivot);
 
 			if (std::abs(finalPivot - pivot) < pivotTol) {
-				printf("new, old = %f \t %f \n", finalPivot, pivot);
+                
+                pivot = finalPivot;
+                iter += 1;
 				break;
 			}
 
@@ -2707,7 +2724,7 @@ void TRK::findPivots() {
 			oldPivots = pivots;
 		}
 
-		//printf("pivot point: %f \n", pivot);
+		printf("final pivot point: %f \n", pivot);
 
 		return;
 	

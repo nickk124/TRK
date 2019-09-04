@@ -23,46 +23,26 @@ def main():
 
 	parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
 	parser.add_argument("name", type=str, help="filename")
-	parser.add_argument("i0", type=int, help="index of first model param")
-	parser.add_argument("i1", type=int, help="index of second model param")
-	#parser.add_argument("a0fit", type=float, help="best fit param 1")
-	#parser.add_argument("a1fit", type=float, help="best fit param 2")
+	parser.add_argument("bound", type=str, help="+- bound")
 
 	args = parser.parse_args()
 	filename = args.name
-	i0 = args.i0
-	i1 = args.i1
-	#a0fit = args.a0fit
-	#a1fit = args.a1fit
-
+	bound = float(args.bound)
 
 	df = pd.read_csv(filename, sep=" ", header=None)
 	ar = df.values
 	ar = np.transpose(ar)
 
-	a0 = ar[i0]
-	a1 = ar[i1]
+	data = ar[0]
+	w = ar[1]
 	
-	R = a0.size
+	R = data.size
 	bincount = np.int(np.sqrt(float(R)))
-	hist, xe, ye = np.histogram2d(a0, a1, [bincount, bincount], normed=False)
 	
 	plt.figure(num=1,figsize=(12,6),dpi=100,facecolor='white')
-	plt.subplot(223)
-	plt.imshow(hist, cmap="binary", norm=colors.LogNorm(), interpolation='nearest', origin='low', aspect="auto", extent=[xe[0], xe[-1], ye[0], ye[-1]])
-	# plt.plot(a0fit, a1fit, color="red")
-	plt.xlabel("a0")
-	plt.ylabel("a1")
-	plt.title("Parameter Space plot")
-	
-	plt.subplot(221)
-	n, bins, patches = plt.hist(a0, bincount, density=True, facecolor='b', alpha=0.75)
-	plt.xlabel("a0")
-	
-	plt.subplot(222)
-	n, bins, patches = plt.hist(a1, bincount, density=True, facecolor='r', alpha=0.75)
-	plt.xlabel("a1")
-	
+
+	plt.hist(data, bins=bincount, range = (-bound, bound), weights = w, facecolor='b', alpha=0.75)#, log=True)
+
 	plt.show()
 	
 		
