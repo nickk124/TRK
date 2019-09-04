@@ -7,7 +7,7 @@
 #include <string>
 #include <random>
 #include <cfloat>
-#include <execution>
+//#include <execution>
 #include <future>
 #include <functional>
 #include <thread>
@@ -63,7 +63,7 @@ class TRK
 		TRK();
 
 		//dataset 
-		int N, M;
+		unsigned long N, M;
 		std::vector <double> SigXVec, SigYVec;
 		std::vector <double> x, y, sx, sy, w; //datapoints; errorbars
 		double datawidth, x_min, x_max;
@@ -79,7 +79,7 @@ class TRK
 
 		//simplex tools
 
-		std::vector <double> avoidNegativeSlop(std::vector <double> vertex, int n);
+		std::vector <double> avoidNegativeSlop(std::vector <double> vertex, unsigned long n);
 		std::vector <double> pegToZeroSlop(std::vector <double> vertex);
 		double evalWPriors(double(TRK::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
 		double simplex_size = 0.1;
@@ -178,6 +178,8 @@ class TRK
 
 		int R = 100000; //adjustable; could make accessible by users later
 		int burncount = 10000;
+        double best_ratio = 0.45;
+        double simplexSuperShrink = 1e-3;
 
 		//pivot points
 		std::vector < std::vector <std::vector <double > > > NDcombos;
@@ -192,6 +194,7 @@ class TRK
 		double pivotTol = 1e-3;
 		double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot);
 		double pivotLinear(std::vector <double> params1, std::vector <double> params2);
+        std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
 
 		bool getCombosFromSampleDirectly = true;
 		bool weightPivots = true;
@@ -202,7 +205,7 @@ class TRK
 
 		// SETTINGS
 		bool outputDistributionToFile = false;
-		bool cpp17MultiThread = true;
+		bool cpp17MultiThread = false;
 		bool cpp11MultiThread = true;
 		bool openMPMultiThread = false;
 		bool findPivotPoints = false;

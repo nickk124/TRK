@@ -1,4 +1,4 @@
-#include "pch.h"
+//#include "pch.h"
 #include "exampleModels.h"
 #include <fstream>
 #include <sstream>
@@ -170,8 +170,8 @@ std::vector <std::vector <double > > getData(std::string fileName, int dataSize)
 		{
 			std::string val;
 			std::getline(iss, val, ',');
-			if (!iss.good())
-				break;
+//            if (!iss.good())
+//                break;
 
 			std::stringstream convertor(val);
 			convertor >> rawData[col][row];
@@ -227,6 +227,8 @@ int main()
 	//std::vector <std::vector <double> > data = getData(filename, 441);
 
 	filename = "simplelinear_data.csv";
+    
+    filename = "/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/" + filename;
 	std::vector <std::vector <double> > data = getData(filename, 9);
 
 	std::vector <double> x, y, sx, sy, w;
@@ -243,7 +245,7 @@ int main()
 
 	typedef double (TRK::*TRKMemFn)(std::vector <double> params, double s); //here, TRKMemFn is the name of the type. A pointer of this type points to a member of a TRK object that has those specific input and output
 
-	TRKMemFn p = &TRK::modifiedChiSquared;
+	//TRKMemFn p = &TRK::modifiedChiSquared;
 
 
 	// pivot points #############################################################################################################
@@ -271,17 +273,17 @@ int main()
 	//std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };	//rvc2	
 	//std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };				//bhc2																					//**********
 	//std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
-	std::vector <double> params_guess = { 0.8, 1.0 };     //test lin
+	std::vector <double> params_guess = { 0.89, 1.04};     //test lin
 
 	double slopx_guess = 0.3;																									//**********
 	double slopy_guess = 0.3;
 
-	std::vector <double> testsigma_guess = { 0.212500, 0.106250}; //testlin
+	std::vector <double> testsigma_guess = { 0.26, 0.13}; //testlin
 	//std::vector <double> testsigma_guess = { 0.01, 0.005, 0.01, 0.01};  //bhc2/rvc2
 	//std::vector <double> testsigma_guess = { 0.01, 0.005};  //c1c2
 
-	double testslop_x_sigma_guess = 0.006250; //testlin
-	double testslop_y_sigma_guess = 0.002500;
+	double testslop_x_sigma_guess = 0.07700; //testlin
+	double testslop_y_sigma_guess = 0.01500;
 
 	//double testslop_x_sigma_guess = 0.0005; //bhc2/rvc2/c1c2
 	//double testslop_y_sigma_guess = 0.0005;
@@ -390,17 +392,18 @@ int main()
 	TRKtest.NDcombos;*/
 
 	// key algorithm testing #############################################################################################################
-
-	std::vector <std::vector <double> > test = { {0,1}, {1,2}, {2,3}, {3,4}, {4,5} };
-
-	TRKtest.getCombos(test, 2, 0);
-
-	TRKtest.NDcombos;
-
-	std::vector < std::vector < std::vector <double> > > drawnCombos;
-
-	random_unique(TRKtest.NDcombos.begin(), TRKtest.NDcombos.end(), 3);
-
+    
+//    std::vector <std::vector <double> > test = { {0,1}, {1,2}, {2,3}, {3,4}, {4,5} };
+//
+//    TRKtest.getCombos(test, 2, 0);
+//
+//    //TRKtest.NDcombos;
+//
+//    std::vector < std::vector < std::vector <double> > > drawnCombos;
+//
+//    random_unique(TRKtest.NDcombos.begin(), TRKtest.NDcombos.end(), 3);
+    
+    TRKtest.openMPMultiThread = true;
 	TRKtest.findPivotPoints = true;
 	TRKtest.outputDistributionToFile = true;
 	TRKtest.performTRKFit(0.418573);

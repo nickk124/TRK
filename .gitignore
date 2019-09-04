@@ -6,3 +6,7 @@
 /.vs/TRK/v15/Browse.VC.opendb
 *.pdf
 *.ipch
+/TRK
+/.vs
+/source/TRK
+/.vscode

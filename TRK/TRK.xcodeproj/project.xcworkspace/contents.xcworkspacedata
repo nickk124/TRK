@@ -4,4 +4,191 @@
    <FileRef
       location = "self:TRK.xcodeproj">
    </FileRef>
+   <Group
+      location = "group:../.."
+      name = "..">
+      <FileRef
+         location = "group:pch.h">
+      </FileRef>
+      <FileRef
+         location = "group:TRKtesting.xlsm">
+      </FileRef>
+      <FileRef
+         location = "group:TRKtesting.cpp">
+      </FileRef>
+      <Group
+         location = "group:oldcode"
+         name = "oldcode">
+         <FileRef
+            location = "group:rvc2_data.csv">
+         </FileRef>
+         <FileRef
+            location = "group:bhc2_data.csv">
+         </FileRef>
+         <FileRef
+            location = "group:c1c2_data.csv">
+         </FileRef>
+         <FileRef
+            location = "group:c1c2_f.xlsx">
+         </FileRef>
+         <FileRef
+            location = "group:readme.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRF.cpp">
+         </FileRef>
+      </Group>
+      <Group
+         location = "group:source"
+         name = "source">
+         <FileRef
+            location = "group:TRK.cpp">
+         </FileRef>
+         <FileRef
+            location = "group:exampleModels.h">
+         </FileRef>
+         <FileRef
+            location = "group:readme.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRK.h">
+         </FileRef>
+         <FileRef
+            location = "group:exampleModels.cpp">
+         </FileRef>
+      </Group>
+      <FileRef
+         location = "group:README.md">
+      </FileRef>
+      <FileRef
+         location = "group:pch.cpp">
+      </FileRef>
+      <Group
+         location = "group:diagnostics"
+         name = "diagnostics">
+         <FileRef
+            location = "group:TRKMCMC_5.000000_100000.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKMCMC_0.800000_100000.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKtangents.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKMCMC_0.800000_200000.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKpivots1.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKpivots0.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKMCMC.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKMCMC_0.800000_1000000.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKpivots2.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKpivots3.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKpivots6.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKpivots4.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKpivots5.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKMCMC_data.txt">
+         </FileRef>
+         <FileRef
+            location = "group:TRKMCMC_0.800000_50000.txt">
+         </FileRef>
+         <FileRef
+            location = "group:MCMChistogram.py">
+         </FileRef>
+      </Group>
+      <Group
+         location = "group:documents"
+         name = "documents">
+         <FileRef
+            location = "group:twopointNR.pdf">
+         </FileRef>
+         <FileRef
+            location = "group:readme.txt">
+         </FileRef>
+      </Group>
+      <Group
+         location = "group:Log10Normal"
+         name = "Log10Normal">
+         <FileRef
+            location = "group:ignore.txt">
+         </FileRef>
+         <FileRef
+            location = "group:log10normal.xlsx">
+         </FileRef>
+      </Group>
+      <FileRef
+         location = "group:TRK.xcodeproj">
+      </FileRef>
+      <Group
+         location = "group:webpage"
+         name = "webpage">
+         <Group
+            location = "group:bokeh"
+            name = "bokeh">
+            <FileRef
+               location = "group:outputPlotTRK.html">
+            </FileRef>
+            <FileRef
+               location = "group:inputPlotTRK.py">
+            </FileRef>
+            <FileRef
+               location = "group:inputPlotTRK.html">
+            </FileRef>
+            <FileRef
+               location = "group:outputPlotTRK.py">
+            </FileRef>
+            <FileRef
+               location = "group:outputHistogramTRK.html">
+            </FileRef>
+            <FileRef
+               location = "group:outputHistogramTRK.py">
+            </FileRef>
+         </Group>
+         <Group
+            location = "group:html"
+            name = "html">
+            <FileRef
+               location = "group:trk.html">
+            </FileRef>
+         </Group>
+         <Group
+            location = "group:static"
+            name = "static">
+            <FileRef
+               location = "group:NoScaleNoMCMC.png">
+            </FileRef>
+            <FileRef
+               location = "group:YesScaleNoMCMC.png">
+            </FileRef>
+            <FileRef
+               location = "group:YesScaleYesMCMC.png">
+            </FileRef>
+            <FileRef
+               location = "group:NoScaleYesMCMC.png">
+            </FileRef>
+         </Group>
+         <FileRef
+            location = "group:readme.txt">
+         </FileRef>
+      </Group>
+   </Group>
 </Workspace>

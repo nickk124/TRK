@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "TRK.h"
 
 
@@ -257,7 +256,7 @@ std::vector <int> getSortedIndices(std::vector <double> x)
 }
 
 std::vector <double> TRK::findCentroid(std::vector <std::vector <double> > nvertices) {
-	int n = nvertices.size();
+	unsigned long n = nvertices.size();
 
 	std::vector <double> centroid;
 
@@ -353,7 +352,9 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 		
 		if (yk * ykm1 < 0) { //checks if xk and xkm1 can be used as bisection brackets
 
-			double c, f_c, f_left, left, right;
+            double c, f_c, f_left;
+            double left = 0.0;
+            double right = 1.0;
 			double tol_brackets = 1e-9;
 
 			if (xk < xkm1) {
@@ -416,7 +417,7 @@ std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex){
 	return vertex;
 }
 
-std::vector <double> TRK::avoidNegativeSlop(std::vector <double> vertex, int n) {
+std::vector <double> TRK::avoidNegativeSlop(std::vector <double> vertex, unsigned long n) {
 
 	for (int k = 0; k < 2; k++) {
 		if (vertex[n - 2 + k] < 0) {
@@ -431,38 +432,41 @@ std::vector <double> TRK::avoidNegativeSlop(std::vector <double> vertex, int n) 
 double TRK::evalWPriors(double(TRK::*f)(std::vector <double>, double), std::vector <double> vertex, double s) {
 	if (hasPriors) {
 		switch (priorsObject.priorType) {
+            case CUSTOM:
+                break;
+            case GAUSSIAN:
+                break;
+            case CONSTRAINED:
 
-		case CONSTRAINED:
+                for (int i = 0; i < M; i++) { //check upper bound
+                    double ub = priorsObject.paramBounds[i][1];
+                    double lb = priorsObject.paramBounds[i][0];
 
-			for (int i = 0; i < M; i++) { //check upper bound
-				double ub = priorsObject.paramBounds[i][1];
-				double lb = priorsObject.paramBounds[i][0];
+                    if (vertex[i] >= ub && !std::isnan(ub)) {
+                        return DBL_MAX;
+                    }
 
-				if (vertex[i] >= ub && !std::isnan(ub)) {
-					return DBL_MAX;
-				}
+                    if (vertex[i] <= lb && !std::isnan(lb)) {
+                        return DBL_MAX;
+                    }
+                }
+                break;
 
-				if (vertex[i] <= lb && !std::isnan(lb)) {
-					return DBL_MAX;
-				}
-			}
-			break;
+            case MIXED:
 
-		case MIXED:
+                for (int i = 0; i < M; i++) { //check upper bound
+                    double ub = priorsObject.paramBounds[i][1];
+                    double lb = priorsObject.paramBounds[i][0];
 
-			for (int i = 0; i < M; i++) { //check upper bound
-				double ub = priorsObject.paramBounds[i][1];
-				double lb = priorsObject.paramBounds[i][0];
+                    if (vertex[i] >= ub && !std::isnan(ub)) {
+                        return DBL_MAX;
+                    }
 
-				if (vertex[i] >= ub && !std::isnan(ub)) {
-					return DBL_MAX;
-				}
-
-				if (vertex[i] <= lb && !std::isnan(lb)) {
-					return DBL_MAX;
-				}
-			}
-			break;
+                    if (vertex[i] <= lb && !std::isnan(lb)) {
+                        return DBL_MAX;
+                    }
+                }
+                break;
 		}
 	}
 
@@ -473,13 +477,13 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>, 
 
 	double tol = simplexTol;
 
-	int n = allparams_guess.size(); //number of model parameters plus two slop parameters
+	unsigned long n = allparams_guess.size(); //number of model parameters plus two slop parameters
 
-	double rho = 1.0;
-	double chi = 2.0;
-	double gamma = 0.5;
-	double sigma = 0.5;
-
+    double rho = 1.0; //reflection
+    double chi = 2.0; //expansion
+    double gamma = 0.5; //contraction
+    double sigma = 0.5; //shrinkage
+    
 	// simplex initialization
 
 	std::vector <double> init_point = allparams_guess;
@@ -681,8 +685,6 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>, 
 	fitted_params = avoidNegativeSlop(fitted_params, n);
 
 	return fitted_params;
-
-	std::cout << std::endl << std::endl;
 }
 
 std::vector <double> TRK::tangentCubicSolver(double A, double B, double C, double D) {
@@ -694,7 +696,6 @@ std::vector <double> TRK::tangentCubicSolver(double A, double B, double C, doubl
 	double Q = (a1 * a1 - 3.0 * a2) / 9.0;
 	double R = (2.0 * a1 * a1 * a1 - 9.0 * a1 * a2 + 27.0 * a3) / 54.0;
 	double Qc = std::pow(Q, 3.0);
-	double d = Qc - std::pow(R, 2.0);
 
 	double theta = std::acos(R / sqrt(Qc));
 
@@ -763,38 +764,38 @@ double TRK::modifiedChiSquared(std::vector <double> allparams, double s)
 
 	if (cpp17MultiThread) {
 
-		std::vector <int> nn;
-
-		for (int n = 0; n < N; n++) {
-			nn.push_back(n);
-		}
-
-		for (int n = 0; n < N; n++) {
-			SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
-			SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
-		}
-
-		std::for_each( //parallel tangent point finding
-			std::execution::par_unseq,
-			nn.begin(),
-			nn.end(),
-			[&](auto&& n)
-		{
-			std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
-
-			double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
-
-			all_x_t[n] = x_t;
-		});
-
-		for (int n = 0; n < N; n++) {
-
-			double m_tn = dyc(all_x_t[n], params);
-			double y_tn = yc(all_x_t[n], params);
-
-			sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]);
-			sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
-		}
+//        std::vector <int> nn;
+//
+//        for (int n = 0; n < N; n++) {
+//            nn.push_back(n);
+//        }
+//
+//        for (int n = 0; n < N; n++) {
+//            SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
+//            SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
+//        }
+//
+//        std::for_each( //parallel tangent point finding
+//            std::execution::par_unseq,
+//            nn.begin(),
+//            nn.end(),
+//            [&](auto&& n)
+//        {
+//            std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+//
+//            double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
+//
+//            all_x_t[n] = x_t;
+//        });
+//
+//        for (int n = 0; n < N; n++) {
+//
+//            double m_tn = dyc(all_x_t[n], params);
+//            double y_tn = yc(all_x_t[n], params);
+//
+//            sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]);
+//            sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
+//        }
 	} else if (openMPMultiThread && !cpp17MultiThread) {
 		//clock_t time = startTimer();
 
@@ -902,7 +903,7 @@ double TRK::modifiedChiSquared(std::vector <double> allparams, double s)
 }
 
 double TRK::regularChiSquared(std::vector <double> params) {
-	int N = y.size();
+	unsigned long N = y.size();
 
 	double sum = 0.0;
 
@@ -945,37 +946,37 @@ double TRK::likelihood(std::vector <double> allparams) {
 
 	if (cpp17MultiThread) {
 
-		std::vector <int> nn;
-
-		for (int n = 0; n < N; n++) {
-			nn.push_back(n);
-		}
-
-		for (int n = 0; n < N; n++) {
-			SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
-			SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
-		}
-
-		std::for_each( //parallel tangent point finding
-			std::execution::par_unseq,
-			nn.begin(),
-			nn.end(),
-			[&](auto&& n)
-		{
-			std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
-
-			double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
-
-			all_x_t[n] = x_t;
-		});
-
-		for (int n = 0; n < N; n++) {
-			double m_tn = dyc(all_x_t[n], params);
-			double y_tn = yc(all_x_t[n], params);
-
-			L *= w[n] * std::sqrt((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
-			L *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n])));
-		}
+//        std::vector <int> nn;
+//
+//        for (int n = 0; n < N; n++) {
+//            nn.push_back(n);
+//        }
+//
+//        for (int n = 0; n < N; n++) {
+//            SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
+//            SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
+//        }
+//
+//        std::for_each( //parallel tangent point finding
+//            std::execution::par_unseq,
+//            nn.begin(),
+//            nn.end(),
+//            [&](auto&& n)
+//        {
+//            std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+//
+//            double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
+//
+//            all_x_t[n] = x_t;
+//        });
+//
+//        for (int n = 0; n < N; n++) {
+//            double m_tn = dyc(all_x_t[n], params);
+//            double y_tn = yc(all_x_t[n], params);
+//
+//            L *= w[n] * std::sqrt((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
+//            L *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n])));
+//        }
 	} else if (openMPMultiThread && !cpp17MultiThread) {
 		//clock_t time = startTimer();
 
@@ -1231,7 +1232,7 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 	double xg1 = xg;
 
 	std::vector <double> xr1vec;
-	double xr1old;
+    double xr1old = 0.0;
 	
 	bool checkcheck = false;
 
@@ -1359,7 +1360,7 @@ std::vector <double> TRK::tangentsFinder(std::vector <double> params, double x_n
 
 double TRK::findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec) {
 	std::vector <double> posts;
-	int minindex;
+	long minindex;
 
 	for (int i = 0; i < x_tn_vec.size(); i++) {
 		posts.push_back(singlePointLnL(params, x_n, y_n, Sig_xn2, Sig_yn2, x_tn_vec[i]));
@@ -1453,7 +1454,8 @@ double TRK::optimize_s_SlopX() {
 
 	//bracket finding
 
-	double a, b;
+    double a = 0.0;
+    double b = 1.0;
 	double trial_s = 1.0;
 	double slop_trial_s = innerSlopX_Simplex({ trial_s }, iterative_allparams_guess);
 
@@ -1541,7 +1543,8 @@ double TRK::optimize_s_SlopY() {
 
 		//bracket finding
 
-	double a, b;
+    double a = 0.0;
+    double b = 1.0;
 	double trial_s = slopYScaleGuess;
 	double slop_trial_s = innerSlopY_Simplex({ trial_s }, iterative_allparams_guess);
 
@@ -1801,7 +1804,7 @@ double TRK::optimize_s_prime_R2(double s0) {
 double TRK::iterateR2_OptimumScale(double s0) {
 	double tol_scale = 1e-3;
 
-	double s1;
+    double s1 = 0.0;
 
 	bool tolcheck = false;
 
@@ -1828,16 +1831,16 @@ void TRK::optimizeScale() {
 
 	//optimize simultaneously
 	if (cpp17MultiThread) {
-		std::vector <int> nn = { 0, 1 };
-
-		std::for_each( //parallel tangent point finding
-			std::execution::par_unseq,
-			nn.begin(),
-			nn.end(),
-			[&](auto&& n)
-		{
-			s_slops[n] = (this->*optimizeList[n])();
-		});
+//        std::vector <int> nn = { 0, 1 };
+//
+//        std::for_each( //parallel tangent point finding
+//            std::execution::par_unseq,
+//            nn.begin(),
+//            nn.end(),
+//            [&](auto&& n)
+//        {
+//            s_slops[n] = (this->*optimizeList[n])();
+//        });
 
 	} else {
 		#pragma omp parallel for //num_threads(8)
@@ -2005,14 +2008,14 @@ std::vector <double> TRK::pegToNonZeroDelta(std::vector <double> vertex, std::ve
 
 std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess) {
 	double tol = 0.05;
-	double optRatio = 0.45;
+    double optRatio = best_ratio;
 
-	int n = delta_guess.size(); //number of model parameters plus two slop parameters
+	unsigned long n = delta_guess.size(); //number of model parameters plus two slop parameters
 
-	double rho = 1.0;
-	double chi = 2.0;
-	double gamma = 0.5;
-	double sigma = 0.5;
+	double rho = 5.0; //reflection
+	double chi = 5.0; //expansion
+	double gamma = 0.3; //contraction
+	double sigma = 0.3; //shrinkage
 
 	// simplex initialization
 
@@ -2035,8 +2038,14 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 
 			std::vector <int> orderedindices;
 			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
+            
+            int zerocount = 0;
 			for (int i = 0; i < n + 1; i++) {
-				unorderedEvals.push_back(innerMetHastSimplex(burncount, vertices[i], optRatio));
+                double eval = innerMetHastSimplex(burncount, vertices[i], optRatio);
+				unorderedEvals.push_back(eval);
+                if (std::abs(eval - optRatio) < 1e-6){ //acceptance ratio is ~0
+                    zerocount++;
+                }
 				if (unorderedEvals[i] < tol) {
 					return vertices[i];
 				}
@@ -2049,6 +2058,15 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 			}
 
 			vertices = orderedvertices;
+            
+            if (zerocount == n + 1){ //all vertices in ~0 territory
+                for (int i = 0; i < n + 1; i++) {
+                    for (int j = 0; j < n; j++) {
+                        vertices[i][j] *= simplexSuperShrink;
+                    }
+                }
+                //printf("simplex super-shrunk \n");
+            }
 
 			// reflect
 			std::vector <double> refpoint;
@@ -2242,8 +2260,6 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 
 	allParamsFinalDeltas = best_delta;
 
-	goodDeltasFound = true;
-
 	return best_delta;
 }
 
@@ -2262,6 +2278,7 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 
 	if (!goodDeltasFound) {
 		delta = optimizeMetHastDeltas(burncount, sigmas_guess);
+        goodDeltasFound = true;
 	}
 	else if (goodDeltasFound) {
 		delta = allParamsFinalDeltas;
@@ -2276,11 +2293,10 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 
 	std::vector < std::vector <double > > result, result_final;
 	std::vector <double> allparams_trial, allparams_0; //allparams_0 is the previous step
-	double a, rand_unif, accept_frac;
+    double a, rand_unif, accept_frac = 0.0;
 
 	int accept_count = 0;
 	int delta_count = 0;
-	double deltafactor = 1.0;
 
 	allparams_0 = allparams_guess;
 
@@ -2361,7 +2377,7 @@ double noPrior(double param) {
 }
 
 std::vector <std::vector <double> > TRK::getHistogram(std::vector <double> data) {
-	int dataSize = data.size();
+	unsigned long dataSize = data.size();
 
 	int bincount = std::round(std::sqrt(data.size()));
 	std::vector <double> hist; // each element in this is the number of data points in the associated bin. contains arrays
@@ -2409,8 +2425,7 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 	std::vector <double> data, hist, edges, minusSigmas, plusSigmas;
 	std::vector <std::vector <std::vector <double> > > allparam_uncertainties;
 	std::vector <std::vector <double> > histResults;
-	int totalCount = allparam_samples.size();
-	double bar;
+	unsigned long totalCount = allparam_samples.size();
 	double tolBar = 1e-6;
 
 	results.paramDistributionHistograms.clear();
@@ -2437,7 +2452,7 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 		double high = minMax(hist)[1];
 		double bar = (low + high) / 2.0;
 		double leftBound, rightBound, minusSig, plusSig;
-		int aboveCount, K; // number of SAMPLES within the bins above bar
+		int aboveCount; // number of SAMPLES within the bins above bar
 
 		double ratioIn = 0.0;
 
@@ -2473,7 +2488,7 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 				bar = (low + high) / 2.0;
 			}
 
-			K = indicesIn.size();
+			unsigned long K = indicesIn.size();
 			leftBound = (edges[indicesIn[0]] + edges[indicesIn[0] + 1]) / 2.0;
 			rightBound = (edges[indicesIn[K - 1]] + edges[indicesIn[K - 1] + 1]) / 2.0;
 
@@ -2502,7 +2517,7 @@ void TRK::calculateUncertainties() {
 
 	if (outputDistributionToFile) {
 
-		std::string fileName = std::string("TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
+		std::string fileName = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo/diagnostics/TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
 
 		std::ofstream myfile;
 		myfile.open(fileName, std::ofstream::trunc);
@@ -2578,6 +2593,27 @@ double TRK::weightPivot(std::vector <double> params1, std::vector <double> param
 	return w;
 }
 
+std::vector < std::vector <std::vector <double > > > TRK::directCombos(std::vector < std::vector <double> > params_sample, int comboCount){
+    std::vector < std::vector <std::vector <double > > > combos;
+    combos.clear();
+    
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 eng(rd()); // seed the generator
+    std::uniform_int_distribution<> distr(0, (int)params_sample.size() - 1); // define the range
+    
+    for (int j = 0; j < comboCount; j++){
+        int i1 = (int) distr(eng);
+        int i2 = (int) distr(eng);
+
+        combos.push_back({params_sample[i1], params_sample[i2]});
+        
+        if (params_sample[i1].size() == 0 || params_sample[i2].size() == 0 ){
+            printf("%i %i \n", i1, i2);
+        }
+    }
+    
+    return combos;
+}
 void TRK::findPivots() {
 	if (findPivotPoints) {
 		std::vector < std::vector <double > > allparam_samples;
@@ -2585,7 +2621,7 @@ void TRK::findPivots() {
 		std::vector < std::vector < std::vector <double> > > drawnCombos;
 		std::vector <double> pivots, pivotWeights;
 		std::vector <double> oldPivots((int)(randomSampleCount*(randomSampleCount - 1)) / 2, pivot);
-		double finalPivot, onePivot;
+        double finalPivot, onePivot, oneWeight;
 		int iter = 0;
 
 		while (true) {
@@ -2596,10 +2632,10 @@ void TRK::findPivots() {
 			allparam_samples = methastPosterior(pivotR, burncount, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
 
 			for (int j = 0; j < allparam_samples.size(); j++) {
-				param_samples[j] = slice(allparam_samples[j], 0, M);
+				param_samples[j] = slice(allparam_samples[j], 0, (int)M);
 			}
 
-			if (!getCombosFromSampleDirectly) {
+			if (!getCombosFromSampleDirectly) { //this option takes the ~10,000 MH samples, selects ~200 of them, then generates combos out of this subset
 				random_unique(param_samples.begin(), param_samples.end(), randomSampleCount);
 
 				param_samples = slice(param_samples, 0, randomSampleCount);
@@ -2608,8 +2644,8 @@ void TRK::findPivots() {
 
 				drawnCombos = NDcombos;
 			}
-			else {
-				blah blah blah
+			else { //this option takes the ~10,000 MH samples, then generates combos directly out of this set.
+                drawnCombos = directCombos(param_samples, maxCombos);
 			}
 
 			for (int j = 0; j < drawnCombos.size(); j++) {
@@ -2618,22 +2654,30 @@ void TRK::findPivots() {
 					pivots.push_back(onePivot);
 					//std::cout << onePivot << std::endl;
 				}
-			}
+            }
+            
+            pivotWeights = std::vector <double>(pivots.size(), 1.0);
 
+            std::vector <double> finalPivots, finalWeights;
+            
 			if (weightPivots) {
 				for (int i = 0; i < pivots.size(); i++) {
-					pivotWeights.push_back(weightPivot(drawnCombos[i][0], drawnCombos[i][1], oldPivots, pivots[i]));
+                    oneWeight = weightPivot(drawnCombos[i][0], drawnCombos[i][1], oldPivots, pivots[i]);
+                    if (!std::isnan(oneWeight)){
+                        finalPivots.push_back(pivots[i]);
+                        finalWeights.push_back(oneWeight);
+                    }
 				}
 			}
-			else {
-				pivotWeights = std::vector <double>(pivots.size(), 1.0);
-			}
+            
+            pivots = finalPivots;
+            pivotWeights = finalWeights;
 
-			finalPivot = getMedian(pivots.size(), pivotWeights, pivots);
+			finalPivot = getMedian((int) pivots.size(), pivotWeights, pivots);
 
 			if (writePivots) {
 
-				std::string filename = std::string("TRKpivots") + std::to_string(iter) + std::string(".txt");
+                std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo/diagnostics/") + std::string("TRKpivots") + std::to_string(iter) + std::string(".txt");
 
 				std::ofstream myfile(filename, std::ofstream::app);
 				if (myfile.is_open())
@@ -2766,7 +2810,7 @@ std::vector <double> cubicSolver(double A, double B, double C, double D) {
 	double Q = (a1 * a1 - 3.0 * a2) / 9.0;
 	double R = (2.0 * a1 * a1 * a1 - 9.0 * a1 * a2 + 27.0 * a3) / 54.0;
 	double Qc = std::pow(Q, 3.0);
-	double d = Qc - std::pow(R, 2.0);
+	//double d = Qc - std::pow(R, 2.0);
 
 	double theta = std::acos(R / sqrt(Qc));
 
@@ -2778,7 +2822,6 @@ std::vector <double> cubicSolver(double A, double B, double C, double D) {
 
 	return roots;
 }
-
 
 //testing purposes only
 
@@ -2799,7 +2842,7 @@ double secElapsed(clock_t t_i) {
 
 void writeResults(TRK TRKobj, double t_sec, std::string filename) {
 
-	std::ofstream myfile("TRKresults.txt", std::ofstream::app);
+	std::ofstream myfile("/Users/nickk124/research/reichart/TRK/TRKrepo/diagnostics/TRKresults.txt", std::ofstream::app);
 	if (myfile.is_open())
 	{	
 		// filename    a     b     optimum scale    total computation time (s)
