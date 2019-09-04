@@ -242,6 +242,12 @@ std::vector <double> minMax(std::vector <double> vec) {
 	return { min, max };
 }
 
+std::vector <int> argMinMax(std::vector <double> x){
+    int argMin = (int)std::distance(x.begin(), std::min_element(x.begin(), x.end()));
+    int argMax = (int)std::distance(x.begin(), std::max_element(x.begin(), x.end()));
+    return {argMin, argMax};
+}
+
 std::vector <int> getSortedIndices(std::vector <double> x)
 {
 	std::vector<int> y(x.size());
@@ -278,6 +284,8 @@ void TRK::getDataWidth() {
 
 	x_min = bounds[0];
 	x_max = bounds[1];
+    
+    return;
 }
 
 double TRK::getAverage(std::vector <double> x) {
@@ -302,6 +310,123 @@ double TRK::getAverage(std::vector <double> x, std::vector <double> w) {
     }
     
     return top / bottom;
+}
+
+double TRK::min(double a, double b)
+{
+    return (a < b ? a : b);
+}
+double TRK::max(double a, double b)
+{
+    return (a > b ? a : b);
+}
+
+bool TRK::isEqual(double x, double y, double maxRelativeError = .00000001, double maxAbsoluteError = DBL_MIN)// .000001; .0000001;.00000001
+{
+    if (std::abs(x - y) < maxAbsoluteError)
+    {
+        return true;
+    }
+    double relativeError = (std::abs(y) > std::abs(x) ? std::abs((x - y) / y) : std::abs((x - y) / x));
+    if (relativeError <= maxRelativeError)
+    {
+        return true;
+    }
+    return false;
+}
+
+double TRK::getMode(int trueCount, std::vector<double> w, std::vector<double> y)
+{
+    int k, lowerLimit = 0, upperLimit = trueCount - 1, lowerLimitIn = -1, upperLimitIn = -1, size;
+    int finalLower = 0;
+    int finalUpper = 1;
+    double halfWeightSum = 0, sSum, total, minDist = 999999;
+    std::vector<double> sVec;
+    
+    while (lowerLimit != lowerLimitIn || upperLimit != upperLimitIn)
+    {
+        //std::cout<< lowerLimit << "\t" << upperLimit << "\n";
+        lowerLimitIn = lowerLimit;
+        upperLimitIn = upperLimit;
+        size = upperLimit - lowerLimit + 1;
+        minDist = 999999;
+        halfWeightSum = 0;
+        for (int i = lowerLimit; i < upperLimit + 1; i++)
+        {
+            halfWeightSum += w[i];
+        }
+        halfWeightSum *= .5;
+        
+        sVec.resize(size, 0.0);
+        sSum = .5 * w[lowerLimit];
+        sVec[0] = sSum;
+        for (int i = lowerLimit + 1; i < lowerLimit + size; i++)
+        {
+            sSum += w[i - 1] * .5 + w[i] * .5;
+            sVec[i - lowerLimit] = sSum;
+        }
+        
+        for (size_t i = 0; i < sVec.size(); i++)
+        {
+            if ((sVec[i] < halfWeightSum) || isEqual(sVec[i],halfWeightSum))
+            {
+                total = sVec[i] + halfWeightSum;
+                k = (int)i; // was 0
+                while (k < sVec.size() && ((sVec[k] < total) || isEqual(sVec[k], total)))
+                {
+                    k++;
+                }
+                k--;
+                total = std::abs(y[k + lowerLimit] - y[i + lowerLimit]);
+                
+                
+                if (isEqual(total,minDist))
+                {
+                    finalLower = (int)(min(finalLower, i + lowerLimit));
+                    finalUpper = (int)(max(finalUpper, k + lowerLimit));
+                }
+                else if (total < minDist)
+                {
+                    minDist = total;
+                    finalLower = (int)i + lowerLimit;
+                    finalUpper = k + lowerLimit;
+                }
+            }
+            if ((sVec[i] > halfWeightSum) || isEqual(sVec[i], halfWeightSum))
+            {
+                total = sVec[i] - halfWeightSum;
+                k = (int)i; // was svec.size() - 1
+                while (k > -1 && ((sVec[k] > total) || isEqual(sVec[k], total)))
+                {
+                    k--;
+                }
+                k++;
+                total = std::abs(y[i + lowerLimit] - y[k + lowerLimit]);
+                
+                
+                if (isEqual(total,minDist))
+                {
+                    finalLower = (int)(min(finalLower, k + lowerLimit));
+                    finalUpper = (int)(max(finalUpper, i + lowerLimit));
+                }
+                else if (total < minDist)
+                {
+                    minDist = total;
+                    finalLower = k + lowerLimit;
+                    finalUpper = (int)i + lowerLimit;
+                }
+            }
+        }
+        
+        lowerLimit = finalLower;
+        upperLimit = finalUpper;
+        
+        sVec.clear();
+    }
+    
+    std::vector<double> newValues(y.begin() + lowerLimit, y.begin() + upperLimit + 1);
+    std::vector<double> newWeights(w.begin() + lowerLimit, w.begin() + upperLimit + 1);
+    return getMedian((int)newWeights.size(), newWeights, newValues);
 }
 
 // FITTING TOOLS
@@ -2435,6 +2560,46 @@ std::vector <std::vector <double> > TRK::getHistogram(std::vector <double> data)
 	return { hist, edges };
 }
 
+std::vector <std::vector <double> > TRK::getHistogram(std::vector <double> data, std::vector <double> weights) {
+    unsigned long dataSize = data.size();
+    
+    int bincount = std::round(std::sqrt(data.size()));
+    std::vector <double> hist; // each element in this is the number of data points in the associated bin. contains arrays
+    std::vector <std::vector <double> > bins; // each array is a bin which contains the datapoints
+    
+    std::vector <double> extrema = minMax(data);
+    
+    double binwidth = std::abs(extrema[0] - extrema[1]) / bincount;
+    
+    std::vector <double> edges = { extrema[0] };
+    
+    for (int i = 0; i < bincount; i++) {
+        edges.push_back(edges[i] + binwidth);
+    }
+    
+    //making sure first bin starts at slightly below min (to go against rounding errors);
+    edges[0] = extrema[0] - extrema[0] *1e-9;
+    //making sure last bin goes to slightly above max
+    edges[bincount] = extrema[1] + extrema[1] *1e-9;
+    
+    double bintemp;
+    
+    for (int i = 0; i < bincount; i++) {
+        bintemp = 0.0;
+        for (int j = 0; j < dataSize - 1; j++) {
+            if ((data[j] >= edges[i]) && (data[j] < edges[i + 1])) {
+                bintemp += weights[j]; //adds data to the bin if it is between the bounds of the bin
+            }
+        }
+        if ((data[dataSize - 1] > edges[i]) && (data[dataSize - 1] <= edges[i + 1])) {
+            bintemp += weights[dataSize - 1]; //adds data to the bin if it is between the bounds of the bin
+        }
+        hist.push_back(bintemp); //adds an array of data for that bin to bins, the 2D array.
+    }
+    
+    return { hist, edges };
+}
+
 std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <std::vector <double> > allparam_samples) { //method used to estimate uncertainty of a sampled distribution
 	std::vector <double> data, hist, edges, minusSigmas, plusSigmas;
 	std::vector <std::vector <std::vector <double> > > allparam_uncertainties;
@@ -2628,20 +2793,44 @@ std::vector < std::vector <std::vector <double > > > TRK::directCombos(std::vect
     
     return combos;
 }
+
+std::vector <double> TRK::removeOutlierPivots(std::vector <double> pivots){
+    std::vector <double> newpivots;
+    double pivot;
+    
+    int outCount = 0;
+    
+    for (int i = 0; i < pivots.size(); i++){
+        pivot = pivots[i];
+        if (pivot  < x_max + datawidth && pivot > x_min - datawidth){
+            newpivots.push_back(pivot);
+        } else {
+            outCount++;
+        }
+    }
+    
+    printf("%i pivots outside of reasonable region \n", outCount);
+    
+    return newpivots;
+}
+
+
 void TRK::findPivots() {
 	if (findPivotPoints) {
 		std::vector < std::vector <double > > allparam_samples;
-		std::vector < std::vector <double> > param_samples(pivotR, { 0.0, 0.0 });
 		std::vector < std::vector < std::vector <double> > > drawnCombos;
 		std::vector <double> pivots, pivotWeights;
 		std::vector <double> oldPivots((int)(randomSampleCount*(randomSampleCount - 1)) / 2, pivot);
-        double finalPivot, onePivot, oneWeight;
+        double onePivot, oneWeight;
+        double finalPivot = 1.0;
 		int iter = 0;
+        int maxIter = 20;
 
 		while (true) {
 
 			pivots.clear();
 			pivotWeights.clear();
+            std::vector < std::vector <double> > param_samples(pivotR, { 0.0, 0.0 });
 
 			allparam_samples = methastPosterior(pivotR, burncount, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
 
@@ -2653,7 +2842,8 @@ void TRK::findPivots() {
 				random_unique(param_samples.begin(), param_samples.end(), randomSampleCount);
 
 				param_samples = slice(param_samples, 0, randomSampleCount);
-
+                
+                NDcombos.clear();
 				getCombos(param_samples, 2, 0); //generates all 2-combos of the parameter space data points
 
 				drawnCombos = NDcombos;
@@ -2670,6 +2860,10 @@ void TRK::findPivots() {
 				}
             }
             
+            if (pruneOutlierPivots){
+                pivots = removeOutlierPivots(pivots);
+            }
+            
             pivotWeights = std::vector <double>(pivots.size(), 1.0);
 
             std::vector <double> finalPivots, finalWeights;
@@ -2682,13 +2876,23 @@ void TRK::findPivots() {
                         finalWeights.push_back(oneWeight);
                     }
 				}
-			}
+            } else {
+                finalWeights = pivotWeights;
+                finalPivots = pivots;
+            }
             
             pivots = finalPivots;
             pivotWeights = finalWeights;
-
-            //finalPivot = getMedian((int) pivots.size(), pivotWeights, pivots);
-            finalPivot = getAverage(pivots, pivotWeights);
+            
+            if (pivotMedian){
+                finalPivot = getMedian((int) pivots.size(), pivotWeights, pivots);
+            } else if (pivotMean){
+                finalPivot = getAverage(pivots, pivotWeights);
+            } else if (pivotHalfSampleMean){
+                finalPivot = getMode((int) pivots.size(), pivotWeights, pivots);
+            } else { //mode
+                finalPivot = getPeakCoord(pivots, pivotWeights);
+            }
 
 			if (writePivots) {
 
@@ -2710,7 +2914,7 @@ void TRK::findPivots() {
 
 			printf("new, old = %f \t %f \n", finalPivot, pivot);
 
-			if (std::abs(finalPivot - pivot) < pivotTol) {
+			if (std::abs(finalPivot - pivot) < pivotTol || iter >= maxIter) {
                 
                 pivot = finalPivot;
                 iter += 1;
@@ -2734,6 +2938,22 @@ void TRK::findPivots() {
 	}
 }
 
+// OTHER TOOLS
+
+double TRK::getPeakCoord(std::vector <double> x, std::vector <double> w){
+    double xPeak;
+    std::vector <double> hist, edges;
+    
+    std::vector < std::vector <double> > histResults = getHistogram(x, w);
+    
+    hist = histResults[0];
+    edges = histResults[1];
+    
+    int maxInd = argMinMax(hist)[1];
+    xPeak = (edges[maxInd + 1] + edges[maxInd]) / 2.0;
+    
+    return xPeak;
+}
 
 // CORE ALGORITHMS/TRK FITS
 

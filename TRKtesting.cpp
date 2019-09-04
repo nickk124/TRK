@@ -404,16 +404,17 @@ int main()
 //    random_unique(TRKtest.NDcombos.begin(), TRKtest.NDcombos.end(), 3);
     
     //TRKtest.openMPMultiThread = true;
+    
 	TRKtest.findPivotPoints = true;
 	TRKtest.writePivots = true;
-    
+//    TRKtest.openMPMultiThread = true;
     TRKtest.getCombosFromSampleDirectly = true;
-    TRKtest.weightPivots = true;
+    TRKtest.weightPivots = false;
+    
+    TRKtest.pruneOutlierPivots = false;
+    TRKtest.pivotHalfSampleMean = true;
     
 	TRKtest.performTRKFit(0.418573);
-
-
-	//TRKtest.outputDistributionToFile = true;
 	/*TRKtest.cpp17MultiThread = false;
 	TRKtest.cpp11MultiThread = true;
 	TRKtest.outputDistributionToFile = true;

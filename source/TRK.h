@@ -157,6 +157,14 @@ class TRK
 		double getMedian(std::vector<double> y);
 		double getMedian(int trueCount, std::vector<double> w, std::vector<double> y);
         double getAverage(std::vector <double> x, std::vector <double> w);
+        double getAverage(std::vector <double> x);
+        double min(double a, double b);
+        double max(double a, double b);
+        bool isEqual(double x, double y, double maxRelativeError, double maxAbsoluteError);
+        double getMode(int trueCount, std::vector<double> w, std::vector<double> y);
+        std::vector <std::vector <double> > getHistogram(std::vector <double> data);
+        std::vector <std::vector <double> > getHistogram(std::vector <double> data, std::vector <double> weights);
+    
 
 		//function pointers
 		double (*yc)(double, std::vector <double>);
@@ -172,7 +180,6 @@ class TRK
 		double rnorm(double mu, double sig);
 		double runiform(double a, double b);
 		std::vector <std::vector <std::vector <double> > >  lowerBar(std::vector <std::vector <double> > allparam_samples);
-		std::vector <std::vector <double> > getHistogram(std::vector <double> data);
 		void calculateUncertainties();
 		std::vector <double> allParamsFinalDeltas;
 		bool goodDeltasFound = false;
@@ -188,7 +195,7 @@ class TRK
 		void getCombos(std::vector <std::vector <double> > total, int k, int offset);
 		void findPivots();
 		int pivotR = 10000;
-		int randomSampleCount = 200;
+		int randomSampleCount = 450;
 		int maxCombos = 100000;
 		static double pivot;
 		//double(*pf)(std::vector <double>, std::vector <double>); //pointer to pivotFunction: arguments of std::vector <double> params1, std::vector <double> params2
@@ -196,13 +203,19 @@ class TRK
 		double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot);
 		double pivotLinear(std::vector <double> params1, std::vector <double> params2);
         std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
+        std::vector <double> removeOutlierPivots(std::vector <double> pivots);
 
 		bool getCombosFromSampleDirectly = true;
 		bool weightPivots = true;
-		bool writePivots = true;
+		bool writePivots = false;
+    
+        bool pivotMedian = false;
+        bool pivotMean = false;
+        bool pruneOutlierPivots = false;
+        bool pivotHalfSampleMean = false;
 
 		// OTHER TOOLS
-		double getAverage(std::vector <double> x);
+        double getPeakCoord(std::vector <double> x, std::vector <double> w);
 
 		// SETTINGS
 		bool outputDistributionToFile = false;
@@ -243,6 +256,7 @@ BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
 double noPrior(double param);
 
 std::vector <double> minMax(std::vector <double> vec);
+std::vector <int> argMinMax(std::vector <double> x);
 
 double twoPointNR(double(*y)(double, std::vector <double>), double(*dy)(double, std::vector <double>), double(*ddy)(double, std::vector <double>), std::vector <double> params, double xguess, double xguessp1);
 

@@ -1,0 +1,3 @@
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	567.402
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	973.888
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	612.127
