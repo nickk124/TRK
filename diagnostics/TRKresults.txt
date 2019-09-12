@@ -1,3 +1,14 @@
 /Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	567.402
 /Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	973.888
 /Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	612.127
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	248.797
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	327.839
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	236.46
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	182.289
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.418573	133.993
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.25767	56.4328
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.25767	54.3317
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0	0	0.25767	55.8985
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/c1c2_data.csv	0	0	0.25767	4428.04
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/c1c2_data.csv	0	0	0.25767	6462.38
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0.219727	0.319336	0.257858	473.802

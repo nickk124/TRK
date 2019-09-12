@@ -53,11 +53,11 @@ class TRK
 {
 	public:
 		//constructors
-		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess);
-		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess);
+		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess);
+		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess);
 
-		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess, Priors priorsObject);
-		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess, Priors priorsObject);
+		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
+		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
 
 		//default constructor:
 		TRK();
@@ -122,6 +122,7 @@ class TRK
 		std::vector <double (TRK::*)()> optimizeList = {&TRK::optimize_s_SlopX, &TRK::optimize_s_SlopY};
 		double optimize_s0_R2();
 		double optimize_s_prime_R2(double s0);
+        void getBetterGuess();
 
 		double innerR2_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
 		std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
@@ -183,6 +184,7 @@ class TRK
 		void calculateUncertainties();
 		std::vector <double> allParamsFinalDeltas;
 		bool goodDeltasFound = false;
+        void guessMCMCDeltas();
 
 		int R = 100000; //adjustable; could make accessible by users later
 		int burncount = 10000;
@@ -194,9 +196,6 @@ class TRK
 		std::vector < std::vector <double> > NDcombination;
 		void getCombos(std::vector <std::vector <double> > total, int k, int offset);
 		void findPivots();
-		int pivotR = 10000;
-		int randomSampleCount = 450;
-		int maxCombos = 100000;
 		static double pivot;
 		//double(*pf)(std::vector <double>, std::vector <double>); //pointer to pivotFunction: arguments of std::vector <double> params1, std::vector <double> params2
 		double pivotTol = 1e-3;
@@ -207,13 +206,26 @@ class TRK
 
 		bool getCombosFromSampleDirectly = true;
 		bool weightPivots = true;
+    
 		bool writePivots = false;
     
         bool pivotMedian = false;
         bool pivotMean = false;
-        bool pruneOutlierPivots = false;
-        bool pivotHalfSampleMean = false;
-
+        bool pruneOutlierPivots = true;
+        double pruneWidth = 10.0;
+        int pivotR = 10000; //1000 too low
+        int randomSampleCount = 450;
+        int maxCombos = 100000;
+        int maxPivotIter = 10;
+        int pivotBurnIn = 1000;
+        bool pivotHalfSampleMode= false;
+        bool modeInterceptGuess = true;
+    
+        void getPivotGuess();
+    
+        bool pivotPointActive = false;
+        std::vector <double> pivotPointParamsGuess;
+    
 		// OTHER TOOLS
         double getPeakCoord(std::vector <double> x, std::vector <double> w);
 

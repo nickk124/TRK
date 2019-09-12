@@ -126,21 +126,21 @@ double ddCubic(double x, std::vector <double> params) {
 //}
 
 // POWER LAW
-double powerLaw(double x, std::vector <double> params) {
+double powerlaw(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
 	return a0 * std::pow((x / std::pow(10.0, TRK::pivot)), a1);
 }
 
-double dPowerLaw(double x, std::vector <double> params) {
+double dPowerlaw(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
 	return std::pow(10.0, -1.0*TRK::pivot) * a0 * a1 * std::pow(std::pow(10.0, -TRK::pivot) * x, a1 - 1.0);
 }
 
-double ddPowerLaw(double x, std::vector <double> params) {
+double ddPowerlaw(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
@@ -193,21 +193,21 @@ double ddExponential(double x, std::vector <double> params) {
 // LOGARITHMIC
 double logarithmic(double x, std::vector <double> params) {
 	double a0 = params[0];
-	double a1 = params[1];
+    double a1 = params[0];
 
-	return a0 + a1 * std::log10(x - TRK::pivot);
+	return a0 + a1 * std::log10(x/TRK::pivot);
 }
 
 double dLogarithmic(double x, std::vector <double> params) {
 	double a1 = params[1];
 
-	return a1 / ((x - TRK::pivot) * std::log(10.0));
+    return a1 / (x*std::log(10.0));
 }
 
 double ddLogarithmic(double x, std::vector <double> params) {
 	double a1 = params[1];
 
-	return -1.0 * a1 / (std::pow(x - TRK::pivot, 2.0) * std::log(10.0));
+	return -1.0 * a1 / (std::pow(x, 2.0) * std::log(10.0));
 }
 
 //double pivotLogarithmic(std::vector <double> params1, std::vector <double> params2) {

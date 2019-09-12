@@ -40,16 +40,15 @@ double ddyC(double x, std::vector <double> params) {
 
 double c1c2(double c2, std::vector <double> params) {
 	double bc1 = params[0];
-	double tc1 = params[1];
+	double mc1 = params[1];
 
-
-	return bc1 + std::tan(tc1)*(c2 - c2pc1);
+	return bc1 + mc1*(c2 - TRK::pivot);
 }
 
 double dc1c2(double c2, std::vector <double> params) {
-	double tc1 = params[1];
-
-	return std::tan(tc1);
+    double mc1 = params[1];
+    
+    return mc1;
 }
 
 double ddc1c2(double c2, std::vector <double> params) {
@@ -223,13 +222,12 @@ int main()
 
 	//filename = "bhc2_data.csv";
 	//filename = "rvc2_data.csv";
-	//filename = "c1c2_data.csv";																									//**********
-	//std::vector <std::vector <double> > data = getData(filename, 441);
-
-	filename = "simplelinear_data.csv";
+//    filename = "c1c2_data.csv";                                                                                                    //**********
+    filename = "simplelinear_data.csv";
     
     filename = "/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/" + filename;
-	std::vector <std::vector <double> > data = getData(filename, 9);
+    std::vector <std::vector <double> > data = getData(filename, 9);
+//    std::vector <std::vector <double> > data = getData(filename, 441);
 
 	std::vector <double> x, y, sx, sy, w;
 
@@ -256,7 +254,7 @@ int main()
 	c2p1RV = -0.0708;
 	c2p2RV = 1.4953;
 
-	c2pc1 = 1.2403;
+//    c2pc1 = 1.2403;
 
 	// priors #############################################################################################################
 
@@ -272,21 +270,25 @@ int main()
 
 	//std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };	//rvc2	
 	//std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };				//bhc2																					//**********
-	//std::vector <double> params_guess = { -1.5038, toRad(106.953) };    //c1c2
-	std::vector <double> params_guess = { 0.89, 1.04};     //test lin
+//    std::vector <double> params_guess = { -1.5038, std::tan(toRad(106.953)) };    //c1c2
+    std::vector <double> params_guess = { 0.89, 1.04};     //test lin
 
 	double slopx_guess = 0.3;																									//**********
 	double slopy_guess = 0.3;
 
-	std::vector <double> testsigma_guess = { 0.26, 0.13}; //testlin
+//    std::vector <double> testsigma_guess = { 0.26, 0.13}; //testlin
 	//std::vector <double> testsigma_guess = { 0.01, 0.005, 0.01, 0.01};  //bhc2/rvc2
-	//std::vector <double> testsigma_guess = { 0.01, 0.005};  //c1c2
+//    std::vector <double> testsigma_guess = { 0.065, 0.000081};  //c1c2
 
-	double testslop_x_sigma_guess = 0.07700; //testlin
-	double testslop_y_sigma_guess = 0.01500;
+//    double testslop_x_sigma_guess = 0.07700; //testlin
+//    double testslop_y_sigma_guess = 0.01500;
 
-	//double testslop_x_sigma_guess = 0.0005; //bhc2/rvc2/c1c2
-	//double testslop_y_sigma_guess = 0.0005;
+//    double testslop_x_sigma_guess = 0.0005; //bhc2/rvc2
+//    double testslop_y_sigma_guess = 0.0005;
+    
+//    double testslop_x_sigma_guess = 0.00025; //c1c2
+//    double testslop_y_sigma_guess = 0.000813;
+    
 
 	std::vector <double> allparams_guess = params_guess;
 
@@ -296,13 +298,13 @@ int main()
 
 	// constructors #############################################################################################################
 
-	TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
-	//TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);															//**********
+    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
+//    TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);                                                            //**********
 	//TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, bhc2Priors);
 	//TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, rvc2Priors);
 	//TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
 
-	//TRKtest.s = 0.418573;     //optimum for test lin
+	//TRKtest.s = 0.257858;     //optimum for test lin
 
 
 	clock_t time = startTimer();
@@ -407,18 +409,11 @@ int main()
     
 	TRKtest.findPivotPoints = true;
 	TRKtest.writePivots = true;
-//    TRKtest.openMPMultiThread = true;
-    TRKtest.getCombosFromSampleDirectly = true;
-    TRKtest.weightPivots = false;
+    TRKtest.outputDistributionToFile = true;
     
-    TRKtest.pruneOutlierPivots = false;
-    TRKtest.pivotHalfSampleMean = true;
+    TRKtest.cpp11MultiThread = true;
     
-	TRKtest.performTRKFit(0.418573);
-	/*TRKtest.cpp17MultiThread = false;
-	TRKtest.cpp11MultiThread = true;
-	TRKtest.outputDistributionToFile = true;
-	TRKtest.performTRKFit();*/
+    TRKtest.performTRKFit();
 
 	printf("Optimum scale: %f \n", TRKtest.results.optimumScale);
 	printf("Minimum scale: %f \n", TRKtest.results.minimumScale);

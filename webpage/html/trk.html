@@ -125,22 +125,22 @@
                         <div class="dropdown">
                             <button id="SelectedFunction" class="dropbtn">(Select Function Here)</button>
                             <div class="dropdown-content" style="width:180%; overflow:visible;">
-                                <button id="Linear" class="Button Function" onclick="displayChosenFunction(this); displayBar(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>)</button>
+                                <button id="Linear" class="Button Function" onclick="displayChosenFunction(this); displayPivotSection(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>)</button>
                                 <br>
-                                <button id="Quadratic" class="Button Function" onclick="displayChosenFunction(this); displayBar(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>) + a<sub>2</sub>(x-<span style="text-decoration:overline">x</span>)<sup>2</sup></button>
+                                <button id="Quadratic" class="Button Function" onclick="displayChosenFunction(this); displayPivotSection(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>) + a<sub>2</sub>(x-<span style="text-decoration:overline">x</span>)<sup>2</sup></button>
                                 <br>
-                                <button id="Cubic" class="Button Function" onclick="displayChosenFunction(this); displayBar(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>) + a<sub>2</sub>(x-<span style="text-decoration:overline">x</span>)<sup>2</sup> + a<sub>3</sub>(x-<span style="text-decoration:overline">x</span>)<sup>3</sup></button>
+                                <button id="Cubic" class="Button Function" onclick="displayChosenFunction(this); displayPivotSection(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>) + a<sub>2</sub>(x-<span style="text-decoration:overline">x</span>)<sup>2</sup> + a<sub>3</sub>(x-<span style="text-decoration:overline">x</span>)<sup>3</sup></button>
                                 <br>
-                                <button id="PowerLaw" class="Button Function" onclick="displayChosenFunction(this); displayBar(this);">y(x) = a<sub>0</sub>(x/10<sup><span style="text-decoration:overline">log x</span></sup>)<sup>a<sub>1</sub></sup></button>
+                                <button id="PowerLaw" class="Button Function" onclick="displayChosenFunction(this); displayPivotSection(this);">y(x) = a<sub>0</sub>(x/10<sup><span style="text-decoration:overline">log<sub>10</sub>x</span></sup>)<sup>a<sub>1</sub></sup></button>
                                 <br>
-                                <button id="Exponential" class="Button Function" onclick="displayChosenFunction(this); displayBar(this);">y(x) = a<sub>0</sub>10<sup>a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>)</sup></button>
+                                <button id="Exponential" class="Button Function" onclick="displayChosenFunction(this); displayPivotSection(this);">y(x) = a<sub>0</sub>10<sup>a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>)</sup></button>
                                 <br>
-                                <button id="Logarithmic" class="Button Function" onclick="displayChosenFunction(this); displayBar(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>log(x/10<sup><span style="text-decoration:overline">log x</span></sup> )</button>
+                                <button id="Logarithmic" class="Button Function" onclick="displayChosenFunction(this); display(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>log<sub>10</sub>(x/10<sup><span style="text-decoration:overline">log<sub>10</sub>x</span></sup> )</button>
                             </div>
                         </div>
                         <br>
                         <br>
-                        <i style="padding-top:10px">Here, select a function to model y(x), log y(x) or 10<sup> y</sup>, depending on your chosen basis for y(x) in the above section. Depending on the chosen function, either <span style="text-decoration:overline">x</span> or <span style="text-decoration:overline">log x</span> will be displayed from the inputted data, depending on which model function is selected. </i>
+                        <i style="padding-top:10px">Here, select a function to model y(x). Depending on the chosen function, either <span style="text-decoration:overline">x</span> or <span style="text-decoration:overline">log<sub>10</sub> x</span> is the "pivot point" depending on which model function is selected. </i>
                         <br>
                         <br>
                         <i style="padding-top:10px">Next, in the box to the right, enter your guess for the model function parameters a<sub>0</sub> , a<sub>1</sub> , a<sub>2</sub> , etc. For example, in the linear model case, a<sub>0</sub> corresponds to the y-intercept, and a<sub>1</sub> to the slope. </i>
@@ -157,7 +157,14 @@
                     <textarea class="dataTable" id="guessarea" style="height:300px"></textarea>
                     <br/>
                     <i style="padding-top:10px">Input guesses for slop along the x axis (intrinsic scatter of the data)<br>and then along the y axis, as the last two lines.</i>
-
+                    <div id="pivotSection" > 
+                      <h2 >Determine Pivot Point of Model (Optional):</h2>
+                      <div id="ButtonSection">
+                        <button id='NoPivot' class="Button Pivot"> No (default) </button>
+                        <button id='YesPivot' class="Button Pivot"> Yes </button>
+                      </div>
+                      <i style="padding-top:10px">If possible, by determining the pivot point of the model, the fitted model parameters can be made to be uncorrelated.</i>
+                    </div>
                 </div>
                 <br style="clear: left;" />
                 <br style="clear: left;" />
@@ -194,7 +201,7 @@
                 </div>
                 <div id="priorsInput" style="padding:5px; width:45%; float:left;">
                     <h2>Input Priors:</h2>
-                    <textarea class="dataTable" id="priorsArea" style="height:300px"></textarea>
+                    <textarea class="dataTable" id="priorsArea" style="height:150px"></textarea>
                 </div>
             </div>
 
@@ -387,7 +394,7 @@
 //Initializing the final result lists that will come from RCR and will result in plotting:
     var parameters = []; //including slop
     var bestFit_123Sigmas = []; //3-tensor; matches cpp implementation
-    var bar_result; //will come from cpp code
+    var pivot = 0; //will come from cpp code. 0 by default.
     var paramHistograms = []; //organized same as paramDistributionHistograms in cpp
     var whichParam = 0; //index  of param being plotted in hist
 
@@ -436,9 +443,9 @@
 
     function logarithmic(x, params, bar){
       var a0 = params[0];
-	  var a1 = params[1];
+      var a1 = params[1];
 
-	    return a0 + a1 * Math.log10(x - bar);
+	    return a0 + a1*Math.log10(x/bar);
     }
 
     function noOutput(){
@@ -945,7 +952,7 @@
                 var a1 = parameters_result[1];
 
                 for (var i = 0; i < x_original_result.length; i++) {
-                    var y_point = (a0 + a1 * (x_original_result[i] - bar_result))
+                    var y_point = (a0 + a1 * (x_original_result[i] - pivot))
                     y_fitted_result.push(y_point)
                 }
                 break;
@@ -956,7 +963,7 @@
                 var a2 = parameters_result[2];
 
                 for (var i = 0; i < x_original_result.length; i++) {
-                    var y_point = (a0 + a1 * (x_original_result[i] - bar_result) + a2 * Math.pow((x_original_result[i] - bar_result), 2.0))
+                    var y_point = (a0 + a1 * (x_original_result[i] - pivot) + a2 * Math.pow((x_original_result[i] - pivot), 2.0))
                     y_fitted_result.push(y_point)
                 }
                 break;
@@ -968,7 +975,7 @@
                 var a3 = parameters_result[3];
 
                 for (var i = 0; i < x_original_result.length; i++) {
-                    var y_point = (a0 + a1 * (x_original_result[i] - bar_result) + a2 * Math.pow((x_original_result[i] - bar_result), 2.0) + a3 * Math.pow((x_original_result[i] - bar_result), 3.0))
+                    var y_point = (a0 + a1 * (x_original_result[i] - pivot) + a2 * Math.pow((x_original_result[i] - pivot), 2.0) + a3 * Math.pow((x_original_result[i] - pivot), 3.0))
                     y_fitted_result.push(y_point)
                 }
                 break;
@@ -978,7 +985,7 @@
                 var a1 = parameters_result[1];
 
                 for (var i = 0; i < x_original_result.length; i++) {
-                    var y_point = (a0 * Math.pow((x_original_result[i] / Math.pow(10, bar_result)), a1))
+                    var y_point = (a0 * Math.pow((x_original_result[i] / Math.pow(10, pivot)), a1))
                     y_fitted_result.push(y_point)
                 }
                 break;
@@ -988,16 +995,17 @@
                 var a1 = parameters_result[1];
 
                 for (var i = 0; i < x_original_result.length; i++) {
-                    var y_point = (a0 * Math.pow(10, a1 * (x_original_result[i] - bar_result)))
+                    var y_point = (a0 * Math.pow(10, a1 * (x_original_result[i] - pivot)))
                     y_fitted_result.push(y_point)
                 }
                 break;
             case "Logarithmic":
 
                 var a0 = parameters_result[0];
+                var a1 = parameters_result[1];
 
                 for (var i = 0; i < x_original_result.length; i++) {
-                    var y_point = (a0 * Math.log10(x_original_result[i] - bar_result))
+                    var y_point = (a0 + a1 * Math.log10(x_original_result[i]/Math.pow(10, pivot)))
                     y_fitted_result.push(y_point)
                 }
                 break;
@@ -1168,6 +1176,28 @@
           document.getElementById("xBarType").innerHTML = "x";
           document.getElementById("xBarInp").innerHTML = "x";
           document.getElementById("xBarOut").innerHTML = "x";
+          break;
+      }
+      return;
+    }
+
+    function displayPivotSection(t){
+      var chosenFn = t.id;
+      switch (chosenFn){
+        case "Linear":
+          $('#pivotSection').css('display','inline');
+          break;
+        case "PowerLaw":
+          $('#pivotSection').css('display','inline');
+          break;
+        case "Exponential":
+          $('#pivotSection').css('display','inline');
+          break;
+        case "Logarithmic":
+          $('#pivotSection').css('display','inline');
+          break;
+        default:
+          $('#pivotSection').css('display','none');
           break;
       }
       return;
@@ -1379,8 +1409,15 @@
 
     function displayOutputs(data) {
         document.getElementById('finalParameters').value = data['finalParametersData'];
+        if (findPivot){
+          newStr = document.getElementById('finalParameters').value;
+          newStr.concat("\nPivot:\n", toString(pivot));
+          document.getElementById('finalParameters').value = newStr;
+        }
         document.getElementById('scales').value = data['scales']; //assuming scales = "s0\na\nb"
-        document.getElementById('bestFit_123SigmasData');
+        document.getElementById('parameterSigmas') = data['bestFit_123SigmasData'];
+
+        return;
     }
 
     function performTRK(){
@@ -1415,6 +1452,7 @@
 
       hasWeights = $('#Weighted').data('clicked');
       hasPriors = $('#YesPriors').data('clicked');
+      findPivot = $('#YesPivot').data('clicked');
 
 
 
@@ -1439,9 +1477,8 @@
                           weighted :  hasWeights,
                           functionType : chosenFunctionType,
                           priorsData : priorsDataContents,
-                          priorsCheck : hasPriors
-
-
+                          hasPriors : hasPriors,
+                          findPivot : findPivot
                         },
                   dataType: "json",
                   success: function(data, textStatus, jqXHR)
@@ -1454,6 +1491,10 @@
 
                       bestFit_123Sigmas = convertSigmaData(data['bestFit_123SigmasData']);
                       paramHistograms = getHistData(data['paramHistogramsData']);
+
+                      pivot = Number(data['pivotData']);
+
+
                   },
                   error: function (jqXHR, textStatus, errorThrown)
                   {
@@ -1475,6 +1516,8 @@
             $('#priorsInput').css('display','none');
             $('#SelectContaminantSection').css('display','block');
             $('#OutputTableWrapper').css('display', 'inline');
+
+            $('#pivotSection').css('display','none');
 
             $('#YesScaleYesMCMC').css('display', 'block');
             $('#NoScaleYesMCMC').css('display', 'none');
@@ -1595,11 +1638,15 @@
 	    $('#Weighted').data('clicked',false);
 
         $('#NoPriors').data('clicked', true);
-	    $('#YesPriors').data('clicked',false);
+      $('#YesPriors').data('clicked',false);
+
+      $('#NoPivot').data('clicked', true);
+	    $('#YesPivot').data('clicked',false);
 
         $('#Linear').data('clicked',true);
 
         $('#NoPriors').toggleClass('ButtonActive');
+        $('#NoPivot').toggleClass('ButtonActive');
 
 	    type();
 
@@ -1675,6 +1722,22 @@
                   $('#YesPriors').toggleClass("ButtonActive");
                   toggleBool('#YesPriors');
                   SingleActiveButtonCheck('#YesPriors','#NoPriors');
+              }
+        });
+        $('#NoPivot').click(function()	{
+              if ($('#NoPivot').data('clicked') === false)
+              {
+                  $('#NoPivot').toggleClass("ButtonActive");
+                  toggleBool('#NoPivot');
+                  SingleActiveButtonCheck('#NoPivot','#YesPivot');
+              }
+  	    });
+        $('#YesPivot').click(function()	{
+              if ($('#YesPivot').data('clicked') === false)
+              {
+                  $('#YesPivot').toggleClass("ButtonActive");
+                  toggleBool('#YesPivot');
+                  SingleActiveButtonCheck('#YesPivot','#NoPivot');
               }
   	    });
 

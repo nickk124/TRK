@@ -36,7 +36,7 @@ Priors::Priors() {
 
 // CONSTRUCTORS
 
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -68,10 +68,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	getDataWidth();
 
 	this->hasPriors = false;
-
-	this->params_sigmas_guess = params_sigmas_guess; 
-	this->slop_x_sigma_guess = slop_x_sigma_guess; 
-	this->slop_y_sigma_guess = slop_y_sigma_guess;
+    
+    guessMCMCDeltas();
 
 	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
 
@@ -81,7 +79,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->allparams_sigmas_guess = allparams_sigmas_guess;
 }
 //equal weights/unweighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -115,10 +113,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	getDataWidth();
 
 	this->hasPriors = false;
-
-	this->params_sigmas_guess = params_sigmas_guess;
-	this->slop_x_sigma_guess = slop_x_sigma_guess;
-	this->slop_y_sigma_guess = slop_y_sigma_guess;
+    
+    guessMCMCDeltas();
 
 	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
 
@@ -131,7 +127,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 
 //priors:
 //weighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess, Priors priorsObject) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -165,10 +161,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->priorsObject = priorsObject;
 
 	this->hasPriors = true;
-
-	this->params_sigmas_guess = params_sigmas_guess;
-	this->slop_x_sigma_guess = slop_x_sigma_guess;
-	this->slop_y_sigma_guess = slop_y_sigma_guess;
+    
+    guessMCMCDeltas();
 
 	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
 
@@ -178,7 +172,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->allparams_sigmas_guess = allparams_sigmas_guess;
 }
 //equal weights/unweighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, std::vector <double> params_sigmas_guess, double slop_x_sigma_guess, double slop_y_sigma_guess, Priors priorsObject) {
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) {
 	this->yc = (*yc);
 	this->dyc = (*dyc);
 	this->ddyc = (*ddyc);
@@ -214,10 +208,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->priorsObject = priorsObject;
 
 	this->hasPriors = true;
-
-	this->params_sigmas_guess = params_sigmas_guess;
-	this->slop_x_sigma_guess = slop_x_sigma_guess;
-	this->slop_y_sigma_guess = slop_y_sigma_guess;
+    
+    guessMCMCDeltas();
 
 	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
 
@@ -1249,11 +1241,16 @@ double TRK::priors(std::vector <double> allparams) {
 }
 
 double TRK::posterior(std::vector <double> allparams) {
+    double post;
 	if (hasPriors) {
-		return likelihood(allparams) * priors(allparams);
+		post = likelihood(allparams) * priors(allparams);
+
+        return post;
 	}
 	else {
-		return likelihood(allparams);
+		post = likelihood(allparams);
+
+        return post;
 	}
 }
 
@@ -2087,8 +2084,11 @@ double TRK::innerMetHastSimplex(int burncount, std::vector <double> delta, doubl
 	int delta_count = 0;
 
 	allparams_0 = allparams_guess;
-
-
+    
+    if (pivotPointActive){
+        allparams_0 = pivotPointParamsGuess;
+    }
+    
 	while (delta_count < sampleCount){// + burncount) {
 		//create trial
 
@@ -2180,6 +2180,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 	while (true) {
 		while (true) {
 			// order
+            printf("order\n");
 
 			std::vector <int> orderedindices;
 			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
@@ -2214,6 +2215,8 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
             }
 
 			// reflect
+            printf("reflect\n");
+            
 			std::vector <double> refpoint;
 			std::vector <std::vector <double> > nvertices;
 			for (int i = 0; i < n; i++) {
@@ -2248,6 +2251,8 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 
 			//expand
 			if (fr < f1) {
+                printf("expand\n");
+                
 				std::vector <double> exppoint;
 
 				for (int i = 0; i < n; i++) {
@@ -2273,6 +2278,8 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 			}
 
 			//contract
+            
+            printf("contract\n");
 
 			if (fr >= fn) {
 				//outside
@@ -2301,6 +2308,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 					}
 					else {
 						//shrink
+                        printf("shrink\n");
 
 						std::vector < std::vector <double> > v = { vertices[0] };
 
@@ -2336,6 +2344,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 					}
 					else {
 						//shrink
+                        printf("shrink\n");
 
 						std::vector < std::vector <double> > v = { vertices[0] };
 
@@ -2357,6 +2366,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 			}
 
 			//shrink
+            printf("shrink\n");
 
 			std::vector < std::vector <double> > v = { vertices[0] };
 
@@ -2403,6 +2413,18 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 	best_delta = vertices[n];
 
 	return best_delta;
+}
+
+void TRK::guessMCMCDeltas(){
+    params_sigmas_guess.clear();
+    for (int j = 0; j < M; j++){
+        params_sigmas_guess.push_back((double)1/N);
+    }
+    //guessing slops
+    slop_x_sigma_guess = stDevUnweighted(x) / 1000.0;
+    slop_y_sigma_guess = stDevUnweighted(y) / 1000.0;
+    
+    return;
 }
 
 std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, std::vector <double> sigmas_guess) {
@@ -2802,7 +2824,7 @@ std::vector <double> TRK::removeOutlierPivots(std::vector <double> pivots){
     
     for (int i = 0; i < pivots.size(); i++){
         pivot = pivots[i];
-        if (pivot  < x_max + datawidth && pivot > x_min - datawidth){
+        if (pivot  < x_max + pruneWidth*datawidth && pivot > x_min - pruneWidth*datawidth){
             newpivots.push_back(pivot);
         } else {
             outCount++;
@@ -2814,25 +2836,68 @@ std::vector <double> TRK::removeOutlierPivots(std::vector <double> pivots){
     return newpivots;
 }
 
+void TRK::getPivotGuess(){
+    if (findPivotPoints){
+        pivot = getAverage(x, w);
+    }
+    return;
+}
 
 void TRK::findPivots() {
 	if (findPivotPoints) {
 		std::vector < std::vector <double > > allparam_samples;
 		std::vector < std::vector < std::vector <double> > > drawnCombos;
-		std::vector <double> pivots, pivotWeights;
+        std::vector <double> pivots, pivotWeights, allPivots, allparams_better;
 		std::vector <double> oldPivots((int)(randomSampleCount*(randomSampleCount - 1)) / 2, pivot);
         double onePivot, oneWeight;
         double finalPivot = 1.0;
 		int iter = 0;
-        int maxIter = 20;
 
 		while (true) {
+            if (iter > 0){
+                pivotPointActive = true;
+            }
+            
+            //refit for better guess for MCMC to avoid zero likelihood
+            
+            if (modeInterceptGuess){
+                allparams_better = allparams_guess;
+                
+                std::vector <double> preIntercepts;
+                
+                for (int i = 0; i < N; i++){
+                    preIntercepts.push_back(y[i]-allparams_guess[1]*(x[i] - pivot));
+                }
+                allparams_better[0] = getPeakCoord(preIntercepts, std::vector(N, 1.0));
+                
+            } else {
+            
+                allparams_better = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess, s);
+                
+                printf("re-fit for new pivot point; old / new params:");
+                
+                for (int j = 0; j < (int)allparams_better.size(); j++){
+                    printf("%f %f\n", allparams_guess[j], allparams_better[j]);
+                }
+            }
+            
+            allparams_guess = allparams_better;
+
 
 			pivots.clear();
 			pivotWeights.clear();
             std::vector < std::vector <double> > param_samples(pivotR, { 0.0, 0.0 });
 
-			allparam_samples = methastPosterior(pivotR, burncount, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
+			allparam_samples = methastPosterior(pivotR, pivotBurnIn, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
+            
+            pivotPointParamsGuess = allparams_guess;
+            
+            std::vector <double> allBs;
+            for (int i = 0; i < (int)allparam_samples.size(); i++){
+                allBs.push_back(allparam_samples[i][0]);
+            }
+            
+            pivotPointParamsGuess[0] = getAverage(allBs);
 
 			for (int j = 0; j < allparam_samples.size(); j++) {
 				param_samples[j] = slice(allparam_samples[j], 0, (int)M);
@@ -2888,7 +2953,7 @@ void TRK::findPivots() {
                 finalPivot = getMedian((int) pivots.size(), pivotWeights, pivots);
             } else if (pivotMean){
                 finalPivot = getAverage(pivots, pivotWeights);
-            } else if (pivotHalfSampleMean){
+            } else if (pivotHalfSampleMode){
                 finalPivot = getMode((int) pivots.size(), pivotWeights, pivots);
             } else { //mode
                 finalPivot = getPeakCoord(pivots, pivotWeights);
@@ -2913,15 +2978,23 @@ void TRK::findPivots() {
 			}
 
 			printf("new, old = %f \t %f \n", finalPivot, pivot);
+            
+            allPivots.push_back(finalPivot);
+            iter += 1;
 
-			if (std::abs(finalPivot - pivot) < pivotTol || iter >= maxIter) {
-                
+			if (std::abs(finalPivot - pivot) < pivotTol) {
                 pivot = finalPivot;
-                iter += 1;
 				break;
 			}
-
-			iter += 1;
+            
+            if (iter >= maxPivotIter) {
+                if (weightPivots){
+                    pivot = getAverage(slice(allPivots, 1, (int)allPivots.size()));
+                } else {
+                    pivot = getAverage(allPivots);
+                }
+                break;
+            }
 
 			pivot = finalPivot;
 
@@ -2929,6 +3002,10 @@ void TRK::findPivots() {
 		}
 
 		printf("final pivot point: %f \n", pivot);
+        
+        pivotPointActive = false;
+        
+        allparams_guess =  pivotPointParamsGuess;
 
 		return;
 	
@@ -2957,16 +3034,31 @@ double TRK::getPeakCoord(std::vector <double> x, std::vector <double> w){
 
 // CORE ALGORITHMS/TRK FITS
 
+void TRK::getBetterGuess(){
+    for (int j = 0; j < M; j++){
+        allparams_guess[j] = results.bestFitParams[j];
+    }
+    allparams_guess[M] = results.slop_x;
+    allparams_guess[M+1] = results.slop_x;
+    
+    return;
+}
+
 void TRK::performTRKFit() {//finds optimum scale AND performs TRK fit + uncertainty
+    getPivotGuess();
+    
 	optimizeScale();
 
 	findPivots();
 
+    getBetterGuess();
 	calculateUncertainties();
 }
 
 void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
 	s = scale;
+    
+    getPivotGuess();
 
 	findPivots();
 
@@ -2983,13 +3075,29 @@ void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for
 	results.slop_x = allparams_s[M];
 	results.slop_y = allparams_s[M + 1];
 
+    getBetterGuess();
 	calculateUncertainties();
 }
 
 void TRK::performSimpleTRKFit() {//finds optimum scale and and performs TRK fit but without finding uncertainties
+    getPivotGuess();
+    
 	optimizeScale(); // (stores results in TRK.results)
 
 	findPivots();
+    
+    results.bestFitParams.clear();
+    
+    whichExtrema = S;
+    allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess, s);
+    whichExtrema = none;
+    
+    for (int j = 0; j < M; j++) {
+        results.bestFitParams.push_back(allparams_s[j]);
+    }
+    
+    results.slop_x = allparams_s[M];
+    results.slop_y = allparams_s[M + 1];
 
 	return;
 }
