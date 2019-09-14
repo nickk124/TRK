@@ -22,6 +22,13 @@ double ddLinear(double x, std::vector <double> params) {
 	return 0;
 }
 
+double linearIntercept(std::vector <double> params){
+    return params[0];
+}
+double linearSlope(std::vector <double> params){
+    return params[1];
+}
+
 //double pivotLinear(std::vector <double> params1, std::vector <double> params2) {
 //	double a01 = params1[0];
 //	double a11 = params1[1];
@@ -157,6 +164,13 @@ double ddPowerlaw(double x, std::vector <double> params) {
 //	return std::exp((std::log(a02) - std::log(a01))/(a11-a12));
 //}
 
+double powerlawIntercept(std::vector <double> params){
+    return std::log10(params[0]);
+}
+double powerlawSlope(std::vector <double> params){
+    return params[1];
+}
+
 // EXPONENTIAL
 double exponential(double x, std::vector <double> params) {
 	double a0 = params[0];
@@ -188,7 +202,12 @@ double ddExponential(double x, std::vector <double> params) {
 //
 //	return -1.0 * std::log(a01 / a02) / ((a11 - a12) * std::log(10.0));
 //}
-
+double exponentialIntercept(std::vector <double> params){
+    return std::log10(params[0]);
+}
+double exponentialSlope(std::vector <double> params){
+    return params[1];
+}
 
 // LOGARITHMIC
 double logarithmic(double x, std::vector <double> params) {
@@ -219,3 +238,10 @@ double ddLogarithmic(double x, std::vector <double> params) {
 //
 //	return std::pow(10.0, (a02 - a01) / (a11 - a12));
 //}
+
+double logarithmicIntercept(std::vector <double> params){
+    return params[0];
+}
+double logarithmicSlope(std::vector <double> params){
+    return params[1];
+}

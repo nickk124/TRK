@@ -11,6 +11,7 @@
 #include <future>
 #include <functional>
 #include <thread>
+#include <sstream>
 
 const double PI = 3.1415926535897932384626434;
 const std::vector <double> SIGMAS = { 0.682639, 0.954500, 0.997300 };
@@ -42,6 +43,7 @@ struct Results
 		double slop_x;
 		double slop_y;
 		double optimumScale, minimumScale, maximumScale;
+        double pivot;
 		std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
 		std::vector < std::vector <double> > slopX_123Sigmas;
 		std::vector < std::vector <double> > slopY_123Sigmas;
@@ -73,6 +75,7 @@ class TRK
 		void performTRKFit(); //finds optimum scale AND calculates uncertainties
 		void performTRKFit(double scale); //perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
 		void performSimpleTRKFit(); //finds optimum scale and and performs TRK fit but without finding uncertainties
+        void performSimpleTRKFit(double scale); //given some scale, performs TRK fit without finding uncertainties.
 
 		//results
 		Results results;
@@ -200,9 +203,13 @@ class TRK
 		//double(*pf)(std::vector <double>, std::vector <double>); //pointer to pivotFunction: arguments of std::vector <double> params1, std::vector <double> params2
 		double pivotTol = 1e-3;
 		double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot);
-		double pivotLinear(std::vector <double> params1, std::vector <double> params2);
+		double pivotFunc(std::vector <double> params1, std::vector <double> params2);
         std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
         std::vector <double> removeOutlierPivots(std::vector <double> pivots);
+    
+        double (*linearizedIntercept)(std::vector <double>);
+        double (*linearizedSlope)(std::vector <double>);
+    
 
 		bool getCombosFromSampleDirectly = true;
 		bool weightPivots = true;
@@ -219,7 +226,8 @@ class TRK
         int maxPivotIter = 10;
         int pivotBurnIn = 1000;
         bool pivotHalfSampleMode= false;
-        bool modeInterceptGuess = true;
+        bool modeInterceptGuess = false;
+        bool averageIntercepts = false;
     
         void getPivotGuess();
     
@@ -250,6 +258,20 @@ vec slice(vec v, int begin, int end) {
 	}
 
 	return x;
+};
+
+template <class vec>
+vec concat(vec v, vec u ) {
+    vec x;
+    for (int i = 0; i < v.size(); i++){
+        x.push_back(v[i]);
+    }
+    
+    for (int i = 0; i < u.size(); i++){
+        x.push_back(u[i]);
+    }
+    
+    return x;
 };
 
 template <class BidiIter >
@@ -285,3 +307,7 @@ void writeResults(TRK TRKobj, double t_sec, std::string filename);
 double toRad(double deg);
 
 double toDeg(double rad);
+
+std::vector <std::vector <double > > getData(std::string fileName, int dataSize);
+
+std::vector <std::vector <double > > getData(std::string fileName);

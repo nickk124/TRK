@@ -1190,7 +1190,7 @@ double TRK::priors(std::vector <double> allparams) {
 			break;
 
 		case GAUSSIAN:
-			for (int i = 0; i < M + 2; i++) { //check upper bound
+			for (int i = 0; i < M; i++) { //check upper bound
 				double mu = priorsObject.gaussianParams[i][0];
 				double sig = priorsObject.gaussianParams[i][1];
 
@@ -1205,7 +1205,7 @@ double TRK::priors(std::vector <double> allparams) {
 
 		case MIXED:
 
-			for (int i = 0; i < M + 2; i++) { //check upper bound
+			for (int i = 0; i < M; i++) { //check upper bound
 				double ub = priorsObject.paramBounds[i][1];
 				double lb = priorsObject.paramBounds[i][0];
 				double mu = priorsObject.gaussianParams[i][0];
@@ -1230,7 +1230,7 @@ double TRK::priors(std::vector <double> allparams) {
 			break;
 
 		case CUSTOM:
-			for (int i = 0; i < M + 2; i++) {
+			for (int i = 0; i < M; i++) {
 				jointPrior *= priorsObject.priorsPDFs[i](allparams[i]);
 			}
 
@@ -2418,11 +2418,11 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 void TRK::guessMCMCDeltas(){
     params_sigmas_guess.clear();
     for (int j = 0; j < M; j++){
-        params_sigmas_guess.push_back((double)1/N);
+        params_sigmas_guess.push_back(10.0 * (double)1/N);
     }
     //guessing slops
-    slop_x_sigma_guess = stDevUnweighted(x) / 1000.0;
-    slop_y_sigma_guess = stDevUnweighted(y) / 1000.0;
+    slop_x_sigma_guess = stDevUnweighted(x) / 100.0;
+    slop_y_sigma_guess = stDevUnweighted(y) / 100.0;
     
     return;
 }
@@ -2769,12 +2769,12 @@ void TRK::getCombos(std::vector <std::vector <double> > total, int k, int offset
 	}
 }
 
-double TRK::pivotLinear(std::vector <double> params1, std::vector <double> params2) {
-	double a01 = params1[0];
-	double a11 = params1[1];
+double TRK::pivotFunc(std::vector <double> params1, std::vector <double> params2) {
+    double a01 = linearizedIntercept(params1);
+	double a11 = linearizedSlope(params1);
 
-	double a02 = params2[0];
-	double a12 = params2[1];
+	double a02 = linearizedIntercept(params2);
+	double a12 = linearizedSlope(params2);
 
 	return (a02 - a01) / (a11 - a12);
 }
@@ -2892,12 +2892,14 @@ void TRK::findPivots() {
             
             pivotPointParamsGuess = allparams_guess;
             
-            std::vector <double> allBs;
-            for (int i = 0; i < (int)allparam_samples.size(); i++){
-                allBs.push_back(allparam_samples[i][0]);
-            }
+            if (averageIntercepts){
+                std::vector <double> allBs;
+                for (int i = 0; i < (int)allparam_samples.size(); i++){
+                    allBs.push_back(allparam_samples[i][0]);
+                }
             
-            pivotPointParamsGuess[0] = getAverage(allBs);
+                pivotPointParamsGuess[0] = getAverage(allBs);
+            }
 
 			for (int j = 0; j < allparam_samples.size(); j++) {
 				param_samples[j] = slice(allparam_samples[j], 0, (int)M);
@@ -2918,7 +2920,7 @@ void TRK::findPivots() {
 			}
 
 			for (int j = 0; j < drawnCombos.size(); j++) {
-				onePivot = pivot + pivotLinear(drawnCombos[j][0], drawnCombos[j][1]);
+				onePivot = pivot + pivotFunc(drawnCombos[j][0], drawnCombos[j][1]);
 				if (!std::isnan(onePivot)) {
 					pivots.push_back(onePivot);
 					//std::cout << onePivot << std::endl;
@@ -3003,6 +3005,8 @@ void TRK::findPivots() {
 
 		printf("final pivot point: %f \n", pivot);
         
+        results.pivot = pivot;
+        
         pivotPointActive = false;
         
         allparams_guess =  pivotPointParamsGuess;
@@ -3055,7 +3059,7 @@ void TRK::performTRKFit() {//finds optimum scale AND performs TRK fit + uncertai
 	calculateUncertainties();
 }
 
-void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
+void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this) and calculates uncertainties
 	s = scale;
     
     getPivotGuess();
@@ -3079,7 +3083,7 @@ void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for
 	calculateUncertainties();
 }
 
-void TRK::performSimpleTRKFit() {//finds optimum scale and and performs TRK fit but without finding uncertainties
+void TRK::performSimpleTRKFit() {//finds optimum scale and performs TRK fit but without finding uncertainties
     getPivotGuess();
     
 	optimizeScale(); // (stores results in TRK.results)
@@ -3102,6 +3106,27 @@ void TRK::performSimpleTRKFit() {//finds optimum scale and and performs TRK fit 
 	return;
 }
 
+void TRK::performSimpleTRKFit(double scale) {//given some provided scale, performs TRK fit but without finding uncertainties
+    s = scale;
+    getPivotGuess();
+    
+    findPivots();
+    
+    results.bestFitParams.clear();
+    
+    whichExtrema = S;
+    allparams_s = downhillSimplex(&TRK::modifiedChiSquared, allparams_guess, s);
+    whichExtrema = none;
+    
+    for (int j = 0; j < M; j++) {
+        results.bestFitParams.push_back(allparams_s[j]);
+    }
+    
+    results.slop_x = allparams_s[M];
+    results.slop_y = allparams_s[M + 1];
+    
+    return;
+}
 
 //global functions
 
@@ -3204,4 +3229,72 @@ double toRad(double deg) {
 
 double toDeg(double rad) {
 	return rad * (180 / PI);
+}
+
+std::vector <std::vector <double > > getData(std::string fileName, int dataSize) {
+    
+    std::ifstream readFile;
+    readFile.open(fileName);
+    
+    int columns = 5;
+    int rows = dataSize;
+    std::vector <double> innerData(dataSize, 0.0);
+    std::vector<std::vector<double>> rawData(5, innerData);
+    
+    for (int row = 0; row < rows; ++row)
+    {
+        std::string line;
+        std::getline(readFile, line);
+        if (!readFile.good())
+            break;
+        
+        std::stringstream iss(line);
+        
+        for (int col = 0; col < columns; ++col)
+        {
+            std::string val;
+            std::getline(iss, val, ',');
+            //            if (!iss.good())
+            //                break;
+            
+            std::stringstream convertor(val);
+            convertor >> rawData[col][row];
+        }
+    }
+    
+    return rawData;
+}
+
+std::vector <std::vector <double > > getData(std::string fileName) {
+    
+    std::ifstream readFile;
+    readFile.open(fileName);
+    
+    int columns = 5;
+    int rows = 441;
+    std::vector <double> innerData(441, 0.0);
+    std::vector<std::vector<double>> rawData(5, innerData);
+    
+    for (int row = 0; row < rows; ++row)
+    {
+        std::string line;
+        std::getline(readFile, line);
+        if (!readFile.good())
+            break;
+        
+        std::stringstream iss(line);
+        
+        for (int col = 0; col < columns; ++col)
+        {
+            std::string val;
+            std::getline(iss, val, ',');
+            if (!iss.good())
+                break;
+            
+            std::stringstream convertor(val);
+            convertor >> rawData[col][row];
+        }
+    }
+    
+    return rawData;
 }

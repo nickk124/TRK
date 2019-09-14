@@ -220,7 +220,11 @@
 
                 <button id="OpScale" class="Button Distribution">Yes (Default)</button>
                 <button id="NoOpScale" class="Button Distribution">No</button>
-
+                <br>
+                <div id="selectScale">
+                Select scale: (1.0 by default): <textarea class="dataTable" id="scaleArea" style="height:20px; width:70%;float: left;"></textarea>
+                </div>
+                <br>
                 <h2 id="SelectContaminantSectionTitle">Generate Model Parameter Distributions/Uncertainties?</h2>
                 <div id="SelectContaminantSection">
                     <button id="YesMCMC" class="Button Contaminants">Yes</button>
@@ -250,7 +254,7 @@
                     
                 </p>
                 <p id="OptionAll" class="RejectionMethods">
-                    (this displays for all ooptions selected)
+                    (this displays for all options selected)
                 </p>
 
             </div>
@@ -274,7 +278,7 @@
                         <table style="float:right">
                             <tr>
                                 <th>Final model<br>parameters<br>(including slop)</th>
-                                <th>Min, max and<br>optimum scales</th>
+                                <th>optimum, min <br> and max scales</th>
                             </tr>
                             <tr>
                                 <th><textarea class="dataTable" id="finalParameters" style="margin-top:10px; width:35%; height:200px"></textarea></th>
@@ -1420,6 +1424,23 @@
         return;
     }
 
+    function getScale(){
+      let scale;
+      let val = document.getElementById('scaleArea').value;
+
+      val.replace(" ","")
+      val.replace("\t", "")
+
+      if (val === ""){
+        scale = 1.0;
+      } else if (val.length > 0 && typeof Number(val) == "number"){
+        scale = Number(val);
+      }
+
+
+      return scale;
+    }
+
     function performTRK(){
 
       //createBasisNotice();
@@ -1454,8 +1475,9 @@
       hasPriors = $('#YesPriors').data('clicked');
       findPivot = $('#YesPivot').data('clicked');
 
+      chosenScale = getScale();
 
-
+      console.log("scale: " + chosenScale.toString());
       console.log("mainDataContents:" + mainDataContents);
       console.log("guessDataContents:" + guessDataContents);
       console.log("doScale: " + doScale);
@@ -1478,7 +1500,10 @@
                           functionType : chosenFunctionType,
                           priorsData : priorsDataContents,
                           hasPriors : hasPriors,
-                          findPivot : findPivot
+                          findPivot : findPivot,
+                          optimizeScale : doScale,
+                          findUncertainties : doMCMC,
+                          scale : chosenScale.toString()
                         },
                   dataType: "json",
                   success: function(data, textStatus, jqXHR)
@@ -1535,24 +1560,28 @@
 				    $('#Option11').css('display','block');
 				    $('#OptionAll').css('display','block');
                     $('#YesScaleYesMCMC').css('display', 'block');
+                    $('#selectScale').css('display', 'none')
                     break;
                 case ($('#OpScale').data('clicked') && $('#NoMCMC').data('clicked')):
                     $('.RejectionMethods').css('display', 'none')
                     $('#Option10').css('display', 'block');
                     $('#OptionAll').css('display', 'block');
                     $('#YesScaleNoMCMC').css('display', 'block');
+                    $('#selectScale').css('display', 'none')
                     break;
                 case ($('#NoOpScale').data('clicked') && $('#YesMCMC').data('clicked')):
                     $('.RejectionMethods').css('display', 'none')
                     $('#Option01').css('display', 'block');
                     $('#OptionAll').css('display', 'block');
                     $('#NoScaleYesMCMC').css('display', 'block');
+                    $('#selectScale').css('display', 'block')
                     break;
                 case ($('#NoOpScale').data('clicked') && $('#NoMCMC').data('clicked')):
                     $('.RejectionMethods').css('display', 'none')
                     $('#Option00').css('display', 'block');
                     $('#OptionAll').css('display', 'block');
                     $('#NoScaleNoMCMC').css('display', 'block');
+                    $('#selectScale').css('display', 'block')
                     break;
 
           //case ($('#Linear').data('clicked')):
