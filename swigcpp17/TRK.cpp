@@ -894,38 +894,38 @@ double TRK::modifiedChiSquared(std::vector <double> allparams, double s)
 
 	if (cpp17MultiThread) {
 
-//        std::vector <int> nn;
-//
-//        for (int n = 0; n < N; n++) {
-//            nn.push_back(n);
-//        }
-//
-//        for (int n = 0; n < N; n++) {
-//            SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
-//            SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
-//        }
-//
-//        std::for_each( //parallel tangent point finding
-//            std::execution::par_unseq,
-//            nn.begin(),
-//            nn.end(),
-//            [&](auto&& n)
-//        {
-//            std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
-//
-//            double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
-//
-//            all_x_t[n] = x_t;
-//        });
-//
-//        for (int n = 0; n < N; n++) {
-//
-//            double m_tn = dyc(all_x_t[n], params);
-//            double y_tn = yc(all_x_t[n], params);
-//
-//            sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]);
-//            sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
-//        }
+        std::vector <int> nn;
+
+        for (int n = 0; n < N; n++) {
+            nn.push_back(n);
+        }
+
+        for (int n = 0; n < N; n++) {
+            SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
+            SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
+        }
+
+        std::for_each( //parallel tangent point finding
+            std::execution::par_unseq,
+            nn.begin(),
+            nn.end(),
+            [&](auto&& n)
+        {
+            std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+
+            double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
+
+            all_x_t[n] = x_t;
+        });
+
+        for (int n = 0; n < N; n++) {
+
+            double m_tn = dyc(all_x_t[n], params);
+            double y_tn = yc(all_x_t[n], params);
+
+            sum1 += w[n] * std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]);
+            sum2 += w[n] * std::log((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
+        }
 	} else if (openMPMultiThread && !cpp17MultiThread) {
 		//clock_t time = startTimer();
 
@@ -1076,37 +1076,37 @@ double TRK::likelihood(std::vector <double> allparams) {
 
 	if (cpp17MultiThread) {
 
-//        std::vector <int> nn;
-//
-//        for (int n = 0; n < N; n++) {
-//            nn.push_back(n);
-//        }
-//
-//        for (int n = 0; n < N; n++) {
-//            SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
-//            SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
-//        }
-//
-//        std::for_each( //parallel tangent point finding
-//            std::execution::par_unseq,
-//            nn.begin(),
-//            nn.end(),
-//            [&](auto&& n)
-//        {
-//            std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
-//
-//            double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
-//
-//            all_x_t[n] = x_t;
-//        });
-//
-//        for (int n = 0; n < N; n++) {
-//            double m_tn = dyc(all_x_t[n], params);
-//            double y_tn = yc(all_x_t[n], params);
-//
-//            L *= w[n] * std::sqrt((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
-//            L *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n])));
-//        }
+        std::vector <int> nn;
+
+        for (int n = 0; n < N; n++) {
+            nn.push_back(n);
+        }
+
+        for (int n = 0; n < N; n++) {
+            SigXVec.push_back(std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0));
+            SigYVec.push_back(std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0));
+        }
+
+        std::for_each( //parallel tangent point finding
+            std::execution::par_unseq,
+            nn.begin(),
+            nn.end(),
+            [&](auto&& n)
+        {
+            std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], SigXVec[n], SigYVec[n], x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+
+            double x_t = findBestTangent(params, x[n], y[n], SigXVec[n], SigYVec[n], x_tn_vec);
+
+            all_x_t[n] = x_t;
+        });
+
+        for (int n = 0; n < N; n++) {
+            double m_tn = dyc(all_x_t[n], params);
+            double y_tn = yc(all_x_t[n], params);
+
+            L *= w[n] * std::sqrt((std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n]) / (std::pow(m_tn*SigXVec[n], 2.0) + std::pow(s*SigYVec[n], 2.0)));
+            L *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - all_x_t[n]), 2.0) / (std::pow(m_tn, 2.0)*SigXVec[n] + SigYVec[n])));
+        }
 	} else if (openMPMultiThread && !cpp17MultiThread) {
 		//clock_t time = startTimer();
 
@@ -1966,16 +1966,16 @@ void TRK::optimizeScale() {
 
 	//optimize simultaneously
 	if (cpp17MultiThread) {
-//        std::vector <int> nn = { 0, 1 };
-//
-//        std::for_each( //parallel tangent point finding
-//            std::execution::par_unseq,
-//            nn.begin(),
-//            nn.end(),
-//            [&](auto&& n)
-//        {
-//            s_slops[n] = (this->*optimizeList[n])();
-//        });
+        std::vector <int> nn = { 0, 1 };
+
+        std::for_each( //parallel tangent point finding
+            std::execution::par_unseq,
+            nn.begin(),
+            nn.end(),
+            [&](auto&& n)
+        {
+            s_slops[n] = (this->*optimizeList[n])();
+        });
 
 	} else {
 		#pragma omp parallel for //num_threads(8)
