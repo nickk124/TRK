@@ -10,3 +10,9 @@
 /.vs
 /source/TRK
 /.vscode
+/swigcpp11/*.h
+/swigcpp11/*.cpp
+/swigcpp11/*.i
+/swigcpp17/*.h
+/swigcpp17/*.cpp
+/swigcpp17/*.i

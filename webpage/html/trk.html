@@ -269,7 +269,7 @@
             <div id="Results" style="float:left; width:24%; padding-right:25px">
                 <br>
                 <div style="float:left; width:400px">
-                    <button id="PerformRCR" class="Button RejectButton" onclick="performTRK();">Perform Fit!</button>
+                    <button id="PerformTRK" class="Button RejectButton" onclick="performTRK();">Perform Fit!</button>
                 </div>
                 <br>
                 <div id="OutputTableWrapper">
@@ -725,127 +725,114 @@
 	    return [new_x, trans_y];
     }
 
-    function changeInputBasis(){ //returns the data modified to the correct basis; in the correct format to be sent via ajax (same as inputDataContents)
-	    var datapoint;
-	    var newInputData = "";
+    // function changeInputBasis(){ //returns the data modified to the correct basis; in the correct format to be sent via ajax (same as inputDataContents)
+	  //   var datapoint;
+	  //   var newInputData = "";
 
-	    var inputDataContents = document.getElementById('inputTextAreaData').value;
-      var inputData_Arr_unsorted = inputDataContents.split("\n");
-	    var inputData_Arr = [];
+	  //   var inputDataContents = document.getElementById('inputTextAreaData').value;
+    //   var inputData_Arr_unsorted = inputDataContents.split("\n");
+	  //   var inputData_Arr = [];
 
-	    for (var i = 0; i < inputData_Arr_unsorted.length; i++){ //gets rid of blank lines
-		    if ((inputData_Arr_unsorted[i] != "") && (inputData_Arr_unsorted[i] != " "))
-			    inputData_Arr.push(inputData_Arr_unsorted[i]);
-	    }
-	    var N = inputData_Arr.length;
+	  //   for (var i = 0; i < inputData_Arr_unsorted.length; i++){ //gets rid of blank lines
+		//     if ((inputData_Arr_unsorted[i] != "") && (inputData_Arr_unsorted[i] != " "))
+		// 	    inputData_Arr.push(inputData_Arr_unsorted[i]);
+	  //   }
+	  //   var N = inputData_Arr.length;
 
 
-	    var has_Weights = $('#Weighted').data('clicked');
-	    var has_ErrorBars = $('#ErrorBars').data('clicked');
+	  //   var has_Weights = $('#Weighted').data('clicked');
 
-	    if (has_Weights || has_ErrorBars){
-		    switch(y_basis){
-			    case 'linear':
+	  //   if (has_Weights){
+		//     switch(y_basis){
+		// 	    case 'linear':
 
-            for (var i = 0; i < N; i++){
-              datapoint = inputData_Arr[i].split("\t");
-              if (datapoint.length < 3){ //if not tab seperated, try space seperated
-                datapoint = inputData_Arr[i].split(" ");
-              }
-              w = datapoint[2];
-              if (has_ErrorBars){
-                w = 1.0 / Math.pow(Number(w), 2.0);
-                w = w.toString();
-              }
-              newInputData += datapoint[0] + " " + datapoint[1] + " " +  w + "\n";
-            }
-            inputDataContents = newInputData;
-				    break;
-			    case 'log':
+    //         for (var i = 0; i < N; i++){
+    //           datapoint = inputData_Arr[i].split("\t");
+    //           if (datapoint.length < 3){ //if not tab seperated, try space seperated
+    //             datapoint = inputData_Arr[i].split(" ");
+    //           }
+    //           w = datapoint[2];
+    //           newInputData += datapoint[0] + " " + datapoint[1] + " " +  w + "\n";
+    //         }
+    //         inputDataContents = newInputData;
+		// 		    break;
+		// 	    case 'log':
 
-            for (var i = 0; i < N; i++){
-              datapoint = inputData_Arr[i].split("\t");
-              if (datapoint.length < 3){ //if not tab seperated, try space seperated
-                datapoint = inputData_Arr[i].split(" ");
-              }
-              w = datapoint[2];
-              if (has_ErrorBars){
-                w = 1.0 / Math.pow(Number(w), 2.0);
-                w = w.toString();
-              }
-              if (Number(datapoint[1]) > 0){
-                newInputData += datapoint[0] + " " + Math.log10(Number(datapoint[1])).toString() + " " +  w + "\n";
-              }
-            }
-            inputDataContents = newInputData;
-            break;
-			    case 'exp':
+    //         for (var i = 0; i < N; i++){
+    //           datapoint = inputData_Arr[i].split("\t");
+    //           if (datapoint.length < 3){ //if not tab seperated, try space seperated
+    //             datapoint = inputData_Arr[i].split(" ");
+    //           }
+    //           w = datapoint[2];
+    //           if (Number(datapoint[1]) > 0){
+    //             newInputData += datapoint[0] + " " + Math.log10(Number(datapoint[1])).toString() + " " +  w + "\n";
+    //           }
+    //         }
+    //         inputDataContents = newInputData;
+    //         break;
+		// 	    case 'exp':
 
-            for (var i = 0; i < N; i++){
-              datapoint = inputData_Arr[i].split("\t");
-              if (datapoint.length < 3){ //if not tab seperated, try space seperated
-                datapoint = inputData_Arr[i].split(" ");
-              }
-              w = datapoint[2];
-              if (has_ErrorBars){
-                w = 1.0 / Math.pow(Number(w), 2.0);
-                w = w.toString();
-              }
-              newInputData += datapoint[0] + " " + Math.pow(10, Number(datapoint[1])).toString() + " " +  w + "\n";
-            }
-            inputDataContents = newInputData;
+    //         for (var i = 0; i < N; i++){
+    //           datapoint = inputData_Arr[i].split("\t");
+    //           if (datapoint.length < 3){ //if not tab seperated, try space seperated
+    //             datapoint = inputData_Arr[i].split(" ");
+    //           }
+    //           w = datapoint[2];
+    //           newInputData += datapoint[0] + " " + Math.pow(10, Number(datapoint[1])).toString() + " " +  w + "\n";
+    //         }
+    //         inputDataContents = newInputData;
 
-				    break;
-			    default:
-				    break;
-		    }
-	    } else {
-		    switch(y_basis){
-			    case 'linear':
+		// 		    break;
+		// 	    default:
+		// 		    break;
+		//     }
+	  //   } else {
+		//     switch(y_basis){
+		// 	    case 'linear':
 
-            for (var i = 0; i < N; i++){
-              datapoint = inputData_Arr[i].split("\t");
-              if (datapoint.length < 2){ //if not tab seperated, try space seperated
-                datapoint = inputData_Arr[i].split(" ");
-              }
-              newInputData += datapoint[0] + " " + datapoint[1] + "\n";
-            }
-            inputDataContents = newInputData;
-				    break;
-			    case 'log':
+    //         for (var i = 0; i < N; i++){
+    //           datapoint = inputData_Arr[i].split("\t");
+    //           if (datapoint.length < 2){ //if not tab seperated, try space seperated
+    //             datapoint = inputData_Arr[i].split(" ");
+    //           }
+    //           newInputData += datapoint[0] + " " + datapoint[1] + "\n";
+    //         }
+    //         inputDataContents = newInputData;
+		// 		    break;
+		// 	    case 'log':
 
-            for (var i = 0; i < N; i++){
-              datapoint = inputData_Arr[i].split("\t");
-              if (datapoint.length < 2){ //if not tab seperated, try space seperated
-                datapoint = inputData_Arr[i].split(" ");
-              }
-              if (Number(datapoint[1]) > 0){
-                newInputData += datapoint[0] + " " + Math.log10(Number(datapoint[1])).toString() + "\n";
-              }
-            }
-            inputDataContents = newInputData;
+    //         for (var i = 0; i < N; i++){
+    //           datapoint = inputData_Arr[i].split("\t");
+    //           if (datapoint.length < 2){ //if not tab seperated, try space seperated
+    //             datapoint = inputData_Arr[i].split(" ");
+    //           }
+    //           if (Number(datapoint[1]) > 0){
+    //             newInputData += datapoint[0] + " " + Math.log10(Number(datapoint[1])).toString() + "\n";
+    //           }
+    //         }
+    //         inputDataContents = newInputData;
 
-				    break;
-			    case 'exp':
+		// 		    break;
+		// 	    case 'exp':
 
-            for (var i = 0; i < N; i++){
-              datapoint = inputData_Arr[i].split("\t");
-              if (datapoint.length < 2){ //if not tab seperated, try space seperated
-                datapoint = inputData_Arr[i].split(" ");
-              }
-              newInputData += datapoint[0] + " " + Math.pow(10, Number(datapoint[1])).toString() + "\n";
-            }
-            inputDataContents = newInputData;
+    //         for (var i = 0; i < N; i++){
+    //           datapoint = inputData_Arr[i].split("\t");
+    //           if (datapoint.length < 2){ //if not tab seperated, try space seperated
+    //             datapoint = inputData_Arr[i].split(" ");
+    //           }
+    //           newInputData += datapoint[0] + " " + Math.pow(10, Number(datapoint[1])).toString() + "\n";
+    //         }
+    //         inputDataContents = newInputData;
 
-				    break;
-			    default:
-				    break;
-		    }
+		// 		    break;
+		// 	    default:
+		// 		    break;
+		//     }
 
-	    }
+	  //   }
 
-	    return inputDataContents;
-    }
+	  //   return inputDataContents;
+    // }
 
     function getHistData(paramHistogramsData) {
         let paramHistograms = [];
@@ -862,6 +849,7 @@
                 }
                 bothsigs.push(sigs);
             }
+            //bothsigs = [hist, edges]
             paramHistograms.push(bothsigs);
         }
 
@@ -1022,7 +1010,6 @@
 
     function convertData(inputDataContents){ //convert from new format to old format
       var has_Weights = $('#Weighted').data('clicked');
-      var has_ErrorBars = $('#ErrorBars').data('clicked');
 
       var x_data = [];
       var y_data = []; //these are lists of strings
@@ -1043,7 +1030,7 @@
 
       console.log("inputData_Arr: " + inputData_Arr);
 
-      if (has_Weights || has_ErrorBars){ //creates lists of data (list of strings)
+      if (has_Weights){ //creates lists of data (list of strings)
         for (var i = 0; i < N; i++){
     	    datapoint = inputData_Arr[i].split("\t");
     	    if (datapoint.length < 3){ //if not tab seperated, try space seperated
@@ -1068,7 +1055,7 @@
         xDataContents += x_data[i] + "\n";
       }
 
-      if (has_Weights || has_ErrorBars){ //adds data to old format strings
+      if (has_Weights){ //adds data to old format strings
         for (var i = 0; i < N; i++){
     	    mainDataContents += y_data[i] + " " + w_data[i] + "\n";
 		    }
@@ -1443,25 +1430,9 @@
 
     function performTRK(){
 
-      //createBasisNotice();
-      //hide = createOverRejectionNotice();
-      //if (hide){
-      //  return;
-      //}
-
-  
-
-      var mainDataContents = changeInputBasis(); //either doesn't change the data, or changes it to fit correct basis (only changes y, not w/errors)
-
-      //var convertedData = convertData(inputDataContents); //also converts error bars to weights
-
-      //mainDataContents = convertedData[0];
-      //xDataContents = convertedData[1];
-
-      //mainDataContents = document.getElementById('ydataarea').value
-      //xDataContents = document.getElementById('xdataarea').value
+      var mainDataContents = document.getElementById('inputTextAreaData').value;
+      
       guessDataContents = document.getElementById('guessarea').value
-      //barDataContents = document.getElementById('barArea').value
       priorsDataContents = document.getElementById('priorsArea').value
 
       $('#OutputTableWrapper').css('display', 'inline');
@@ -1485,9 +1456,6 @@
 	    console.log("hasWeights: " + hasWeights);
       console.log("chosenFunctionType: " + chosenFunctionType);
       console.log("hasPriors: " + hasPriors);
-      //console.log(correct_barData);
-
-      //Rejection tech determination:
 
       var request = $.ajax
           (
@@ -1533,7 +1501,6 @@
 
 
 
-      //this function will use a different parametric function, and corresponding c++ function based off of what parametric function was chosen
       }
 
     function type(){

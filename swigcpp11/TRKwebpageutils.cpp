@@ -84,7 +84,7 @@ Priors getPriors(int priorsCheck, std::vector <double> priorsParams, std::vector
 }
 
 //if non weighted, in python just use a vector of w's for below.
-std::vector <double> requestHandler(int fType, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> allparamsguess, int dataSize, int pivotCheck, int priorsCheck, std::vector <double> priorsParams, std::vector <int> hasPriorsVec, int opScale, int findUncertainties){
+std::vector <double> requestHandler(int fType, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> allparamsguess, int dataSize, int pivotCheck, int priorsCheck, std::vector <double> priorsParams, std::vector <int> hasPriorsVec, int opScale, int findUncertainties, double fitScale){
     
     std::vector <double> result;
     //ftype conversion:
@@ -187,11 +187,11 @@ std::vector <double> requestHandler(int fType, std::vector <double> x, std::vect
     if (opScale == 1 && findUncertainties == 1){
         trk.performTRKFit();
     } else if (opScale == 0 && findUncertainties == 1){
-        trk.performTRKFit(1.0);
+        trk.performTRKFit(fitScale);
     } else if (opScale == 1 && findUncertainties == 0){
         trk.performSimpleTRKFit();
     } else if (opScale == 0 && findUncertainties == 0){
-        trk.performSimpleTRKFit(1.0);
+        trk.performSimpleTRKFit(fitScale);
     }
     
     //    results = {best fit params, slop, - 1 2 3, + 1 2 3 sigmas, s0, a, b, pivot, bincount1, bincount2 ... , hist1, edges1, hist2, edges2 ...

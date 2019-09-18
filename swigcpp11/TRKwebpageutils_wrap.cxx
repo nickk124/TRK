@@ -5719,6 +5719,7 @@ SWIGINTERN PyObject *_wrap_requestHandler(PyObject *SWIGUNUSEDPARM(self), PyObje
   std::vector< int,std::allocator< int > > arg12 ;
   int arg13 ;
   int arg14 ;
+  double arg15 ;
   int val1 ;
   int ecode1 = 0 ;
   void *argp2 ;
@@ -5747,10 +5748,12 @@ SWIGINTERN PyObject *_wrap_requestHandler(PyObject *SWIGUNUSEDPARM(self), PyObje
   int ecode13 = 0 ;
   int val14 ;
   int ecode14 = 0 ;
-  PyObject *swig_obj[14] ;
+  double val15 ;
+  int ecode15 = 0 ;
+  PyObject *swig_obj[15] ;
   std::vector< double,std::allocator< double > > result;
   
-  if (!SWIG_Python_UnpackTuple(args, "requestHandler", 14, 14, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "requestHandler", 15, 15, swig_obj)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "requestHandler" "', argument " "1"" of type '" "int""'");
@@ -5885,7 +5888,12 @@ SWIGINTERN PyObject *_wrap_requestHandler(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "requestHandler" "', argument " "14"" of type '" "int""'");
   } 
   arg14 = static_cast< int >(val14);
-  result = requestHandler(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+  ecode15 = SWIG_AsVal_double(swig_obj[14], &val15);
+  if (!SWIG_IsOK(ecode15)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode15), "in method '" "requestHandler" "', argument " "15"" of type '" "double""'");
+  } 
+  arg15 = static_cast< double >(val15);
+  result = requestHandler(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
   resultobj = SWIG_NewPointerObj((new std::vector< double,std::allocator< double > >(static_cast< const std::vector< double,std::allocator< double > >& >(result))), SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t, SWIG_POINTER_OWN |  0 );
   return resultobj;
 fail:

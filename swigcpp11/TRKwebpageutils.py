@@ -126,8 +126,8 @@ _TRKwebpageutils.SwigPyIterator_swigregister(SwigPyIterator)
 def getPriors(priorsCheck, priorsParams, hasPriorsVec, paramCount):
     return _TRKwebpageutils.getPriors(priorsCheck, priorsParams, hasPriorsVec, paramCount)
 
-def requestHandler(fType, x, y, w, sx, sy, allparamsguess, dataSize, pivotCheck, priorsCheck, priorsParams, hasPriorsVec, opScale, findUncertainties):
-    return _TRKwebpageutils.requestHandler(fType, x, y, w, sx, sy, allparamsguess, dataSize, pivotCheck, priorsCheck, priorsParams, hasPriorsVec, opScale, findUncertainties)
+def requestHandler(fType, x, y, w, sx, sy, allparamsguess, dataSize, pivotCheck, priorsCheck, priorsParams, hasPriorsVec, opScale, findUncertainties, fitScale):
+    return _TRKwebpageutils.requestHandler(fType, x, y, w, sx, sy, allparamsguess, dataSize, pivotCheck, priorsCheck, priorsParams, hasPriorsVec, opScale, findUncertainties, fitScale)
 
 def linear(x, params):
     return _TRKwebpageutils.linear(x, params)
