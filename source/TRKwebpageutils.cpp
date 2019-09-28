@@ -147,7 +147,7 @@ std::vector <double> requestHandler(int fType, std::vector <double> x, std::vect
     
     TRK trk;
     
-    trk.cpp17MultiThread = true;
+//    trk.cpp17MultiThread = true;
     if (pivotCheck == 1){
         trk.findPivotPoints = true;
         
@@ -251,189 +251,191 @@ std::vector <double> requestHandler(int fType, std::vector <double> x, std::vect
     return result;
 }
 
-#include <fstream>
-#include <sstream>
-#include <string>
-
-
-//model pivot points
-
-double c2p1BH;
-double c2p2BH;
-
-double c2p1RV;
-double c2p2RV;
-
-double c2pc1;
-
-double yC(double x, std::vector <double> params) {
-    double a0 = params[0];
-    double a1 = params[1];
-    
-    return a0 * std::sin(a1 * x);
-}
-
-double dyC(double x, std::vector <double> params) {
-    double a0 = params[0];
-    double a1 = params[1];
-    
-    return a0 * a1 * std::cos(a1 * x);
-}
-
-double ddyC(double x, std::vector <double> params) {
-    double a0 = params[0];
-    double a1 = params[1];
-    
-    return -1.0 * a0 * a1 * a1 * std::sin(a1 * x);
-}
-
-//c1 vs c2
-
-double c1c2(double c2, std::vector <double> params) {
-    double bc1 = params[0];
-    double mc1 = params[1];
-    
-    return bc1 + mc1*(c2 - TRK::pivot);
-}
-
-double dc1c2(double c2, std::vector <double> params) {
-    double mc1 = params[1];
-    
-    return mc1;
-}
-
-double ddc1c2(double c2, std::vector <double> params) {
-    return 0.0;
-}
-
-double pivotc1c2(std::vector <double> params1, std::vector <double> params2) {
-    double b1 = params1[0];
-    double t1 = params1[1];
-    
-    double b2 = params2[0];
-    double t2 = params2[1];
-    
-    return (b2 - b1) / (std::tan(t1) - std::tan(t2));
-}
-//BH vs c2
-
-double bhc2(double c2, std::vector <double> params) {
-    double b1BH = params[0];
-    double theta1BH = params[1];
-    
-    double b2BH = params[2];
-    double theta2BH = params[3];
-    
-    return -std::log(std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH)));
-}
-
-double dbhc2(double c2, std::vector <double> params) {
-    double b1BH = params[0];
-    double theta1BH = params[1];
-    
-    double b2BH = params[2];
-    double theta2BH = params[3];
-    
-    double top = -std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH))*std::tan(theta2BH);
-    double bottom = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH));
-    
-    return -top/bottom;
-}
-
-double ddbhc2(double c2, std::vector <double> params) {
-    double b1BH = params[0];
-    double theta1BH = params[1];
-    
-    double b2BH = params[2];
-    double theta2BH = params[3];
-    
-    double top1 = std::pow(-std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH))*std::tan(theta2BH), 2.0);
-    double bottom1 = std::pow(std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH)), 2.0);
-    
-    double top2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH))*std::pow(std::tan(theta1BH), 2.0) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH))*std::pow(std::tan(theta2BH), 2.0);
-    double bottom2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH));
-    
-    return top1 / bottom1 - top2 / bottom2;
-}
-
-//RV vs c2
-
-double rvc2(double c2, std::vector <double> params) {
-    double b1RV = params[0];
-    double theta1RV = params[1];
-    
-    double b2RV = params[2];
-    double theta2RV = params[3];
-    
-    return std::log(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV)));
-}
-
-double drvc2(double c2, std::vector <double> params) {
-    double b1RV = params[0];
-    double theta1RV = params[1];
-    
-    double b2RV = params[2];
-    double theta2RV = params[3];
-    
-    double top = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::tan(theta2RV);
-    double bottom = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV));
-    
-    return top / bottom;
-}
-
-double ddrvc2(double c2, std::vector <double> params) {
-    double b1RV = params[0];
-    double theta1RV = params[1];
-    
-    double b2RV = params[2];
-    double theta2RV = params[3];
-    
-    double top1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::tan(theta2RV), 2.0);
-    double bottom1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV)), 2.0);
-    
-    double top2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::pow(std::tan(theta1RV), 2.0) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::pow(std::tan(theta2RV), 2.0);
-    double bottom2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV));
-    
-    return -(top1 / bottom1) + top2 / bottom2;
-}
-
-int main()
-{
-    
-    
-    std::string filename;
-    
-    //filename = "bhc2_data.csv";
-    //filename = "rvc2_data.csv";
-    //    filename = "c1c2_data.csv";                                                                                                    //**********
-    filename = "simplelinear_data.csv";
-
-    std::vector <std::vector <double> > data = getData(filename, 9);
-    //    std::vector <std::vector <double> > data = getData(filename, 441);
-    
-    std::vector <double> x, y, sx, sy, w;
-    
-    for (int i = 0; i < data[0].size(); i++) {
-        x.push_back(data[0][i]);
-        sx.push_back(data[1][i]);
-        y.push_back(data[2][i]);
-        sy.push_back(data[3][i]);
-        w.push_back(data[4][i]);
-    }
-    
-    std::vector <double> allparamsguess = {1.0, 1.0, 0.3, 0.3};
-    std::vector <double> priorsParams;
-    std::vector <int> hasPriorsVec;
-    
-    std::vector <double> res;
-    
-    res = requestHandler(1, x, y, w, sx, sy, allparamsguess, (int)x.size(), 0, 0, priorsParams, hasPriorsVec, 0, 0, 0.25);
-    
-    for (int i = 0; i < (int)res.size(); i++){
-        printf("%f\n", res[i]);
-    }
-    
-    
-    return 0;
-}
+//#include <fstream>
+//#include <sstream>
+//#include <string>
+//
+//
+////model pivot points
+//
+//double c2p1BH;
+//double c2p2BH;
+//
+//double c2p1RV;
+//double c2p2RV;
+//
+//double c2pc1;
+//
+//double yC(double x, std::vector <double> params) {
+//    double a0 = params[0];
+//    double a1 = params[1];
+//
+//    return a0 * std::sin(a1 * x);
+//}
+//
+//double dyC(double x, std::vector <double> params) {
+//    double a0 = params[0];
+//    double a1 = params[1];
+//
+//    return a0 * a1 * std::cos(a1 * x);
+//}
+//
+//double ddyC(double x, std::vector <double> params) {
+//    double a0 = params[0];
+//    double a1 = params[1];
+//
+//    return -1.0 * a0 * a1 * a1 * std::sin(a1 * x);
+//}
+//
+////c1 vs c2
+//
+//double c1c2(double c2, std::vector <double> params) {
+//    double bc1 = params[0];
+//    double mc1 = params[1];
+//
+//    return bc1 + mc1*(c2 - TRK::pivot);
+//}
+//
+//double dc1c2(double c2, std::vector <double> params) {
+//    double mc1 = params[1];
+//
+//    return mc1;
+//}
+//
+//double ddc1c2(double c2, std::vector <double> params) {
+//    return 0.0;
+//}
+//
+//double pivotc1c2(std::vector <double> params1, std::vector <double> params2) {
+//    double b1 = params1[0];
+//    double t1 = params1[1];
+//
+//    double b2 = params2[0];
+//    double t2 = params2[1];
+//
+//    return (b2 - b1) / (std::tan(t1) - std::tan(t2));
+//}
+////BH vs c2
+//
+//double bhc2(double c2, std::vector <double> params) {
+//    double b1BH = params[0];
+//    double theta1BH = params[1];
+//
+//    double b2BH = params[2];
+//    double theta2BH = params[3];
+//
+//    return -std::log(std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH)));
+//}
+//
+//double dbhc2(double c2, std::vector <double> params) {
+//    double b1BH = params[0];
+//    double theta1BH = params[1];
+//
+//    double b2BH = params[2];
+//    double theta2BH = params[3];
+//
+//    double top = -std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH))*std::tan(theta2BH);
+//    double bottom = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH));
+//
+//    return -top/bottom;
+//}
+//
+//double ddbhc2(double c2, std::vector <double> params) {
+//    double b1BH = params[0];
+//    double theta1BH = params[1];
+//
+//    double b2BH = params[2];
+//    double theta2BH = params[3];
+//
+//    double top1 = std::pow(-std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH))*std::tan(theta2BH), 2.0);
+//    double bottom1 = std::pow(std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH)), 2.0);
+//
+//    double top2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH))*std::pow(std::tan(theta1BH), 2.0) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH))*std::pow(std::tan(theta2BH), 2.0);
+//    double bottom2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH));
+//
+//    return top1 / bottom1 - top2 / bottom2;
+//}
+//
+////RV vs c2
+//
+//double rvc2(double c2, std::vector <double> params) {
+//    double b1RV = params[0];
+//    double theta1RV = params[1];
+//
+//    double b2RV = params[2];
+//    double theta2RV = params[3];
+//
+//    return std::log(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV)));
+//}
+//
+//double drvc2(double c2, std::vector <double> params) {
+//    double b1RV = params[0];
+//    double theta1RV = params[1];
+//
+//    double b2RV = params[2];
+//    double theta2RV = params[3];
+//
+//    double top = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::tan(theta2RV);
+//    double bottom = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV));
+//
+//    return top / bottom;
+//}
+//
+//double ddrvc2(double c2, std::vector <double> params) {
+//    double b1RV = params[0];
+//    double theta1RV = params[1];
+//
+//    double b2RV = params[2];
+//    double theta2RV = params[3];
+//
+//    double top1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::tan(theta2RV), 2.0);
+//    double bottom1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV)), 2.0);
+//
+//    double top2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::pow(std::tan(theta1RV), 2.0) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::pow(std::tan(theta2RV), 2.0);
+//    double bottom2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV));
+//
+//    return -(top1 / bottom1) + top2 / bottom2;
+//}
+//
+//int main()
+//{
+//
+//
+//    std::string filename;
+//
+//    //filename = "bhc2_data.csv";
+//    //filename = "rvc2_data.csv";
+//    //    filename = "c1c2_data.csv";                                                                                                    //**********
+//    filename = "simplelinear_data.csv";
+//
+//    filename = "/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/" + filename;
+//
+//    std::vector <std::vector <double> > data = getData(filename, 9);
+//    //    std::vector <std::vector <double> > data = getData(filename, 441);
+//
+//    std::vector <double> x, y, sx, sy, w;
+//
+//    for (int i = 0; i < data[0].size(); i++) {
+//        x.push_back(data[0][i]);
+//        sx.push_back(data[1][i]);
+//        y.push_back(data[2][i]);
+//        sy.push_back(data[3][i]);
+//        w.push_back(data[4][i]);
+//    }
+//
+//    std::vector <double> allparamsguess = {1.0, 1.0, 0.3, 0.3};
+//    std::vector <double> priorsParams;
+//    std::vector <int> hasPriorsVec;
+//
+//    std::vector <double> res;
+//
+//    res = requestHandler(1, x, y, w, sx, sy, allparamsguess, (int)x.size(), 1, 0, priorsParams, hasPriorsVec, 1, 1, 1.0);
+//
+//    for (int i = 0; i < (int)res.size(); i++){
+//        printf("%f\n", res[i]);
+//    }
+//
+//
+//    return 0;
+//}
 

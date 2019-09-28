@@ -790,11 +790,11 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>, 
 		
 		
 		
-		/*std::cout << "chi-square parameters at s = " << s << " ";
-		for (int i = 0; i < result.size(); i++) {
-			std::cout << result[i] << " ";
-		}
-		std::cout << "fitness = " << evalWPriors(f, result, s) << "\n";*/
+//        std::cout << "chi-square parameters at s = " << s << " ";
+//        for (int i = 0; i < result.size(); i++) {
+//            std::cout << result[i] << " ";
+//        }
+//        std::cout << "fitness = " << evalWPriors(f, result, s) << "\n";
 		
 		
 		//test for termination
@@ -1976,6 +1976,8 @@ void TRK::optimizeScale() {
 //        {
 //            s_slops[n] = (this->*optimizeList[n])();
 //        });
+    } else if (cpp11MultiThread && !cpp17MultiThread){
+        parlalize tih cpp11
 
 	} else {
 		#pragma omp parallel for //num_threads(8)
@@ -2189,7 +2191,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 			for (int i = 0; i < n + 1; i++) {
                 double eval = innerMetHastSimplex(burncount, vertices[i], optRatio);
 				unorderedEvals.push_back(eval);
-                if (std::abs(eval - optRatio) < 1e-6){ //acceptance ratio is ~0
+                if (std::abs(eval - optRatio) < 0.1){ //acceptance ratio is ~0
                     zerocount++;
                 }
 				if (unorderedEvals[i] < tol) {
@@ -2211,7 +2213,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
                         vertices[i][j] *= simplexSuperShrink;
                     }
                 }
-                //printf("simplex super-shrunk \n");
+                printf("simplex super-shrunk \n");
             }
 
 			// reflect

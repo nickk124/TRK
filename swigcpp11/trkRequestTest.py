@@ -222,7 +222,7 @@ if findUncertainties:
 result = TRK.requestHandler(funcTypeInt, xVec, yVec, wVec, sxVec, syVec, allparamsguessVec, N, pivotCheckInt, priorsCheckInt, priorsParamsVec, hasPriorsVec, opScaleInt, doMCMCInt, scale)
 print result
 
-#results = {best fit params, slop, - 1 2 3, + 1 2 3 sigmas, s0, a, b, pivot, bincount1, bincount2 ... , hist1, edges1, hist2, edges2 ...
+#result = {best fit params, slop, - 1 2 3, + 1 2 3 sigmas, s0, a, b, pivot, bincount1, bincount2 ... , hist1, edges1, hist2, edges2 ...
 
 """
 needed outputs:
@@ -239,7 +239,7 @@ finalParametersData = "a0\na1\na2 ... \nslopx\nslopy"
 finalParametersData = []
 
 for j in range(M + 2):
-    finalParametersData.append(results[j])
+    finalParametersData.append(result[j])
 
 finalParametersData = [str(i) for i in finalParametersData]
 finalParametersData = "\n".join(finalParametersData)
@@ -266,7 +266,7 @@ bestFit_123SigmasData = "\n".join(bestFit_123SigmasData)
 
 #scale data
 scales = [result[M + 2 + 6 * M], result[M + 2 + 6 * M + 1], result[M + 2 + 6 * M + 2]]
-scalesData = "\n".join([str(s) for s in scale])
+scalesData = "\n".join([str(s) for s in scales])
 
 #pivot data
 
