@@ -211,7 +211,9 @@ callbackPlot = CustomJS(args=dict(srcData=srcData, srcModel=srcModel, p=p, xaxis
         err_y_up[i] = y_data[i] + err_y_data[i];
         err_x_down[i] = x_data[i] - err_x_data[i];
         err_y_down[i] = y_data[i] - err_y_data[i];
+    }
 
+    for (let i = 0; i < x_m_data.length; i++){
         x_m[i] = x_m_data[i];
         y_m[i] = y_m_data[i];
 
@@ -242,7 +244,8 @@ callbackPlot = CustomJS(args=dict(srcData=srcData, srcModel=srcModel, p=p, xaxis
     //xaxis.axis_label = playerPlotAxes[0];
     //yaxis.axis_label = playerPlotAxes[1];
 
-    srcData.change.emit();   
+    srcData.change.emit();  
+    srcModel.change.emit(); 
     p.change.emit();
 """)
 

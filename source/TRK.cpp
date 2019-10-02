@@ -1977,7 +1977,37 @@ void TRK::optimizeScale() {
 //            s_slops[n] = (this->*optimizeList[n])();
 //        });
     } else if (cpp11MultiThread && !cpp17MultiThread){
-        parlalize tih cpp11
+        int counter = 0, completedThreads = 0, liveThreads = 0;
+        std::vector<double> results;
+        std::vector< std::future < std::vector < double > > > futureVec;
+        futureVec.resize(2);
+        
+        for (int i = 0; i < 2; i++)
+        {                                                  //&TRK::tangentParallelLikelihood
+            futureVec[i] = std::async(std::launch::async, *optimizeList[i], this); //pointer to fn run through MT, arguments to fn
+            counter++;
+            liveThreads++;
+            
+            if (liveThreads >= maxThreads)
+            {
+                for (int i = completedThreads; i < counter; i++)
+                {
+                    results = futureVec[i].get();
+                    s_slops.push_back(results);
+                }
+                completedThreads += liveThreads;
+                liveThreads = 0;
+            }
+        }
+        for (int i = completedThreads; i < N; i++)
+        {
+            results = futureVec[i].get();
+            s_slops.push_back(results);
+        }
+        
+        std::vector <double> mM = minMax(s_slops);
+        s_slops[0] = mM[0];
+        s_slops[1] = mM[1];
 
 	} else {
 		#pragma omp parallel for //num_threads(8)
