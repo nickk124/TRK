@@ -313,6 +313,21 @@ double TRK::max(double a, double b)
     return (a > b ? a : b);
 }
 
+std::vector < std::vector <double> > TRK::transpose(std::vector < std::vector <double> > array) { //takes the transpose of some input array
+    
+    int n = (int)array.size();
+    int m = (int)array[0].size();
+    
+    std::vector<double> innertransposedArray(n, 0.0);
+    std::vector <std::vector <double> > transposedArray(m, innertransposedArray);
+    
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            transposedArray[j][i] = array[i][j];
+    return transposedArray;
+};
+
+
 bool TRK::isEqual(double x, double y, double maxRelativeError = .00000001, double maxAbsoluteError = DBL_MIN)// .000001; .0000001;.00000001
 {
     if (std::abs(x - y) < maxAbsoluteError)
@@ -1977,14 +1992,16 @@ void TRK::optimizeScale() {
 //            s_slops[n] = (this->*optimizeList[n])();
 //        });
     } else if (cpp11MultiThread && !cpp17MultiThread){
+        s_slops.clear();
+        
         int counter = 0, completedThreads = 0, liveThreads = 0;
-        std::vector<double> results;
-        std::vector< std::future < std::vector < double > > > futureVec;
+        double result;
+        std::vector< std::future < double > > futureVec;
         futureVec.resize(2);
         
         for (int i = 0; i < 2; i++)
         {                                                  //&TRK::tangentParallelLikelihood
-            futureVec[i] = std::async(std::launch::async, *optimizeList[i], this); //pointer to fn run through MT, arguments to fn
+            futureVec[i] = std::async(std::launch::async, optimizeList[i], this); //pointer to fn run through MT, arguments to fn
             counter++;
             liveThreads++;
             
@@ -1992,17 +2009,17 @@ void TRK::optimizeScale() {
             {
                 for (int i = completedThreads; i < counter; i++)
                 {
-                    results = futureVec[i].get();
-                    s_slops.push_back(results);
+                    result = futureVec[i].get();
+                    s_slops.push_back(result);
                 }
                 completedThreads += liveThreads;
                 liveThreads = 0;
             }
         }
-        for (int i = completedThreads; i < N; i++)
+        for (int i = completedThreads; i < 2; i++)
         {
-            results = futureVec[i].get();
-            s_slops.push_back(results);
+            result = futureVec[i].get();
+            s_slops.push_back(result);
         }
         
         std::vector <double> mM = minMax(s_slops);
@@ -2177,272 +2194,384 @@ std::vector <double> TRK::pegToNonZeroDelta(std::vector <double> vertex, std::ve
 }
 
 std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess) {
-	double tol = 0.05;
+	double tol = 0.175;
     double optRatio = best_ratio;
+    bool tolCheck = false;
 
 	unsigned long n = delta_guess.size(); //number of model parameters plus two slop parameters
-
-	double rho = 5.0; //reflection
-	double chi = 5.0; //expansion
-	double gamma = 0.3; //contraction
-	double sigma = 0.3; //shrinkage
-
-	// simplex initialization
-
-	std::vector <double> init_point = delta_guess;
+    std::vector <double> best_delta;
     
-    printf("initial delta:");
-    
-    for (int j = 0; j < M + 2 ; j++) {
-        printf("%f ", delta_guess[j]);
-    }
-    std::cout << std::endl;
+    switch (tuningAlgo){
+        case SIMPLEX: {
 
-	std::vector <std::vector <double> > vertices(n + 1, init_point);
-	std::vector <double> best_delta;
+            double rho = 5.0; //reflection
+            double chi = 5.0; //expansion
+            double gamma = 0.3; //contraction
+            double sigma = 0.3; //shrinkage
 
-	int i = 0;
-	for (int j = 1; j < n + 1; j++) { //for each simplex node
+            // simplex initialization
 
-		vertices[j][i] = delta_guess[i] +  delta_guess[i]; //add initial "step size"
-		i += 1;
-	}
-
-	std::vector <double> result;
-	while (true) {
-		while (true) {
-			// order
-            printf("order\n");
-
-			std::vector <int> orderedindices;
-			std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
+            std::vector <double> init_point = delta_guess;
             
-            int zerocount = 0;
-			for (int i = 0; i < n + 1; i++) {
-                double eval = innerMetHastSimplex(burncount, vertices[i], optRatio);
-				unorderedEvals.push_back(eval);
-                if (std::abs(eval - optRatio) < 0.1){ //acceptance ratio is ~0
-                    zerocount++;
-                }
-				if (unorderedEvals[i] < tol) {
-					return vertices[i];
-				}
-			}
-			orderedindices = getSortedIndices(unorderedEvals);
-
-			std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
-			for (int i = 1; i < n + 1; i++) {
-				orderedvertices.push_back(vertices[orderedindices[i]]);
-			}
-
-			vertices = orderedvertices;
+            printf("initial delta:");
             
-            if (zerocount == n + 1){ //all vertices in ~0 territory
-                for (int i = 0; i < n + 1; i++) {
-                    for (int j = 0; j < n; j++) {
-                        vertices[i][j] *= simplexSuperShrink;
-                    }
-                }
-                printf("simplex super-shrunk \n");
+            for (int j = 0; j < M + 2 ; j++) {
+                printf("%f ", delta_guess[j]);
+            }
+            std::cout << std::endl;
+
+            std::vector <std::vector <double> > vertices(n + 1, init_point);
+
+            int i = 0;
+            for (int j = 1; j < n + 1; j++) { //for each simplex node
+
+                vertices[j][i] = delta_guess[i] +  delta_guess[i]; //add initial "step size"
+                i += 1;
             }
 
-			// reflect
-            printf("reflect\n");
+            std::vector <double> result;
+            while (true) {
+                while (true) {
+                    // order
+                    printf("order\n");
+
+                    std::vector <int> orderedindices;
+                    std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
+                    
+                    int zerocount = 0;
+                    for (int i = 0; i < n + 1; i++) {
+                        double eval = innerMetHastSimplex(burncount, vertices[i], optRatio);
+                        unorderedEvals.push_back(eval);
+                        if (std::abs(eval - optRatio) < 0.1){ //acceptance ratio is ~0
+                            zerocount++;
+                        }
+                        if (unorderedEvals[i] < tol) {
+                            return vertices[i];
+                        }
+                    }
+                    orderedindices = getSortedIndices(unorderedEvals);
+
+                    std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
+                    for (int i = 1; i < n + 1; i++) {
+                        orderedvertices.push_back(vertices[orderedindices[i]]);
+                    }
+
+                    vertices = orderedvertices;
+                    
+                    if (zerocount == n + 1){ //all vertices in ~0 territory
+                        for (int i = 0; i < n + 1; i++) {
+                            for (int j = 0; j < n; j++) {
+                                vertices[i][j] *= simplexSuperShrink;
+                            }
+                        }
+                        printf("simplex super-shrunk \n");
+                    }
+
+                    // reflect
+                    printf("reflect\n");
+                    
+                    std::vector <double> refpoint;
+                    std::vector <std::vector <double> > nvertices;
+                    for (int i = 0; i < n; i++) {
+                        nvertices.push_back(vertices[i]);
+                    }
+
+                    std::vector <double> centroid = findCentroid(nvertices);
+
+                    for (int i = 0; i < n; i++) {
+                        refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
+                    }
+
+                    refpoint = pegToNonZeroDelta(refpoint, vertices[n]);
+
+                    double fr = innerMetHastSimplex(burncount, refpoint, optRatio);
+                    if (fr < tol) {
+                        return refpoint;
+                    }
+                    double f1 = innerMetHastSimplex(burncount, vertices[0], optRatio);
+                    if (f1 < tol) {
+                        return vertices[0];
+                    }
+                    double fn = innerMetHastSimplex(burncount, vertices[n - 1], optRatio);
+                    if (fn < tol) {
+                        return vertices[n - 1];
+                    }
+
+                    if (f1 <= fr && fr < fn) {
+                        result = refpoint;
+                        break;
+                    }
+
+                    //expand
+                    if (fr < f1) {
+                        printf("expand\n");
+                        
+                        std::vector <double> exppoint;
+
+                        for (int i = 0; i < n; i++) {
+                            exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
+                        }
+
+                        exppoint = pegToNonZeroDelta(exppoint, vertices[n]);
+
+                        double fe = innerMetHastSimplex(burncount, exppoint, optRatio);
+                        if (fe < tol) {
+                            return exppoint;
+                        }
+
+
+                        if (fe < fr) {
+                            result = exppoint;
+                            break;
+                        }
+                        else if (fe >= fr) {
+                            result = refpoint;
+                            break;
+                        }
+                    }
+
+                    //contract
+                    
+                    printf("contract\n");
+
+                    if (fr >= fn) {
+                        //outside
+                        double fnp1 = innerMetHastSimplex(burncount, vertices[n], optRatio);
+                        if (fnp1 < tol) {
+                            return vertices[n];
+                        }
+
+                        if (fn <= fr && fr < fnp1) {
+                            std::vector <double> cpoint;
+
+                            for (int i = 0; i < n; i++) {
+                                cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
+                            }
+
+                            cpoint = pegToNonZeroDelta(cpoint, vertices[n]);
+
+                            double fc = innerMetHastSimplex(burncount, cpoint, optRatio);
+                            if (fc < tol) {
+                                return cpoint;
+                            }
+
+                            if (fc <= fr) {
+                                result = cpoint;
+                                break;
+                            }
+                            else {
+                                //shrink
+                                printf("shrink\n");
+
+                                std::vector < std::vector <double> > v = { vertices[0] };
+
+                                for (int i = 1; i < n + 1; i++) {
+                                    std::vector <double> vi;
+                                    vi.clear();
+                                    for (int j = 0; j < n; j++) {
+                                        vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+                                    }
+                                    v.push_back(vi);
+                                }
+
+                                vertices = v;
+                            }
+                        }
+                        else if (fr >= fnp1) {
+                            std::vector <double> ccpoint;
+
+                            for (int i = 0; i < n; i++) {
+                                ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
+                            }
+
+                            ccpoint = pegToNonZeroDelta(ccpoint, vertices[n]);
+
+                            double fcc = innerMetHastSimplex(burncount, ccpoint, optRatio);
+                            if (fcc < tol) {
+                                return ccpoint;
+                            }
+
+                            if (fcc <= fnp1) {
+                                result = ccpoint;
+                                break;
+                            }
+                            else {
+                                //shrink
+                                printf("shrink\n");
+
+                                std::vector < std::vector <double> > v = { vertices[0] };
+
+                                for (int i = 1; i < n + 1; i++) {
+                                    std::vector <double> vi;
+                                    vi.clear();
+                                    for (int j = 0; j < n; j++) {
+                                        vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+                                    }
+                                    v.push_back(vi);
+                                }
+
+                                vertices = v;
+                            }
+
+
+                        }
+
+                    }
+
+                    //shrink
+                    printf("shrink\n");
+
+                    std::vector < std::vector <double> > v = { vertices[0] };
+
+                    for (int i = 1; i < n + 1; i++) {
+                        std::vector <double> vi;
+                        vi.clear();
+                        for (int j = 0; j < n; j++) {
+                            vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+                        }
+                        v.push_back(vi);
+                    }
+
+                    vertices = v;
+                }
+
+                std::vector <std::vector <double> > bettervertices;
+                for (int i = 0; i < n; i++) {
+                    bettervertices.push_back(vertices[i]);
+                }
+
+                //check that new node does not have negative slops (fixes it if it does)
+
+                bettervertices.push_back(result);
+
+                vertices = bettervertices;
+
+                /*
+
+                std::cout << "chi-square parameters at s = " << s << " ";
+                for (int i = 0; i < result.size(); i++) {
+                    std::cout << result[i] << " ";
+                }
+                std::cout << "fitness = " << evalWPriors(f, vertices[i]) << "\n";
+                */
+
+                //test for termination
+
+                if (innerMetHastSimplex(burncount, vertices[n], optRatio) < tol) {
+                    break;
+                }
+
+            }
+
+            best_delta = vertices[n];
+            break;
+        }
+        case AM: {
             
-			std::vector <double> refpoint;
-			std::vector <std::vector <double> > nvertices;
-			for (int i = 0; i < n; i++) {
-				nvertices.push_back(vertices[i]);
-			}
+            double AMtol = 1e-3;
+            
+            std::vector <std::vector <double > > cov_i(n, std::vector <double> (n, 0.0));
+            for (int j = 0; j < n; j++){
+                cov_i[j][j] = std::pow(delta_guess[j], 2.0);
+            }
+            std::vector <std::vector <double > > cov_i1(n, std::vector <double> (n, 0.0));
+            
+            
+            std::vector <double> mu_i = allparams_guess;
+            std::vector <double> mu_i1(n, 0.0);
+            std::vector <double> X_i = allparams_guess;
+            std::vector <double> X_i1;
+            std::vector <double> X_trial(n, 0.0);
+            double rand_unif;
+            double lamb = std::pow(2.38, 2.0) / n;
+            double gam_i1 = 1.0;
+            
+            int i = 0;
 
-			std::vector <double> centroid = findCentroid(nvertices);
-
-			for (int i = 0; i < n; i++) {
-				refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
-			}
-
-			refpoint = pegToNonZeroDelta(refpoint, vertices[n]);
-
-			double fr = innerMetHastSimplex(burncount, refpoint, optRatio);
-			if (fr < tol) {
-				return refpoint;
-			}
-			double f1 = innerMetHastSimplex(burncount, vertices[0], optRatio);
-			if (f1 < tol) {
-				return vertices[0];
-			}
-			double fn = innerMetHastSimplex(burncount, vertices[n - 1], optRatio);
-			if (fn < tol) {
-				return vertices[n - 1];
-			}
-
-			if (f1 <= fr && fr < fn) {
-				result = refpoint;
-				break;
-			}
-
-			//expand
-			if (fr < f1) {
-                printf("expand\n");
+            while (!tolCheck){// + burncount) {
+                //create trial
                 
-				std::vector <double> exppoint;
-
-				for (int i = 0; i < n; i++) {
-					exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
-				}
-
-				exppoint = pegToNonZeroDelta(exppoint, vertices[n]);
-
-				double fe = innerMetHastSimplex(burncount, exppoint, optRatio);
-				if (fe < tol) {
-					return exppoint;
-				}
-
-
-				if (fe < fr) {
-					result = exppoint;
-					break;
-				}
-				else if (fe >= fr) {
-					result = refpoint;
-					break;
-				}
-			}
-
-			//contract
+                //sample X_i
             
-            printf("contract\n");
-
-			if (fr >= fn) {
-				//outside
-				double fnp1 = innerMetHastSimplex(burncount, vertices[n], optRatio);
-				if (fnp1 < tol) {
-					return vertices[n];
-				}
-
-				if (fn <= fr && fr < fnp1) {
-					std::vector <double> cpoint;
-
-					for (int i = 0; i < n; i++) {
-						cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
-					}
-
-					cpoint = pegToNonZeroDelta(cpoint, vertices[n]);
-
-					double fc = innerMetHastSimplex(burncount, cpoint, optRatio);
-					if (fc < tol) {
-						return cpoint;
-					}
-
-					if (fc <= fr) {
-						result = cpoint;
-						break;
-					}
-					else {
-						//shrink
-                        printf("shrink\n");
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-				}
-				else if (fr >= fnp1) {
-					std::vector <double> ccpoint;
-
-					for (int i = 0; i < n; i++) {
-						ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
-					}
-
-					ccpoint = pegToNonZeroDelta(ccpoint, vertices[n]);
-
-					double fcc = innerMetHastSimplex(burncount, ccpoint, optRatio);
-					if (fcc < tol) {
-						return ccpoint;
-					}
-
-					if (fcc <= fnp1) {
-						result = ccpoint;
-						break;
-					}
-					else {
-						//shrink
-                        printf("shrink\n");
-
-						std::vector < std::vector <double> > v = { vertices[0] };
-
-						for (int i = 1; i < n + 1; i++) {
-							std::vector <double> vi;
-							vi.clear();
-							for (int j = 0; j < n; j++) {
-								vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-							}
-							v.push_back(vi);
-						}
-
-						vertices = v;
-					}
-
-
-				}
-
-			}
-
-			//shrink
-            printf("shrink\n");
-
-			std::vector < std::vector <double> > v = { vertices[0] };
-
-			for (int i = 1; i < n + 1; i++) {
-				std::vector <double> vi;
-				vi.clear();
-				for (int j = 0; j < n; j++) {
-					vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-				}
-				v.push_back(vi);
-			}
-
-			vertices = v;
-		}
-
-		std::vector <std::vector <double> > bettervertices;
-		for (int i = 0; i < n; i++) {
-			bettervertices.push_back(vertices[i]);
-		}
-
-		//check that new node does not have negative slops (fixes it if it does)
-
-		bettervertices.push_back(result);
-
-		vertices = bettervertices;
-
-		/*
-
-		std::cout << "chi-square parameters at s = " << s << " ";
-		for (int i = 0; i < result.size(); i++) {
-			std::cout << result[i] << " ";
-		}
-		std::cout << "fitness = " << evalWPriors(f, vertices[i]) << "\n";
-		*/
-
-		//test for termination
-
-		if (innerMetHastSimplex(burncount, vertices[n], optRatio) < tol) {
-			break;
-		}
-
-	}
-
-	best_delta = vertices[n];
+                bool loopCheck = true;
+                
+                
+                while (loopCheck){
+                    for (int j = 0; j < M + 2; j++) {
+                        //X_trial.push_back(delta[j] * rnorm(0.0, 1.0) + X_i[j]);
+                        X_trial[j] = rnorm(mu_i[j], lamb * std::sqrt(cov_i[j][j]));
+                    }
+                    
+                    a = posterior(X_trial) / posterior(X_i);
+                    rand_unif = runiform(0.0, 1.0);
+                    
+                    if (a >= 1) {
+                        X_i1 = X_trial;
+                        loopCheck = false;
+                        //delta_count += 1;
+                        //result.push_back(allparams_0);
+                        //accept_count += 1;
+                    }
+                    else if (rand_unif <= a) {
+                        X_i1 = X_trial;
+                        loopCheck = false;
+                        //delta_count += 1;
+                        //result.push_back(allparams_0);
+                        //accept_count += 1;
+                    }
+                    else {
+                        //delta_count += 1;
+                        //result.push_back(allparams_0);
+                    }
+                }
+                
+                //update proposal dist params
+                
+                tolCheck = true;
+                
+                gam_i1 = 1.0/((double)(i + 1));
+                
+                for (int j = 0; j < n; j++){
+                    mu_i1[j] = mu_i[j] + gam_i1*(X_i1[j] - mu_i[j]);
+                    
+                    if (std::abs(mu_i1[j] - mu_i[j]) > AMtol){
+                        tolCheck = false;
+                    }
+                }
+                
+                for (int l = 0; l < n; l++){
+                    for (int m = 0; m < n; m++){
+                        cov_i1[l][m] = cov_i[l][m] + gam_i1*((X_i1[l] - mu_i[l])*(X_i1[m] - mu_i[m])-cov_i[l][m]);
+                        
+                        if (std::abs(cov_i1[l][m] - cov_i[l][m]) > AMtol){
+                            tolCheck = false;
+                        }
+                    }
+                }
+                
+                mu_i = mu_i1;
+                cov_i = cov_i1;
+                X_i = X_i1;
+                
+//                for (int j = 0; j < n; j++){
+//                    printf("%f ", std::sqrt(cov_i[j][j]));
+//                }
+//                std::cout << std::endl;
+                
+                i += 1;
+                
+            }
+            best_delta.clear();
+            
+            for (int j = 0; j < n; j++){
+                best_delta.push_back(std::sqrt(cov_i[j][j]));
+            }
+            
+            break;
+        }
+        default:
+            break;
+    }
 
 	return best_delta;
 }

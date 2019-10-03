@@ -241,6 +241,13 @@ callbackPlot = CustomJS(args=dict(srcData=srcData, srcModel=srcModel, p=p, xaxis
     dataModel['upper2'] = upper2;
     dataModel['upper3'] = upper3;
 
+    console.log(lower1)
+    console.log(lower2)
+    console.log(lower3)
+    console.log(upper1)
+    console.log(upper2)
+    console.log(upper3)
+
     //xaxis.axis_label = playerPlotAxes[0];
     //yaxis.axis_label = playerPlotAxes[1];
 

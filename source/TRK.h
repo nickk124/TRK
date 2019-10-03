@@ -20,6 +20,8 @@ enum whichScaleExtrema{ S, slopx, slopy, none };
 
 enum priorTypes { CUSTOM, GAUSSIAN, CONSTRAINED, MIXED};
 
+enum tuningAlgo {SIMPLEX, AM};
+
 class Priors
 {
 public:
@@ -176,6 +178,8 @@ class TRK
 		double (*ddyc)(double, std::vector <double>);
 
 		// MCMC/uncertainty calculation
+        tuningAlgo tuningAlgo = AM;
+    
 		std::vector <std::vector <double >> methastPosterior(int R, int burncount, std::vector <double> sigmas_guess);
 		std::vector <std::vector <double >> checkSlopSignMCMC(std::vector <std::vector <double >> result_final);
 		std::vector <double> pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex);
@@ -191,8 +195,9 @@ class TRK
 
 		int R = 100000; //adjustable; could make accessible by users later
 		int burncount = 10000;
-        double best_ratio = 0.45;
+        double best_ratio = 0.325;
         double simplexSuperShrink = 1e-3;
+    
 
 		//pivot points
 		std::vector < std::vector <std::vector <double > > > NDcombos;
@@ -236,6 +241,7 @@ class TRK
     
 		// OTHER TOOLS
         double getPeakCoord(std::vector <double> x, std::vector <double> w);
+        std::vector < std::vector <double> > transpose(std::vector < std::vector <double> > array);
 
 		// SETTINGS
 		bool outputDistributionToFile = false;

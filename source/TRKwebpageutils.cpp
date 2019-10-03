@@ -429,7 +429,7 @@ std::vector <double> requestHandler(int fType, std::vector <double> x, std::vect
 //
 //    std::vector <double> res;
 //
-//    res = requestHandler(1, x, y, w, sx, sy, allparamsguess, (int)x.size(), 1, 0, priorsParams, hasPriorsVec, 1, 1, 1.0);
+//    res = requestHandler(1, x, y, w, sx, sy, allparamsguess, (int)x.size(), 0, 0, priorsParams, hasPriorsVec, 0, 0, 0.1);
 //
 //    for (int i = 0; i < (int)res.size(); i++){
 //        printf("%f\n", res[i]);
