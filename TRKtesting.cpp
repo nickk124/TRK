@@ -345,7 +345,6 @@ int main()
 
 //    TRKtest.linearizedIntercept = linearIntercept;
 //    TRKtest.linearizedSlope = linearSlope;
-    TRKtest.tuningAlgo = AM;
 
     TRKtest.performTRKFit(0.32825);
 

@@ -2201,7 +2201,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 	unsigned long n = delta_guess.size(); //number of model parameters plus two slop parameters
     std::vector <double> best_delta;
     
-    switch (tuningAlgo){
+    switch (thisTuningAlgo){
         case SIMPLEX: {
 
             double rho = 5.0; //reflection
@@ -2487,6 +2487,10 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
             double gam_i1 = 1.0;
             
             int i = 0;
+            
+            if (pivotPointActive){
+                X_i = pivotPointParamsGuess;
+            }
 
             while (!tolCheck){// + burncount) {
                 //create trial
@@ -2559,6 +2563,10 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 //                std::cout << std::endl;
                 
                 i += 1;
+                
+                if (i > 1000){
+                    break;
+                }
                 
             }
             best_delta.clear();

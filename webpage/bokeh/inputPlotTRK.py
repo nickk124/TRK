@@ -40,7 +40,9 @@ p = Figure(tools=TOOLS, plot_width=500, plot_height=500, min_border=10, min_bord
            title="Inputted Data",
            toolbar_location="above",
            active_scroll='wheel_zoom', 
-           active_drag = "pan"
+           active_drag = "pan",
+           x_axis_label = "x",
+           y_axis_label = "y"
            )
 p.background_fill_color = "#fafafa"
 

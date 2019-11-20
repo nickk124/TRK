@@ -75,7 +75,7 @@ class TRK
 
 		//core algorithms
 		void performTRKFit(); //finds optimum scale AND calculates uncertainties
-		void performTRKFit(double scale); //perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this)
+		void performTRKFit(double scale); //perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this) and calculates uncertainties
 		void performSimpleTRKFit(); //finds optimum scale and and performs TRK fit but without finding uncertainties
         void performSimpleTRKFit(double scale); //given some scale, performs TRK fit without finding uncertainties.
 
@@ -178,7 +178,7 @@ class TRK
 		double (*ddyc)(double, std::vector <double>);
 
 		// MCMC/uncertainty calculation
-        tuningAlgo tuningAlgo = AM;
+        tuningAlgo thisTuningAlgo = AM;
     
 		std::vector <std::vector <double >> methastPosterior(int R, int burncount, std::vector <double> sigmas_guess);
 		std::vector <std::vector <double >> checkSlopSignMCMC(std::vector <std::vector <double >> result_final);

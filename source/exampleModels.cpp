@@ -45,14 +45,14 @@ double quadratic(double x, std::vector <double> params) {
 	double a1 = params[1];
 	double a2 = params[2];
 
-	return a0 + a1 * (x - TRK::pivot) + a2 * std::pow((x - TRK::pivot), 2.0);
+	return a0 + a1 * (x) + a2 * std::pow((x), 2.0);
 }
 
 double dQuadratic(double x, std::vector <double> params) {
 	double a1 = params[1];
 	double a2 = params[2];
 
-	return a1 + 2.0 * a2 * (x - TRK::pivot);
+	return a1 + 2.0 * a2 * (x);
 }
 
 double ddQuadratic(double x, std::vector <double> params) {
@@ -82,7 +82,7 @@ double cubic(double x, std::vector <double> params) {
 	double a2 = params[2];
 	double a3 = params[3];
 
-	return a0 + a1 * (x - TRK::pivot) + a2 * std::pow((x - TRK::pivot), 2.0) + a3 * std::pow((x - TRK::pivot), 3.0);
+	return a0 + a1 * (x) + a2 * std::pow((x), 2.0) + a3 * std::pow((x), 3.0);
 }
 
 double dCubic(double x, std::vector <double> params) {
@@ -90,14 +90,14 @@ double dCubic(double x, std::vector <double> params) {
 	double a2 = params[2];
 	double a3 = params[3];
 
-	return a1 + 2.0 * a2 * (x - TRK::pivot) + 3.0 * a3 * std::pow((x - TRK::pivot), 2.0);
+	return a1 + 2.0 * a2 * (x) + 3.0 * a3 * std::pow((x), 2.0);
 }
 
 double ddCubic(double x, std::vector <double> params) {
 	double a2 = params[2];
 	double a3 = params[3];
 
-	return 2.0 * a2 + 6.0 * a3 * (x - TRK::pivot);
+	return 2.0 * a2 + 6.0 * a3 * (x);
 }
 
 //double pivotCubic(std::vector <double> params1, std::vector <double> params2) {
