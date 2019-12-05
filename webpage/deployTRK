@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo updating TRK webpage...
+
+ssh attila.skynet.unc.edu

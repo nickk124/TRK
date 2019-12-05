@@ -36,10 +36,10 @@
     <div id="wrap">
         <ul class="navbar">
             <li style="margin-left:50px;"><a href="/rcr/calculator">Home</a> </li>
-            <li><a href="/rcr/calculator/value">Single-Value RCR (Outlier Rejection) Calculator</a></li>
-            <li><a href="/rcr/calculator/functional">Functional RCR</a></li>
-            <li><a style="background-color:#5b8dd9;">TRK Regression</a></li>
-            <li><a href="/rcr/calculator/downloads">Downloads</a> </li>
+            <li><a href="/rcr/calculator/value">Single-Value RCR Calculator</a></li>
+            <li><a href="/rcr/calculator/functional">Functional RCR Calculator</a></li>
+            <li><a style="background-color:#5b8dd9;">TRK Regression Calculator</a></li>
+            <li><a href="/rcr/calculator/downloads">Code and Downloads</a> </li>
             <li><a href="/rcr/calculator/contact">Contact Us</a> </li>
         </ul>
     </div>
@@ -1560,6 +1560,8 @@
             $('#NoScaleNoMCMC').css('display', 'none');
             $('#YesScaleNoMCMC').css('display', 'none');
 
+            $('#Histogram').css('display','none');
+
             document.getElementById("SelectContaminantSectionTitle").innerHTML = "Generate Model Parameter Distributions/Uncertainties?";
       	    document.getElementById("PerformTRK").innerHTML = "Perform Fit!";
             $('#OutputTableWrapper').css('display','none');
@@ -1572,6 +1574,7 @@
 				    $('#OptionAll').css('display','block');
                     $('#YesScaleYesMCMC').css('display', 'block');
                     $('#selectScale').css('display', 'none')
+                    $('#Histogram').css('display','block');
                     break;
                 case ($('#OpScale').data('clicked') && $('#NoMCMC').data('clicked')):
                     $('.RejectionMethods').css('display', 'none')
@@ -1586,6 +1589,7 @@
                     $('#OptionAll').css('display', 'block');
                     $('#NoScaleYesMCMC').css('display', 'block');
                     $('#selectScale').css('display', 'block')
+                    $('#Histogram').css('display','block');
                     break;
                 case ($('#NoOpScale').data('clicked') && $('#NoMCMC').data('clicked')):
                     $('.RejectionMethods').css('display', 'none')
