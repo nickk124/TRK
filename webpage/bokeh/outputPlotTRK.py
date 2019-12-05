@@ -151,7 +151,7 @@ callbackPlot = CustomJS(args=dict(srcData=srcData, srcModel=srcModel, p=p, xaxis
 
     let x_m_data = model_plot[0];
     let y_m_data = model_plot[1];
-    let slop_y = model_plot[2];
+    let prams = model_plot[3];
 
     let x = [];
     let err_x_up = [];
@@ -204,7 +204,7 @@ callbackPlot = CustomJS(args=dict(srcData=srcData, srcModel=srcModel, p=p, xaxis
     upper2 = dataModel['upper2'];
     upper3 = dataModel['upper3'];
 
-    let bands = getBands(y_m_data, slop_y);
+    let bands = getBands(y_m_data, prams);
 
     for (let i = 0; i < x_data.length; i++){
         x[i] = x_data[i];
@@ -249,9 +249,6 @@ callbackPlot = CustomJS(args=dict(srcData=srcData, srcModel=srcModel, p=p, xaxis
     console.log(upper1)
     console.log(upper2)
     console.log(upper3)
-
-    //xaxis.axis_label = playerPlotAxes[0];
-    //yaxis.axis_label = playerPlotAxes[1];
 
     srcData.change.emit();  
     srcModel.change.emit(); 

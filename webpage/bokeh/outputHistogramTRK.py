@@ -34,7 +34,7 @@ xMax = 1
 
 src = ColumnDataSource(data=dict(arr_hist = arr_hist, left = left, right = right))
 
-p = Figure(plot_height = 600, plot_width = 600, x_range = (xMin, xMax),
+p = Figure(plot_height = 400, plot_width = 500, x_range = (xMin, xMax),
                     x_axis_label = 'parameter',
                     y_axis_label = 'probability', tools = "xpan, xwheel_zoom", active_scroll='xwheel_zoom', active_drag = "xpan")
 
