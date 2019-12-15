@@ -96,6 +96,7 @@ class TRK
         double singlePointLnLAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double x_tn);
         std::vector <double> tangentsFinderAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double xg);
         double findBestTangentAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, std::vector <double> x_tn_vec);
+        std::vector <double> getAsymShifts(std::vector <double> allparams);
         std::vector <double> getAsymSigs2(std::vector <double> allparams);
         std::vector <double> tangentParallelAsym(std::vector<double> allparams, int n, double s);
 

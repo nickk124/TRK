@@ -548,8 +548,8 @@ std::vector <double> TRK::tangentsFinderAsym(std::vector <double> params, double
             for (int j = 0; j < params.size(); j++) {
                 printf("%f ", params[j]);
             }
-            printf("%f  %f  %f  %f \t", Sig_xn2, Sig_yn2, x_n, y_n);
-            printf("s = %f\n", s);
+            //printf("%f  %f  %f  %f \t", Sig_xn2, Sig_yn2, x_n, y_n);
+            //printf("s = %f\n", s);
         }
         result.clear();
 
@@ -677,6 +677,149 @@ double TRK::findBestTangentAsym(std::vector <double> params, double x_n, double 
 }
 
 
+std::vector <double> TRK::getAsymShifts(std::vector <double> allparams){
+    double deltayn, deltaxn;
+    
+    std::vector <double> slops = {allparams[M], allparams[M+1]};
+    std::vector <double> EBs = {sx[n], sy[n]};
+    
+    if (hasAsymSlop && !hasAsymEB){
+        slops.push_back(allparams[M+2]);
+        slops.push_back(allparams[M+3]);
+        
+        EBs = concat(EBs, EBs);
+        
+    } else if (!hasAsymSlop && hasAsymEB){
+        slops = concat(slops, slops);
+        
+        EBs.push_back(sx_minus[n]);
+        EBs.push_back(sy_minus[n]);
+        
+    } else if (hasAsymSlop && hasAsymEB){
+        slops.push_back(allparams[M+2]);
+        slops.push_back(allparams[M+3]);
+        
+        EBs.push_back(sx_minus[n]);
+        EBs.push_back(sy_minus[n]);
+    }
+    
+    // Y SHIFT
+    
+    double sigmaL = minMax({slops[1], slops[3]})[1];
+    double sigmaS = minMax({slops[1], slops[3]})[0];
+    double sigmanL = minMax({EBs[1], EBs[3]})[1];
+    double sigmanS = minMax({EBs[1], EBs[3]})[0];
+    double sigmaMax = minMax(sigmaL, sigmanL))[1];
+    
+    
+    double xi = sigmaS/sigmaL + sigmanS / sigmanL;
+    double eta = sigmanL < sigmaL ? sigmanS/sigmanL - sigmaS/sigmaL : sigmaS/sigmaL - sigmanS/sigmanL;
+    double r = minMax(sigmaL, sigmanL)[0] / minMax(sigmaL, sigmanL)[1];
+    
+    double xip = xi <= 1 ? xi : 2.0 - xi;
+    double etap = xip == 0 ? 0 : 2.0 * xip * std::pow(0.5*eta/xip + 1.0, std::pow(r, -0.4087)) - xip;
+    
+    double Nr = -0.5326*std::pow(r,2.0) + 1.5307*r + 0.0019;
+    double fXi = xi <= 1 ? 0.2454*std::pow(xi, -1.1452) : 0.2454*std::pow(xi, -0.5203);
+    double gEtaP = std::pow(etap,2.0);
+    double hXi = -0.042*std::pow(xi,2.0) - 0.1602 * xi + 0.4884;
+    
+    double deltastr = sigmaMax * Nr * (fXi * gEtaP + hXi);
+    
+    int i;
+    if (slops[1] == slops[3] || EBs[1] == EBs[3]){ //one of the dists is symmetric
+        if (sigmanL == EBs[1] || sigmaL = slops[3]){
+            i = 1;
+        } else if (sigmaMax == EBs[3] || sigmaMax == slops[1]){
+            i = -1;
+        }
+        
+        deltayn = i * deltastr;
+        
+    } else if ((sigmaL == slops[3] && sigmanL == EBs[1]) || (sigmaL = slops[1] && sigmanL == EBs[3])){ //both asymm first case
+        if (sigmaMax == EBs[1] || sigmaMax == slops[3]){
+            i = 1;
+        } else if (sigmaMax == EBs[3] || sigmaMax == slops[1]){
+            i = -1;
+        }
+        
+        deltayn = i * deltastr;
+        
+    } else if ((sigmaL == slops[1] && sigmanL == EBs[1]) || (sigmaL = slops[3] && sigmanL == EBs[3])){ //both asymm second case
+        if (sigmaMax == EBs[1] || sigmaMax == slops[3]){
+            i = 1;
+        } else if (sigmaMax == EBs[3] || sigmaMax == slops[1]){
+            i = -1;
+        }
+        
+        double pwr = eta <= 1 ? 0.7413 : -0.1268;
+        deltayn = i * deltastr * std::sin(PI/2.0 * etap/xip) * std::pow(eta, pwr);
+        
+        if (EBs[3] == slops[3] && EBs[1] > slops[1] && EBs[1] < EBs[3]){ //footnote case
+            deltayn *= -1;
+        }
+    }
+    
+    // X SHIFT
+    
+    sigmaL = minMax({slops[0], slops[2]})[0];
+    sigmaS = minMax({slops[0], slops[2]})[0];
+    sigmanL = minMax({EBs[0], EBs[2]})[0];
+    sigmanS = minMax({EBs[0], EBs[2]})[0];
+    sigmaMax = minMax(sigmaL, sigmanL))[0];
+    
+    
+    xi = sigmaS/sigmaL + sigmanS / sigmanL;
+    eta = sigmanL < sigmaL ? sigmanS/sigmanL - sigmaS/sigmaL : sigmaS/sigmaL - sigmanS/sigmanL;
+    r = minMax(sigmaL, sigmanL)[0] / minMax(sigmaL, sigmanL)[0];
+    
+    xip = xi <= 1 ? xi : 2.0 - xi;
+    etap = xip == 0 ? 0 : 2.0 * xip * std::pow(0.5*eta/xip + 1.0, std::pow(r, -0.4087)) - xip;
+    
+    Nr = -0.5326*std::pow(r,2.0) + 1.5307*r + 0.0019;
+    fXi = xi <= 1 ? 0.2454*std::pow(xi, -1.1452) : 0.2454*std::pow(xi, -0.5203);
+    gEtaP = std::pow(etap,2.0);
+    hXi = -0.042*std::pow(xi,2.0) - 0.1602 * xi + 0.4884;
+    
+    deltastr = sigmaMax * Nr * (fXi * gEtaP + hXi);
+    
+    if (slops[0] == slops[2] || EBs[0] == EBs[2]){ //one of the dists is symmetric
+        if (sigmanL == EBs[0] || sigmaL = slops[2]){
+            i = 1;
+        } else if (sigmaMax == EBs[2] || sigmaMax == slops[0]){
+            i = -1;
+        }
+        
+        deltaxn = i * deltastr;
+        
+    } else if ((sigmaL == slops[2] && sigmanL == EBs[0]) || (sigmaL = slops[0] && sigmanL == EBs[2])){ //both asymm first case
+        if (sigmaMax == EBs[0] || sigmaMax == slops[2]){
+            i = 1;
+        } else if (sigmaMax == EBs[2] || sigmaMax == slops[0]){
+            i = -1;
+        }
+        
+        deltaxn = i * deltastr;
+        
+    } else if ((sigmaL == slops[0] && sigmanL == EBs[0]) || (sigmaL = slops[2] && sigmanL == EBs[2])){ //both asymm second case
+        if (sigmaMax == EBs[0] || sigmaMax == slops[2]){
+            i = 1;
+        } else if (sigmaMax == EBs[2] || sigmaMax == slops[0]){
+            i = -1;
+        }
+        
+        pwr = eta <= 1 ? 0.7413 : -0.1268;
+        deltaxn = i * deltastr * std::sin(PI/2.0 * etap/xip) * std::pow(eta, pwr);
+        
+        if (EBs[2] == slops[2] && EBs[0] > slops[0] && EBs[0] < EBs[2]){ //footnote case
+            deltaxn *= -1;
+        }
+    }
+    
+    
+    return {deltaxn, deltayn};
+}
+
 std::vector <double> TRK::getAsymSigs2(std::vector <double> allparams){
     std::vector <double> Sigs2(4, 0.0);
     std::vector <double> slops = {allparams[M], allparams[M+1]};
@@ -711,17 +854,21 @@ std::vector <double> TRK::getAsymSigs2(std::vector <double> allparams){
 
 std::vector <double> TRK::tangentParallelAsym(std::vector<double> allparams, int n, double s) {
     std::vector <double> Sigs2 = getAsymSigs2(allparams);
+    std::vector <double> shifts = getAsymShifts(allparams);
     
     std::vector <double> params;
     for (int i = 0; i < M; i++) {
         params.push_back(allparams[i]);
     }
+    
+    double xn_shifted = x[n] + shifts[0];
+    double yn_shifted = y[n] + shifts[1];
 
-    std::vector <double> x_tn_vec = tangentsFinder(params, x[n], y[n], Sigs2, x[n]); // we use x_n as the initial guess for this. gives the three closest tangest points
+    std::vector <double> x_tn_vec = tangentsFinderAsym(params, xn_shifted, yn_shifted, Sigs2, xn_shifted); // we use x_n as the initial guess for this. gives the three closest tangest points
 
-    double x_t = findBestTangentAsym(params, x[n], y[n], Sigs2, x_tn_vec);
+    double x_t = findBestTangentAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec);
 
-    double subsum = std::log(pnAsym(params, x[n], y[n], Sigs2, x_t));
+    double subsum = std::log(pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_t));
 
     return {x_t, subsum}; // returns x_t_n and ln(p_n)
 }
