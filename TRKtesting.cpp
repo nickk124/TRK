@@ -180,33 +180,33 @@ int main()
 
     // pivot points #############################################################################################################
 
-    c2p1BH = -0.01413;
-    c2p2BH = 1.4087;
-
-    c2p1RV = -0.0708;
-    c2p2RV = 1.4953;
+//    c2p1BH = -0.01413;
+//    c2p2BH = 1.4087;
+//
+//    c2p1RV = -0.0708;
+//    c2p2RV = 1.4953;
 
 //    c2pc1 = 1.2403;
 
     // priors #############################################################################################################
 
-    std::vector <std::vector <double> > bhc2prior_params = { {NAN, NAN}, {PI, 1.5*PI}, {NAN, NAN}, {-0.5*PI, 0} };
-    std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0, PI}, {NAN, NAN}, {-0.5*PI, 0} };
-    //std::vector <std::vector <double> > testlinprior_params = { {NAN, NAN}, {NAN, NAN}, {0.0, NAN}, {0.0, NAN} }; //including slop for testing
+//    std::vector <std::vector <double> > bhc2prior_params = { {NAN, NAN}, {PI, 1.5*PI}, {NAN, NAN}, {-0.5*PI, 0} };
+//    std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0, PI}, {NAN, NAN}, {-0.5*PI, 0} };
+//    //std::vector <std::vector <double> > testlinprior_params = { {NAN, NAN}, {NAN, NAN}, {0.0, NAN}, {0.0, NAN} }; //including slop for testing
 
-    Priors bhc2Priors = Priors(CONSTRAINED, bhc2prior_params);
-    Priors rvc2Priors = Priors(CONSTRAINED, rvc2prior_params);
+//    Priors bhc2Priors = Priors(CONSTRAINED, bhc2prior_params);
+//    Priors rvc2Priors = Priors(CONSTRAINED, rvc2prior_params);
     //Priors testlinPriors = Priors(CONSTRAINED, testlinprior_params);
 
     // guesses #############################################################################################################
 
     //std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };    //rvc2
-    std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };                //bhc2                                                                                    //**********
+//    std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };                //bhc2                                                                                    //**********
 //    std::vector <double> params_guess = { -1.5038, std::tan(toRad(106.953)) };    //c1c2
 //    std::vector <double> params_guess = { 0.89, 1.04};     //test lin
 
-    double slopx_guess = 0.3;                                                                                                    //**********
-    double slopy_guess = 0.3;
+//    double slopx_guess = 0.3;                                                                                                    //**********
+//    double slopy_guess = 0.3;
 
 //    std::vector <double> testsigma_guess = { 0.26, 0.13}; //testlin
     //std::vector <double> testsigma_guess = { 0.01, 0.005, 0.01, 0.01};  //bhc2/rvc2
@@ -222,17 +222,17 @@ int main()
 //    double testslop_y_sigma_guess = 0.000813;
 
 
-    std::vector <double> allparams_guess = params_guess;
-
-    allparams_guess.push_back(slopx_guess);
-    allparams_guess.push_back(slopy_guess);
+//    std::vector <double> allparams_guess = params_guess;
+//
+//    allparams_guess.push_back(slopx_guess);
+//    allparams_guess.push_back(slopy_guess);
 
 
     // constructors #############################################################################################################
 
 //    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 //    TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);                                                            //**********
-    TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, bhc2Priors);
+//    TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, bhc2Priors);
     //TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, rvc2Priors);
     //TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
 
@@ -341,12 +341,25 @@ int main()
 
 //    TRKtest.findPivotPoints = true;
 //    TRKtest.writePivots = true;
-    TRKtest.outputDistributionToFile = true;
+//    TRKtest.outputDistributionToFile = true;
 
 //    TRKtest.linearizedIntercept = linearIntercept;
 //    TRKtest.linearizedSlope = linearSlope;
+    
+    std::vector <double> params_guess = { 0.89, 1.04};
+    
+    double slopx_guess = 0.3;                                                                                                    //**********
+    double slopy_guess = 0.3;
+    
+    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 
-    TRKtest.performTRKFit(0.32825);
+    TRKtest.minussx = sx;
+    TRKtest.minussy = sy;
+
+    TRKtest.minusslop_x_guess = slopx_guess;
+    TRKtest.minusslop_y_guess = slopy_guess;
+    
+    TRKtest.performTRKFit();
 
     printf("Optimum scale: %f \n", TRKtest.results.optimumScale);
     printf("Minimum scale: %f \n", TRKtest.results.minimumScale);

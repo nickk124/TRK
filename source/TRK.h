@@ -62,6 +62,7 @@ class TRK
 
 		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
 		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
+    
 
 		//default constructor:
 		TRK();
@@ -81,6 +82,22 @@ class TRK
 
 		//results
 		Results results;
+    
+        //asymmetric distribution tools
+        double minusslop_x_guess = -1.0;  // negative asymmetric slop
+        double minusslop_y_guess = -1.0;
+        std::vector <double> sx_minus, sy_minus; // negative asymmetric error bars
+        
+        bool hasAsymEB = false;
+        bool hasAsymSlop = false;
+        void checkAsym();
+        double modifiedChiSquaredAsym(std::vector <double> allparams, double s);
+        double pnAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double x_tn);
+        double singlePointLnLAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double x_tn);
+        std::vector <double> tangentsFinderAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double xg);
+        double findBestTangentAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, std::vector <double> x_tn_vec);
+        std::vector <double> getAsymSigs2(std::vector <double> allparams);
+        std::vector <double> tangentParallelAsym(std::vector<double> allparams, int n, double s);
 
 		//simplex tools
 
@@ -171,11 +188,16 @@ class TRK
         std::vector <std::vector <double> > getHistogram(std::vector <double> data);
         std::vector <std::vector <double> > getHistogram(std::vector <double> data, std::vector <double> weights);
     
+    
+    
 
 		//function pointers
 		double (*yc)(double, std::vector <double>);
 		double (*dyc)(double, std::vector <double>);
 		double (*ddyc)(double, std::vector <double>);
+        
+        double (TRK::*selectedChiSq)(std::vector <double>, double) = &TRK::modifiedChiSquared;
+
 
 		// MCMC/uncertainty calculation
         tuningAlgo thisTuningAlgo = AM;
@@ -187,7 +209,7 @@ class TRK
 		double innerMetHastSimplex(int burncount, std::vector <double> delta, double best_ratio);
 		double rnorm(double mu, double sig);
 		double runiform(double a, double b);
-		std::vector <std::vector <std::vector <double> > >  lowerBar(std::vector <std::vector <double> > allparam_samples);
+		std::vector <std::vector <std::vector <double> > > lowerBar(std::vector <std::vector <double> > allparam_samples);
 		void calculateUncertainties();
 		std::vector <double> allParamsFinalDeltas;
 		bool goodDeltasFound = false;
