@@ -87,17 +87,19 @@ class TRK
         double minusslop_x_guess = -1.0;  // negative asymmetric slop
         double minusslop_y_guess = -1.0;
         std::vector <double> sx_minus, sy_minus; // negative asymmetric error bars
-        
+        double cumulNorm(double z);
         bool hasAsymEB = false;
         bool hasAsymSlop = false;
         void checkAsym();
         double modifiedChiSquaredAsym(std::vector <double> allparams, double s);
-        double pnAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double x_tn);
-        double singlePointLnLAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double x_tn);
-        std::vector <double> tangentsFinderAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double xg);
-        double findBestTangentAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, std::vector <double> x_tn_vec);
-        std::vector <double> getAsymShifts(std::vector <double> allparams);
-        std::vector <double> getAsymSigs2(std::vector <double> allparams);
+        double dunDxAsym(double mtn, std::vector <double> Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind);
+        double cmNorm(double z);
+        double zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_shifted, double yn_shifted, std::vector <double> shifts, double x_tn, double y_tn, double m_tn);
+        double pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts);
+        double singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts);
+        double findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts);
+        std::vector <double> getAsymShifts(std::vector <double> allparams, int n);
+        std::vector <double> getAsymSigs2(std::vector <double> allparams, int n);
         std::vector <double> tangentParallelAsym(std::vector<double> allparams, int n, double s);
 
 		//simplex tools
@@ -188,7 +190,7 @@ class TRK
         double getMode(int trueCount, std::vector<double> w, std::vector<double> y);
         std::vector <std::vector <double> > getHistogram(std::vector <double> data);
         std::vector <std::vector <double> > getHistogram(std::vector <double> data, std::vector <double> weights);
-    
+        
     
     
 

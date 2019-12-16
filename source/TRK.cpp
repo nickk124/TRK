@@ -513,161 +513,105 @@ void TRK::checkAsym(){ //checks to see whether any or all of the asymmetric erro
     return;
 }
 
+double TRK::dunDxAsym(double mtn, std::vector <double> Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind){
+    double quadSigX2 = Sigs2[quadSig_xn2Ind]; //the correct Sig2 values for the specific quadrant
+    double quadSigY2 = Sigs2[quadSig_yn2Ind];
 
-
-double TRK::pnAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double x_tn){
-    
-    double pn;
-    
-    
-    return pn;
-    
+    return (std::pow(mtn, 2.0)*quadSigX2 + quadSigY2) / (std::sqrt(std::pow(mtn*quadSigX2, 2.0) + std::pow(quadSigY2, 2.0)));
 }
 
-double TRK::singlePointLnLAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double x_tn){
-    
-    return -2.0 * std::log(pnAsym(params, x_n, y_n, Sigs2, x_tn));
+double TRK::cmNorm(double z){
+    return (std::sqrt(PI)/2.0) * (1.0 + std::erf(z));
 }
 
-std::vector <double> TRK::tangentsFinderAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, double xg) {
+double TRK::zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_shifted, double yn_shifted, std::vector <double> shifts, double x_tn, double y_tn, double m_tn){ //equation B-6 of thesis
     
-    std::vector <double> result;
+    return (quadSig_yn2 * (x - xn_shifted) + std::pow(m_tn, 2.0) * quadSig_xn2 * (x - x_tn - (yn_shifted - y_tn)/m_tn)) / (std::sqrt(quadSig_xn2) * std::sqrt(quadSig_yn2) * std::sqrt(std::pow(m_tn, 2.0) * quadSig_xn2 + quadSig_yn2));
+}
 
-    double xg1 = xg;
-
-    std::vector <double> xr1vec;
-    double xr1old = 0.0;
+double TRK::pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts){
     
-    bool checkcheck = false;
-
-    int itcount = 0;
-
-    while (true) {
-        if (xr1vec.size() > 99) {
-            printf("100 iterations of tangent finder loop! \n");
-            for (int j = 0; j < params.size(); j++) {
-                printf("%f ", params[j]);
-            }
-            //printf("%f  %f  %f  %f \t", Sig_xn2, Sig_yn2, x_n, y_n);
-            //printf("s = %f\n", s);
-        }
-        result.clear();
-
-        double xr1 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg1, xg1 + std::sqrt(Sig_xn2)/10.0);
-
-        if (std::isnan(xr1) && xr1vec.size() >= 1) { //is a NAN if RF did not converge
-            return { xr1vec[0] };
-        }
-
-        xr1vec.push_back(xr1);
-
-        if (checkcheck) { //different guess gives same root;
-
-            if (std::abs(xr1 - xr1old) < 1e-3) {
-                result.push_back(xr1);
-                break;
-            }
-            if (xr1vec.size() >= 3){
-                if (std::abs(xr1vec[xr1vec.size() - 1] - xr1vec[xr1vec.size() - 3]) < 1e-3) { //root finder oscillating between two roots
-
-                    std::vector <double> unorderedbrackets = { xr1vec[xr1vec.size() - 1], xr1vec[xr1vec.size() - 2] };
-
-                    std::vector <double> orderedbrackets = minMax(unorderedbrackets);
-
-                    double xg_mid = (orderedbrackets[1] - orderedbrackets[0]) / 2.0 + orderedbrackets[0];
-
-                    double xr_mid = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg_mid, xg_mid + std::sqrt(Sig_xn2) / 10.0);
-
-                    result = { orderedbrackets[0], xr_mid, orderedbrackets[1] };
-                    break;
-                }
-            }
-        }
-
-        double xg2, xg3;
-
-        //Quadratic Approximation
-
-        std::vector <double> allRoots = approxQuadraticRoots(params, x_n, y_n, Sig_xn2, Sig_yn2, xr1); //get approx. roots from quadratic taylor approximation
-        std::vector <double> extraRoots;
-
-        double ident_roots_tol = 1e-8;
-
-        if (allRoots.size() == 3) { //either add the two other roots, or no more roots (depending on discriminant of cubic equation)
-            //grab to new roots
-            for (int i = 0; i < 3; i++) {
-                double root = allRoots[i];
-                if (std::abs(root - xr1) <= ident_roots_tol) { //checks if roots are (numerically) identical or not
-                    continue;
-                }
-                else if (std::abs(root - xr1) > ident_roots_tol){
-                    extraRoots.push_back(root);
-                }
-            }
-        }
-
-        if (extraRoots.size() == 2) { //if have 2 additional, real roots
-            double xr2, xr3;
-            xg2 = extraRoots[0];
-            xg3 = extraRoots[1];
-
-            if (xg2 < xr1 && xr1 < xg3) {
-                xr2 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg2, xg2 - std::sqrt(Sig_xn2) / 10.0);
-                xr3 = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, xg3, xg3 + std::sqrt(Sig_xn2) / 10.0);
-
-                result.push_back(xr2);
-                result.push_back(xr1);
-                result.push_back(xr3);
-
-                break;
-            }
-            else {
-                std::vector <double> rootVec = { xr1, xg2, xg3 };
-                std::sort(rootVec.begin(), rootVec.end());
-
-                xg1 = rootVec[1];
-                xr1old = xr1;
-
-                checkcheck = true;
-            }
-        } else if (extraRoots.size() == 0 && xr1vec.size() == 1) {//if initial quadratic approximation didn't yield any more guesses, try to find roots with guesses of leftmost and rightmost x values
-
-            
-            double xr_left = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_min, x_min - std::sqrt(Sig_xn2) / 10.0);
-            double xr_right = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_max, x_max + std::sqrt(Sig_xn2) / 10.0);
-
-            result.push_back(xr1);
-            result.push_back(xr_left);
-            result.push_back(xr_right);
-
-            break;
-        } else if (extraRoots.size() == 0 && xr1vec.size() == 2) { //found two roots but can't find a third
-            result = xr1vec;
-            break;
-        } else if (extraRoots.size() == 3) {//this can happen if the "root" found is very close to being a root but isn't actually one.
-            
-            //in this case, try again with a different guess.
-            double xr_left = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_min, x_min - std::sqrt(Sig_xn2) / 10.0);
-            double xr_right = twoPointNR(params, x_n, y_n, Sig_xn2, Sig_yn2, x_max, x_max + std::sqrt(Sig_xn2) / 10.0);
-
-            result.push_back(xr_left);
-            result.push_back(xr_right);
-
-            break;
-        }
-
-        itcount += 1;
+    // INITIALIZATIONS
+    
+    double m_tn = dyc(x_tn, params);
+    double y_tn = yc(x_tn, params);
+    
+    double x1 = xn_shifted;
+    double x2 = ((yn_shifted - y_tn)/m_tn) + x_tn;
+    
+    double dunDx = dunDxAsym(m_tn, Sigs2, quadSig_xn2Ind, quadSig_yn2Ind);
+    double norm = 2.0 / (PI * (std::sqrt(Sigs2[0]) + std::sqrt(Sigs2[2])) * (std::sqrt(Sigs2[1]) + std::sqrt(Sigs2[3]))); //normalization factor, same for all three integrals
+    
+    // INTEGRALS
+    
+    double I1 = 0;
+    double I2 = 0;
+    double I3 = 0;
+    
+    std::vector <int> I1inds = {0, 0};
+    std::vector <int> I2inds = {quadSig_xn2Ind, quadSig_yn2Ind};
+    std::vector <int> I3inds = {0, 0};
+    
+    
+    if (I2inds[0] == 0 && I2inds[1] == 1){
+        I1inds = {2, 1};
+        I3inds = {0, 3};
+    } else if (I2inds[0] == 2 && I2inds[1] == 1){
+        I1inds = {2, 3};
+        I3inds = {0, 1};
+    } else if (I2inds[0] == 2 && I2inds[1] == 3){
+        I1inds = {2, 1};
+        I3inds = {0, 3};
+    } else if (I2inds[0] == 0 && I2inds[1] == 3){
+        I1inds = {2, 3};
+        I3inds = {0, 1};
     }
-
-    return result;
+    
+    // Do ``Integrals''
+    
+    double quadSig_xn2 = Sigs2[I1inds[0]];
+    double quadSig_yn2 = Sigs2[I1inds[1]];
+    
+    double z1 = zAsym(x1, quadSig_xn2, quadSig_yn2, xn_shifted, yn_shifted, shifts, x_tn, y_tn, m_tn);
+    
+    I1 = dunDx * norm * std::sqrt(quadSig_xn2) * std::sqrt(quadSig_yn2) * cmNorm(z1) * std::exp(-0.5 * std::pow((y_tn - yn_shifted - m_tn*(x_tn - xn_shifted))/std::sqrt(std::pow(m_tn, 2.0) * quadSig_xn2 + quadSig_yn2), 2.0)) / std::sqrt(std::pow(m_tn, 2.0) * quadSig_xn2 + quadSig_yn2);
+    
+    
+    
+    quadSig_xn2 = Sigs2[I2inds[0]];
+    quadSig_yn2 = Sigs2[I2inds[1]];
+    
+    double z2 = zAsym(x2, quadSig_xn2, quadSig_yn2, xn_shifted, yn_shifted, shifts, x_tn, y_tn, m_tn);
+    z1 = zAsym(x1, quadSig_xn2, quadSig_yn2, xn_shifted, yn_shifted, shifts, x_tn, y_tn, m_tn);
+    
+    I2 = dunDx * norm * std::sqrt(quadSig_xn2) * std::sqrt(quadSig_yn2) * (cmNorm(z2) - cmNorm(z1)) * std::exp(-0.5 * std::pow((y_tn - yn_shifted - m_tn*(x_tn - xn_shifted))/std::sqrt(std::pow(m_tn, 2.0) * quadSig_xn2 + quadSig_yn2), 2.0)) / std::sqrt(std::pow(m_tn, 2.0) * quadSig_xn2 + quadSig_yn2);
+    
+    
+    
+    quadSig_xn2 = Sigs2[I3inds[0]];
+    quadSig_yn2 = Sigs2[I3inds[1]];
+    
+    z2 = zAsym(x2, quadSig_xn2, quadSig_yn2, xn_shifted, yn_shifted, shifts, x_tn, y_tn, m_tn);
+    
+    I3 = dunDx * norm * std::sqrt(quadSig_xn2) * std::sqrt(quadSig_yn2) * (1.0 - cmNorm(z2)) * std::exp(-0.5 * std::pow((y_tn - yn_shifted - m_tn*(x_tn - xn_shifted))/std::sqrt(std::pow(m_tn, 2.0) * quadSig_xn2 + quadSig_yn2), 2.0)) / std::sqrt(std::pow(m_tn, 2.0) * quadSig_xn2 + quadSig_yn2);
+    
+    
+    
+    return I1 + I2 + I3;
+    
 }
 
-double TRK::findBestTangentAsym(std::vector <double> params, double x_n, double y_n, std::vector <double> Sigs2, std::vector <double> x_tn_vec) {
+double TRK::singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts){
+    
+    return -2.0 * std::log(pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn, quadSig_xn2Ind, quadSig_yn2Ind, shifts));
+}
+
+double TRK::findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts) {
     std::vector <double> posts;
     long minindex;
 
     for (int i = 0; i < x_tn_vec.size(); i++) {
-        posts.push_back(singlePointLnLAsym(params, x_n, y_n, Sigs2, x_tn_vec[i]));
+        posts.push_back(singlePointLnLAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec[i], quadSig_xn2Ind, quadSig_yn2Ind, shifts));
     }
 
     std::vector<double>::iterator result = std::min_element(std::begin(posts), std::end(posts));
@@ -677,8 +621,9 @@ double TRK::findBestTangentAsym(std::vector <double> params, double x_n, double 
 }
 
 
-std::vector <double> TRK::getAsymShifts(std::vector <double> allparams){
-    double deltayn, deltaxn;
+std::vector <double> TRK::getAsymShifts(std::vector <double> allparams, int n){
+    double deltayn = 0.0;
+    double deltaxn = 0.0;
     
     std::vector <double> slops = {allparams[M], allparams[M+1]};
     std::vector <double> EBs = {sx[n], sy[n]};
@@ -709,12 +654,12 @@ std::vector <double> TRK::getAsymShifts(std::vector <double> allparams){
     double sigmaS = minMax({slops[1], slops[3]})[0];
     double sigmanL = minMax({EBs[1], EBs[3]})[1];
     double sigmanS = minMax({EBs[1], EBs[3]})[0];
-    double sigmaMax = minMax(sigmaL, sigmanL))[1];
+    double sigmaMax = minMax({sigmaL, sigmanL})[1];
     
     
     double xi = sigmaS/sigmaL + sigmanS / sigmanL;
     double eta = sigmanL < sigmaL ? sigmanS/sigmanL - sigmaS/sigmaL : sigmaS/sigmaL - sigmanS/sigmanL;
-    double r = minMax(sigmaL, sigmanL)[0] / minMax(sigmaL, sigmanL)[1];
+    double r = minMax({sigmaL, sigmanL})[0] / minMax({sigmaL, sigmanL})[1];
     
     double xip = xi <= 1 ? xi : 2.0 - xi;
     double etap = xip == 0 ? 0 : 2.0 * xip * std::pow(0.5*eta/xip + 1.0, std::pow(r, -0.4087)) - xip;
@@ -726,9 +671,9 @@ std::vector <double> TRK::getAsymShifts(std::vector <double> allparams){
     
     double deltastr = sigmaMax * Nr * (fXi * gEtaP + hXi);
     
-    int i;
+    int i = 1;
     if (slops[1] == slops[3] || EBs[1] == EBs[3]){ //one of the dists is symmetric
-        if (sigmanL == EBs[1] || sigmaL = slops[3]){
+        if (sigmanL == EBs[1] || sigmaL == slops[3]){
             i = 1;
         } else if (sigmaMax == EBs[3] || sigmaMax == slops[1]){
             i = -1;
@@ -755,9 +700,9 @@ std::vector <double> TRK::getAsymShifts(std::vector <double> allparams){
         double pwr = eta <= 1 ? 0.7413 : -0.1268;
         deltayn = i * deltastr * std::sin(PI/2.0 * etap/xip) * std::pow(eta, pwr);
         
-        if (EBs[3] == slops[3] && EBs[1] > slops[1] && EBs[1] < EBs[3]){ //footnote case
-            deltayn *= -1;
-        }
+//        if (EBs[3] == slops[3] && EBs[1] > slops[1] && EBs[1] < EBs[3]){ //footnote case
+//            deltayn *= -1;
+//        }
     }
     
     // X SHIFT
@@ -766,12 +711,12 @@ std::vector <double> TRK::getAsymShifts(std::vector <double> allparams){
     sigmaS = minMax({slops[0], slops[2]})[0];
     sigmanL = minMax({EBs[0], EBs[2]})[0];
     sigmanS = minMax({EBs[0], EBs[2]})[0];
-    sigmaMax = minMax(sigmaL, sigmanL))[0];
+    sigmaMax = minMax({sigmaL, sigmanL})[0];
     
     
     xi = sigmaS/sigmaL + sigmanS / sigmanL;
     eta = sigmanL < sigmaL ? sigmanS/sigmanL - sigmaS/sigmaL : sigmaS/sigmaL - sigmanS/sigmanL;
-    r = minMax(sigmaL, sigmanL)[0] / minMax(sigmaL, sigmanL)[0];
+    r = minMax({sigmaL, sigmanL})[0] / minMax({sigmaL, sigmanL})[0];
     
     xip = xi <= 1 ? xi : 2.0 - xi;
     etap = xip == 0 ? 0 : 2.0 * xip * std::pow(0.5*eta/xip + 1.0, std::pow(r, -0.4087)) - xip;
@@ -784,7 +729,7 @@ std::vector <double> TRK::getAsymShifts(std::vector <double> allparams){
     deltastr = sigmaMax * Nr * (fXi * gEtaP + hXi);
     
     if (slops[0] == slops[2] || EBs[0] == EBs[2]){ //one of the dists is symmetric
-        if (sigmanL == EBs[0] || sigmaL = slops[2]){
+        if (sigmanL == EBs[0] || sigmaL == slops[2]){
             i = 1;
         } else if (sigmaMax == EBs[2] || sigmaMax == slops[0]){
             i = -1;
@@ -808,19 +753,19 @@ std::vector <double> TRK::getAsymShifts(std::vector <double> allparams){
             i = -1;
         }
         
-        pwr = eta <= 1 ? 0.7413 : -0.1268;
+        double pwr = eta <= 1 ? 0.7413 : -0.1268;
         deltaxn = i * deltastr * std::sin(PI/2.0 * etap/xip) * std::pow(eta, pwr);
         
-        if (EBs[2] == slops[2] && EBs[0] > slops[0] && EBs[0] < EBs[2]){ //footnote case
-            deltaxn *= -1;
-        }
+//        if (EBs[2] == slops[2] && EBs[0] > slops[0] && EBs[0] < EBs[2]){ //footnote case
+//            deltaxn *= -1;
+//        }
     }
     
     
     return {deltaxn, deltayn};
 }
 
-std::vector <double> TRK::getAsymSigs2(std::vector <double> allparams){
+std::vector <double> TRK::getAsymSigs2(std::vector <double> allparams, int n){
     std::vector <double> Sigs2(4, 0.0);
     std::vector <double> slops = {allparams[M], allparams[M+1]};
     std::vector <double> EBs = {sx[n], sy[n]};
@@ -853,22 +798,55 @@ std::vector <double> TRK::getAsymSigs2(std::vector <double> allparams){
 }
 
 std::vector <double> TRK::tangentParallelAsym(std::vector<double> allparams, int n, double s) {
-    std::vector <double> Sigs2 = getAsymSigs2(allparams);
-    std::vector <double> shifts = getAsymShifts(allparams);
-    
     std::vector <double> params;
     for (int i = 0; i < M; i++) {
         params.push_back(allparams[i]);
     }
     
+    // shift centroid
+    std::vector <double> shifts = getAsymShifts(allparams, n);
     double xn_shifted = x[n] + shifts[0];
     double yn_shifted = y[n] + shifts[1];
+    
+    
+    // choose correct Sigmas
+    std::vector <double> Sigs2 = getAsymSigs2(allparams, n);
+    double quadSig_xn2 = 0.0;
+    double quadSig_yn2 = 0.0;
+    
+    double yCxn = yc(xn_shifted, params);
+    double dyCxn = dyc(xn_shifted, params);
+    int quadrant = 0;
+    
+    if (yCxn > yn_shifted){
+        if (dyCxn < 0){ // Quadrant I
+            quadSig_xn2 = Sigs2[0];
+            quadSig_yn2 = Sigs2[1];
+            quadrant = 1;
+        } else if (dyCxn >= 0){ // QII
+            quadSig_xn2 = Sigs2[2];
+            quadSig_yn2 = Sigs2[1];
+            quadrant = 2;
+        }
+    } else if (yCxn <= yn_shifted){
+        if (dyCxn < 0){ // QIII
+            quadSig_xn2 = Sigs2[2];
+            quadSig_yn2 = Sigs2[3];
+            quadrant = 3;
+        } else if (dyCxn >= 0){ // QIV
+            quadSig_xn2 = Sigs2[0];
+            quadSig_yn2 = Sigs2[3];
+            quadrant = 4;
+        }
+    }
+    
+    // find tangent point(s)
+    
+    std::vector <double> x_tn_vec = tangentsFinder(params, xn_shifted, yn_shifted, quadSig_xn2, quadSig_yn2, xn_shifted); // we use x_n as the initial guess for this. gives the three closest tangest points
 
-    std::vector <double> x_tn_vec = tangentsFinderAsym(params, xn_shifted, yn_shifted, Sigs2, xn_shifted); // we use x_n as the initial guess for this. gives the three closest tangest points
+    double x_t = findBestTangentAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec, quadSig_xn2, quadSig_yn2, shifts);
 
-    double x_t = findBestTangentAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec);
-
-    double subsum = std::log(pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_t));
+    double subsum = std::log(pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_t, quadSig_xn2, quadSig_yn2, shifts));
 
     return {x_t, subsum}; // returns x_t_n and ln(p_n)
 }

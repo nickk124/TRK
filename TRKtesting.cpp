@@ -353,8 +353,8 @@ int main()
     
     TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 
-    TRKtest.minussx = sx;
-    TRKtest.minussy = sy;
+    TRKtest.sx_minus = sx;
+    TRKtest.sy_minus = sy;
 
     TRKtest.minusslop_x_guess = slopx_guess;
     TRKtest.minusslop_y_guess = slopy_guess;
