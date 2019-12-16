@@ -445,22 +445,22 @@ void TRK::checkAsym(){ //checks to see whether any or all of the asymmetric erro
     bool negXSlop = false;
     bool negYSlop = false;
     
-    if (minusslop_x_guess >= 0){
+    if (slop_x_minus_guess >= 0){
         negXSlop = true;
     }
 
-    if (minusslop_y_guess >= 0){
+    if (slop_y_minus_guess >= 0){
         negYSlop = true;
     }
     
     if (negXSlop && !negYSlop){
         hasAsymSlop = true;
-        minusslop_y_guess = slop_y_guess;
+        slop_y_minus_guess = slop_y_guess;
     }
     
     else if (!negXSlop && negYSlop){
         hasAsymSlop = true;
-        minusslop_x_guess = slop_x_guess;
+        slop_x_minus_guess = slop_x_guess;
     }
     
     else if (negXSlop && negYSlop){
@@ -503,8 +503,8 @@ void TRK::checkAsym(){ //checks to see whether any or all of the asymmetric erro
     printf("Asymmetries: slop: %s\tError bars: %s\n", hasAsymSlop ? "true" : "false", hasAsymEB ? "true" : "false");
     
     if (hasAsymSlop){
-        allparams_guess.push_back(minusslop_x_guess);
-        allparams_guess.push_back(minusslop_y_guess);
+        allparams_guess.push_back(slop_x_minus_guess);
+        allparams_guess.push_back(slop_y_minus_guess);
         
         allparams_sigmas_guess.push_back(slop_x_sigma_guess);
         allparams_sigmas_guess.push_back(slop_y_sigma_guess);
@@ -2676,6 +2676,11 @@ void TRK::optimizeScale() {
 
 	results.slop_x = allparams_s[M];
 	results.slop_y = allparams_s[M + 1];
+    
+    if (hasAsymSlop){
+        results.slop_x_minus = allparams_s[M + 2];
+        results.slop_y_minus = allparams_s[M + 3];
+    }
 
 	results.optimumScale = s;
 	results.minimumScale = a;
@@ -3178,6 +3183,9 @@ void TRK::guessMCMCDeltas(){
     slop_x_sigma_guess = stDevUnweighted(x) / 100.0;
     slop_y_sigma_guess = stDevUnweighted(y) / 100.0;
     
+    slop_x_minus_sigma_guess = slop_x_sigma_guess;
+    slop_y_minus_sigma_guess = slop_y_sigma_guess;
+    
     return;
 }
 
@@ -3384,8 +3392,13 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 	double tolBar = 1e-6;
 
 	results.paramDistributionHistograms.clear();
+    
+    int m = 0;
+    if (hasAsymSlop){
+        m = 2;
+    }
 
-	for (int j = 0; j < M + 2; j++) { //for each model param plus slop
+	for (int j = 0; j < M + 2 + m; j++) { //for each model param plus slop
 		data.clear();
 
 		for (int i = 0; i < totalCount; i++) {
@@ -3476,11 +3489,17 @@ void TRK::calculateUncertainties() {
 
 		std::ofstream myfile;
 		myfile.open(fileName, std::ofstream::trunc);
+        
+        int m = 0;
+        if (hasAsymSlop){
+            m = 2;
+        }
+        
 		if (myfile.is_open())
 		{
 			// filename    a     b     optimum scale    total computation time (s)
 			for (int i = 0; i < allparam_samples.size(); i++) {
-				for (int j = 0; j < M + 2; j++) {
+				for (int j = 0; j < M + 2 + m; j++) {
 					myfile << allparam_samples[i][j] << " ";
 				}
 				myfile << std::endl;
@@ -3502,6 +3521,11 @@ void TRK::calculateUncertainties() {
 	}
 	results.slopX_123Sigmas = allparam_uncertainties[M];
 	results.slopY_123Sigmas = allparam_uncertainties[M + 1];
+    
+    if (hasAsymSlop){
+        results.slopX_minus_123Sigmas = allparam_uncertainties[M];
+        results.slopY_minus_123Sigmas = allparam_uncertainties[M + 1];
+    }
 
 	return;
 }
@@ -3800,6 +3824,11 @@ void TRK::getBetterGuess(){
     allparams_guess[M] = results.slop_x;
     allparams_guess[M+1] = results.slop_x;
     
+    if (hasAsymSlop){
+        allparams_guess[M+2] = results.slop_x_minus;
+        allparams_guess[M+3] = results.slop_y_minus;
+    }
+    
     return;
 }
 
@@ -3837,6 +3866,11 @@ void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for
 
 	results.slop_x = allparams_s[M];
 	results.slop_y = allparams_s[M + 1];
+    
+    if (hasAsymSlop){
+        results.slop_x_minus = allparams_s[M + 2];
+        results.slop_y_minus = allparams_s[M + 3];
+    }
 
     getBetterGuess();
 	calculateUncertainties();
@@ -3863,6 +3897,11 @@ void TRK::performSimpleTRKFit() {//finds optimum scale and performs TRK fit but 
     
     results.slop_x = allparams_s[M];
     results.slop_y = allparams_s[M + 1];
+    
+    if (hasAsymSlop){
+        results.slop_x_minus = allparams_s[M + 2];
+        results.slop_y_minus = allparams_s[M + 3];
+    }
 
 	return;
 }
@@ -3887,6 +3926,11 @@ void TRK::performSimpleTRKFit(double scale) {//given some provided scale, perfor
     
     results.slop_x = allparams_s[M];
     results.slop_y = allparams_s[M + 1];
+    
+    if (hasAsymSlop){
+        results.slop_x_minus = allparams_s[M + 2];
+        results.slop_y_minus = allparams_s[M + 3];
+    }
     
     return;
 }

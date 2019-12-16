@@ -356,8 +356,8 @@ int main()
     TRKtest.sx_minus = sx;
     TRKtest.sy_minus = sy;
 
-    TRKtest.minusslop_x_guess = slopx_guess;
-    TRKtest.minusslop_y_guess = slopy_guess;
+    TRKtest.slop_x_minus_guess = slopx_guess;
+    TRKtest.slop_y_minus_guess = slopy_guess;
     
     TRKtest.performTRKFit();
 

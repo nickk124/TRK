@@ -50,6 +50,12 @@ struct Results
 		std::vector < std::vector <double> > slopX_123Sigmas;
 		std::vector < std::vector <double> > slopY_123Sigmas;
 		std::vector < std::vector < std::vector <double> > > paramDistributionHistograms; // vector: {bins, edges}
+    
+        // asymmetric stuff:
+        double slop_x_minus;
+        double slop_y_minus;
+        std::vector < std::vector <double> > slopX_minus_123Sigmas;
+        std::vector < std::vector <double> > slopY_minus_123Sigmas;
 
 };
 
@@ -84,8 +90,8 @@ class TRK
 		Results results;
     
         //asymmetric distribution tools
-        double minusslop_x_guess = -1.0;  // negative asymmetric slop
-        double minusslop_y_guess = -1.0;
+        double slop_x_minus_guess = -1.0;  // negative asymmetric slop
+        double slop_y_minus_guess = -1.0;
         std::vector <double> sx_minus, sy_minus; // negative asymmetric error bars
         double cumulNorm(double z);
         bool hasAsymEB = false;
@@ -127,7 +133,7 @@ class TRK
 		std::vector <double> x_t_slopx, x_t_slopy, x_t_a, x_t_b, x_t_s;
 		std::vector <double> params_slopx, params_slopy, params_a, params_b, params_s, allparams_s, iterative_allparams_guess;
 		std::vector <double> params_guess, params_sigmas_guess;
-		double slop_x_guess, slop_y_guess, slop_x_sigma_guess, slop_y_sigma_guess;
+        double slop_x_guess, slop_y_guess, slop_x_sigma_guess, slop_y_sigma_guess, slop_x_minus_sigma_guess, slop_y_minus_sigma_guess;
 		std::vector <double> allparams_guess, allparams_sigmas_guess;
 
 		//scale optimization
