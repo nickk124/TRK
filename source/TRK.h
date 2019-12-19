@@ -98,15 +98,19 @@ class TRK
         bool hasAsymSlop = false;
         void checkAsym();
         double modifiedChiSquaredAsym(std::vector <double> allparams, double s);
-        double dunDxAsym(double mtn, std::vector <double> Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind);
+        double dunDxAsym(double mtn, std::vector <double> Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind, double s);
         double cmNorm(double z);
         double zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_shifted, double yn_shifted, std::vector <double> shifts, double x_tn, double y_tn, double m_tn);
-        double pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts);
-        double singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts);
-        double findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts);
+        double pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s);
+        double singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s);
+        double findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s);
         std::vector <double> getAsymShifts(std::vector <double> allparams, int n);
         std::vector <double> getAsymSigs2(std::vector <double> allparams, int n);
         std::vector <double> tangentParallelAsym(std::vector<double> allparams, int n, double s);
+        
+        // Asym MCMC
+        double likelihoodAsym(std::vector <double> allparams);
+        std::vector <double> tangentParallelLikelihoodAsym(std::vector<double> allparams, int n);
 
 		//simplex tools
 
@@ -165,7 +169,7 @@ class TRK
 
 
 		//tangent finding
-		double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec);
+		double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec, double s);
 		std::vector <double> approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1);
 		std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
 		double twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1);
@@ -180,7 +184,7 @@ class TRK
 		double regularChiSquared(std::vector <double> params);
 		double modifiedChiSquared(std::vector <double> allparams, double s);
 		double normal(double x, double mu, double sig);
-		double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn);
+		double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s);
 		double likelihood(std::vector <double> allparams);
 		double priors(std::vector <double> allparams);
 		double posterior(std::vector <double> allparams);
@@ -206,6 +210,7 @@ class TRK
 		double (*ddyc)(double, std::vector <double>);
         
         double (TRK::*selectedChiSq)(std::vector <double>, double) = &TRK::modifiedChiSquared;
+        double (TRK::*selectedLikelihood)(std::vector <double>) = &TRK::likelihood;
 
 
 		// MCMC/uncertainty calculation
@@ -280,6 +285,7 @@ class TRK
 		bool cpp11MultiThread = true;
 		bool openMPMultiThread = false;
 		bool findPivotPoints = false;
+        bool showSimplexSteps = false;
 		int maxThreads = 8;
 };
 

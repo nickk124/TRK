@@ -152,15 +152,16 @@ int main()
 
     std::string filename;
 
-    filename = "bhc2_data.csv";
+    filename = "asymmdata.csv";
     //filename = "rvc2_data.csv";
 //    filename = "c1c2_data.csv";                                                                                                    //**********
 //    filename = "simplelinear_data.csv";
 
     filename = "/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/" + filename;
 //    std::vector <std::vector <double> > data = getData(filename, 9);
-    std::vector <std::vector <double> > data = getData(filename, 441);
-
+//    std::vector <std::vector <double> > data = getData(filename, 441);
+    std::vector <std::vector <double> > data = getData(filename, 101);
+    
     std::vector <double> x, y, sx, sy, w;
 
     for (int i = 0; i < data[0].size(); i++) {
@@ -346,18 +347,19 @@ int main()
 //    TRKtest.linearizedIntercept = linearIntercept;
 //    TRKtest.linearizedSlope = linearSlope;
     
-    std::vector <double> params_guess = { 0.89, 1.04};
+    std::vector <double> params_guess = { 1.3, 2.5};
     
-    double slopx_guess = 0.3;                                                                                                    //**********
-    double slopy_guess = 0.3;
+    double slopx_guess = 0.5;                                                                                                    //**********
+    double slopy_guess = 1.5;
+    
     
     TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 
-    TRKtest.sx_minus = sx;
-    TRKtest.sy_minus = sy;
+//    TRKtest.cpp11MultiThread = false;
+    TRKtest.showSimplexSteps = true;
 
-    TRKtest.slop_x_minus_guess = slopx_guess;
-    TRKtest.slop_y_minus_guess = slopy_guess;
+    TRKtest.slop_x_minus_guess = 1.0;
+    TRKtest.slop_y_minus_guess = 2.5;
     
     TRKtest.performTRKFit();
 
