@@ -40,6 +40,12 @@ p = Figure(plot_height = 400, plot_width = 500, x_range = (xMin, xMax),
 
 p.quad(source = src, bottom = 0, top = 'arr_hist', left = 'left', right = 'right', fill_color = 'cornflowerblue', line_color = 'black')
 
+
+p.yaxis.major_tick_line_color = None  # turn off y-axis major ticks
+p.yaxis.minor_tick_line_color = None  # turn off y-axis minor ticks
+p.yaxis.major_label_text_font_size = '0pt'  # preferred method for removing tick labels
+
+
 #defines the callback to be used:
 callback_plot = CustomJS(args=dict(src=src, p=p, axis=p.xaxis[0], x_range=p.x_range), code="""
 

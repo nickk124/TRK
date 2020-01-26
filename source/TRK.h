@@ -182,6 +182,7 @@ class TRK
 		bool hasPriors;
 		Priors priorsObject;
 		double regularChiSquared(std::vector <double> params);
+        double regularChiSquaredWSlop(std::vector <double> allparams, double s);
 		double modifiedChiSquared(std::vector <double> allparams, double s);
 		double normal(double x, double mu, double sig);
 		double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s);

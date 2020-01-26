@@ -145,6 +145,26 @@ double ddrvc2(double c2, std::vector <double> params) {
 
     return -(top1 / bottom1) + top2 / bottom2;
 }
+// for secret testing
+double xBarTest = 42.006115;
+
+double linearTest(double x, std::vector <double> params) {
+    double a0 = params[0];
+    double a1 = params[1];
+
+    return a0 + a1 * (x - xBarTest);
+}
+
+double dLinearTest(double x, std::vector <double> params) {
+    double a1 = params[1];
+
+    return a1;
+}
+
+double ddLinearTest(double x, std::vector <double> params) {
+
+    return 0;
+}
 
 int main()
 {
@@ -156,9 +176,11 @@ int main()
     //filename = "rvc2_data.csv";
 //    filename = "c1c2_data.csv";                                                                                                    //**********
 //    filename = "simplelinear_data.csv";
+//    filename = "topsecretdata.csv";
 
     filename = "/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/" + filename;
 //    std::vector <std::vector <double> > data = getData(filename, 9);
+//    std::vector <std::vector <double> > data = getData(filename, 13);
 //    std::vector <std::vector <double> > data = getData(filename, 441);
     std::vector <std::vector <double> > data = getData(filename, 101);
     
@@ -174,9 +196,9 @@ int main()
 
 
 
-    typedef double (TRK::*TRKMemFn)(std::vector <double> params, double s); //here, TRKMemFn is the name of the type. A pointer of this type points to a member of a TRK object that has those specific input and output
+//    typedef double (TRK::*TRKMemFn)(std::vector <double> allparams, double s); //here, TRKMemFn is the name of the type. A pointer of this type points to a member of a TRK object that has those specific input and output
 
-    //TRKMemFn p = &TRK::modifiedChiSquared;
+//    TRKMemFn p = &TRK::regularChiSquaredWSlop;
 
 
     // pivot points #############################################################################################################
@@ -205,9 +227,13 @@ int main()
 //    std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };                //bhc2                                                                                    //**********
 //    std::vector <double> params_guess = { -1.5038, std::tan(toRad(106.953)) };    //c1c2
 //    std::vector <double> params_guess = { 0.89, 1.04};     //test lin
+//      std::vector <double> params_guess = { 701.0, 0.3}; // top secret
 
-//    double slopx_guess = 0.3;                                                                                                    //**********
+//    double slopx_guess = 0.3;       // test lin                                                                                              //**********
 //    double slopy_guess = 0.3;
+    
+//      double slopx_guess = 0.05;       //  top secret
+//      double slopy_guess = 0.3;
 
 //    std::vector <double> testsigma_guess = { 0.26, 0.13}; //testlin
     //std::vector <double> testsigma_guess = { 0.01, 0.005, 0.01, 0.01};  //bhc2/rvc2
@@ -230,6 +256,8 @@ int main()
 
 
     // constructors #############################################################################################################
+    //
+    TRK TRKtest = TRK(linearTest, dLinearTest, ddLinearTest, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 
 //    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 //    TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);                                                            //**********
@@ -238,7 +266,6 @@ int main()
     //TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
 
     //TRKtest.s = 0.257858;     //optimum for test lin
-
 
     clock_t time = startTimer();
 
@@ -250,13 +277,11 @@ int main()
 
     // test simplex #############################################################################################################
 
+    
     //TRKtest.s = 1.0;
-    /*std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess);
-    std::cout << "s = " << TRKtest.s << ":    ";
-    for (int j = 0; j < allparams_guess.size(); j++) {
-        std::cout << fit[j] << "   ";
-    }
-    std::cout << std::endl; */
+//    std::vector <double> allparams_guess = { 701.0, 0.3, 0.5};
+//    std::vector <double> fit = TRKtest.downhillSimplex(p, allparams_guess, 1.0);
+//    printf("%f %f %f \t %i", fit[0], fit[1], fit[2], (int)fit.size());
 
     // test tangent finder #############################################################################################################
 
@@ -347,19 +372,21 @@ int main()
 //    TRKtest.linearizedIntercept = linearIntercept;
 //    TRKtest.linearizedSlope = linearSlope;
     
-    std::vector <double> params_guess = { 1.3, 2.5};
+//    std::vector <double> params_guess = { 1.3, 2.5};
+//
+//    double slopx_guess = 0.5;                                                                                                    //**********
+//    double slopy_guess = 1.5;
     
-    double slopx_guess = 0.5;                                                                                                    //**********
-    double slopy_guess = 1.5;
+//
     
     
-    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
+//    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 
-//    TRKtest.cpp11MultiThread = false;
-    TRKtest.showSimplexSteps = true;
+    TRKtest.cpp11MultiThread = false;
+//    TRKtest.showSimplexSteps = true;
 
-    TRKtest.slop_x_minus_guess = 1.0;
-    TRKtest.slop_y_minus_guess = 2.5;
+//    TRKtest.slop_x_minus_guess = 1.0;
+//    TRKtest.slop_y_minus_guess = 2.5;
     
     TRKtest.performTRKFit();
 

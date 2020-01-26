@@ -14,3 +14,4 @@
 /Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0.219727	0.319336	0.257858	473.802
 /Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0.954719	0	0.25	110.716
 /Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	1.31414	0	0.25	110.288
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data.csv	0.35729	0.317383	0.235672	163.988

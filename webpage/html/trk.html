@@ -158,10 +158,10 @@
                         <i style="padding-top:10px">Here, select a function to model y(x). Depending on the chosen function, either <span style="text-decoration:overline">x</span> or <span style="text-decoration:overline">log<sub>10</sub> x</span> is the "pivot point" depending on which model function is selected. </i>
                         <br>
                         <br>
-                        <i style="padding-top:10px">Next, in the box to the right, enter your guess for the model function parameters a<sub>0</sub> , a<sub>1</sub> , a<sub>2</sub> , etc. For example, in the linear model case, a<sub>0</sub> corresponds to the y-intercept, and a<sub>1</sub> to the slope. </i>
+                        <i style="padding-top:10px">In the box to the right, enter your guess for the model function parameters a<sub>0</sub> , a<sub>1</sub> , a<sub>2</sub> , etc. For example, in the linear model case, a<sub>0</sub> corresponds to the y-intercept, and a<sub>1</sub> to the slope. </i>
                         <br>
                         <br/>
-                        <i style="padding-top:10px">Finally, enter guesses for the slop (extrinsic scatter of the data) along the x axis<br>and the y axis, as the last two lines (If unsure, use guesses of about 1).</i>
+                        <i style="padding-top:10px">Finally, enter guesses for the slop (extrinsic scatter of the data) along the x axis<br>and the y axis, as the last two lines (If unsure, guesses of about 1 are a safe bet) of this box.</i>
                         <br>
                         <br>
                         <i style="padding-top:10px">For large datasets and/or for non-listed custom functions, <br>it is recommended to use the C++ source code (documentation included) <a href="/rcr/calculator/downloads">here</a>.</i>
@@ -302,7 +302,7 @@
                         <table style="float:right">
                             <tr>
                                 <th>Final model<br>parameters<br>(including slop)</th>
-                                <th>optimum, min <br> and max scales</th>
+                                <th>Optimum, minimum <br> and maximum scales</th>
                             </tr>
                             <tr>
                                 <th><textarea class="dataTable" id="finalParameters" style="margin-top:10px; width:80%; height:200px"></textarea></th>
@@ -310,6 +310,7 @@
                             </tr>
 
                         </table>
+                        <div style="clear:both"></div>
                         <table style="float:right">
                             <tr>
                                 <th>Parameter uncertainties:<br>(- 1 2 3, + 1 2 3 σ) </th>
@@ -322,52 +323,50 @@
                     </div>
                 </div>
             </div>
-            <h2>Plot of Fitted Model</h2>
             <div id="OutputPlot" style="float:left; width:50%">
-                <div class="bk-root" id="a5c6a122-8c4b-4caa-baf8-996ebe9f2c64" data-root-id="1003"></div>
-            
-          
-        
-      
-      
-        <script type="application/json" id="1169">
-          {"ab71f052-1274-48a6-9cec-d9acd25f1298":{"roots":{"references":[{"attributes":{"ticker":{"id":"1015","type":"BasicTicker"}},"id":"1018","type":"Grid"},{"attributes":{"callback":null,"data":{"lower1":[],"lower2":[],"lower3":[],"upper1":[],"upper2":[],"upper3":[],"x_m":[],"y_m":[]},"selected":{"id":"1064","type":"Selection"},"selection_policy":{"id":"1063","type":"UnionRenderers"}},"id":"1002","type":"ColumnDataSource"},{"attributes":{},"id":"1020","type":"BasicTicker"},{"attributes":{"axis_label":"x","formatter":{"id":"1053","type":"BasicTickFormatter"},"ticker":{"id":"1015","type":"BasicTicker"}},"id":"1014","type":"LinearAxis"},{"attributes":{"dimension":1,"ticker":{"id":"1020","type":"BasicTicker"}},"id":"1023","type":"Grid"},{"attributes":{"base":{"field":"x_m","units":"data"},"fill_alpha":{"value":0.1},"fill_color":{"value":"blue"},"level":"underlay","line_color":{"value":"black"},"line_width":{"value":2},"lower":{"field":"lower3","units":"data"},"source":{"id":"1002","type":"ColumnDataSource"},"upper":{"field":"upper3","units":"data"}},"id":"1049","type":"Band"},{"attributes":{},"id":"1053","type":"BasicTickFormatter"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1032","type":"Scatter"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1033","type":"Scatter"},"selection_glyph":null,"view":{"id":"1035","type":"CDSView"}},"id":"1034","type":"GlyphRenderer"},{"attributes":{"base":{"field":"x","units":"data"},"lower":{"field":"err_y_down","units":"data"},"lower_head":{"id":"1057","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_y_up","units":"data"},"upper_head":{"id":"1058","type":"TeeHead"}},"id":"1036","type":"Whisker"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1035","type":"CDSView"},{"attributes":{"level":"underlay","size":10},"id":"1058","type":"TeeHead"},{"attributes":{"level":"underlay","size":10},"id":"1059","type":"TeeHead"},{"attributes":{"fill_color":{"value":"red"},"line_color":{"value":"red"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1032","type":"Scatter"},{"attributes":{},"id":"1010","type":"LinearScale"},{"attributes":{"level":"underlay","size":10},"id":"1060","type":"TeeHead"},{"attributes":{},"id":"1061","type":"UnionRenderers"},{"attributes":{},"id":"1062","type":"Selection"},{"attributes":{"line_alpha":0.6,"line_width":3,"x":{"field":"x_m"},"y":{"field":"y_m"}},"id":"1041","type":"Line"},{"attributes":{"base":{"field":"y","units":"data"},"dimension":"width","lower":{"field":"err_x_down","units":"data"},"lower_head":{"id":"1059","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_x_up","units":"data"},"upper_head":{"id":"1060","type":"TeeHead"}},"id":"1038","type":"Whisker"},{"attributes":{},"id":"1063","type":"UnionRenderers"},{"attributes":{"callback":null},"id":"1008","type":"DataRange1d"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b4","line_width":3,"x":{"field":"x_m"},"y":{"field":"y_m"}},"id":"1042","type":"Line"},{"attributes":{},"id":"1064","type":"Selection"},{"attributes":{"callback":null},"id":"1006","type":"DataRange1d"},{"attributes":{"background_fill_color":{"value":"#fafafa"},"below":[{"id":"1014","type":"LinearAxis"}],"center":[{"id":"1018","type":"Grid"},{"id":"1023","type":"Grid"},{"id":"1036","type":"Whisker"},{"id":"1038","type":"Whisker"},{"id":"1045","type":"Band"},{"id":"1047","type":"Band"},{"id":"1049","type":"Band"}],"js_event_callbacks":{"mouseenter":[{"id":"1051","type":"CustomJS"}]},"left":[{"id":"1019","type":"LinearAxis"}],"min_border":10,"min_border_left":50,"renderers":[{"id":"1034","type":"GlyphRenderer"},{"id":"1043","type":"GlyphRenderer"}],"title":{"id":"1004","type":"Title"},"toolbar":{"id":"1027","type":"Toolbar"},"toolbar_location":"above","x_range":{"id":"1006","type":"DataRange1d"},"x_scale":{"id":"1010","type":"LinearScale"},"y_range":{"id":"1008","type":"DataRange1d"},"y_scale":{"id":"1012","type":"LinearScale"}},"id":"1003","subtype":"Figure","type":"Plot"},{"attributes":{"base":{"field":"x_m","units":"data"},"fill_alpha":{"value":0.3},"fill_color":{"value":"blue"},"level":"underlay","line_color":{"value":"black"},"line_width":{"value":2},"lower":{"field":"lower1","units":"data"},"source":{"id":"1002","type":"ColumnDataSource"},"upper":{"field":"upper1","units":"data"}},"id":"1045","type":"Band"},{"attributes":{"level":"underlay","size":10},"id":"1057","type":"TeeHead"},{"attributes":{},"id":"1012","type":"LinearScale"},{"attributes":{"data_source":{"id":"1002","type":"ColumnDataSource"},"glyph":{"id":"1041","type":"Line"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1042","type":"Line"},"selection_glyph":null,"view":{"id":"1044","type":"CDSView"}},"id":"1043","type":"GlyphRenderer"},{"attributes":{"active_drag":{"id":"1024","type":"PanTool"},"active_inspect":"auto","active_multi":null,"active_scroll":{"id":"1025","type":"WheelZoomTool"},"active_tap":"auto","tools":[{"id":"1024","type":"PanTool"},{"id":"1025","type":"WheelZoomTool"},{"id":"1026","type":"ResetTool"}]},"id":"1027","type":"Toolbar"},{"attributes":{"args":{"p":{"id":"1003","subtype":"Figure","type":"Plot"},"srcData":{"id":"1001","type":"ColumnDataSource"},"srcModel":{"id":"1002","type":"ColumnDataSource"},"xaxis":{"id":"1014","type":"LinearAxis"},"yaxis":{"id":"1019","type":"LinearAxis"}},"code":"\n    p.reset.emit();\n\n    let input_data = getData();\n    let model_plot = getModelData();\n\n    let x_data = input_data[0];\n    let err_x_data = input_data[1];\n    let y_data = input_data[2];\n    let err_y_data = input_data[3];\n\n    let x_m_data = model_plot[0];\n    let y_m_data = model_plot[1];\n    let prams = model_plot[3];\n\n    let x = [];\n    let err_x_up = [];\n    let err_x_down = [];\n    let y = []; \n    let err_y_up = [];\n    let err_y_down = [];\n\n    let x_m = [];\n    let y_m = [];\n    let lower1 = [];\n    let lower2 = [];\n    let lower3 = [];\n    let upper1 = [];\n    let upper2 = [];\n    let upper3 = [];\n    \n    var dataData = srcData.data;\n    var dataModel = srcModel.data;\n\n    dataData['x'] = [];\n    dataData['y'] = [];\n    dataData['err_x_up'] = [];\n    dataData['err_y_up'] = [];\n    dataData['err_x_down'] = [];\n    dataData['err_y_down'] = [];\n\n    dataModel['x_m'] = [];\n    dataModel['y_m'] = [];\n    dataModel['lower1'] = [];\n    dataModel['lower2'] = [];\n    dataModel['lower3'] = [];\n    dataModel['upper1'] = [];\n    dataModel['upper2'] = [];\n    dataModel['upper3'] = [];\n\n    x = dataData['x'];\n    y = dataData['y'];\n    err_x_up = dataData['err_x_up']\n    err_y_up = dataData['err_y_up']\n    err_x_down = dataData['err_x_down']\n    err_y_down = dataData['err_y_down']\n    \n    x_m = dataModel['x_m'];\n    y_m = dataModel['y_m'];\n    lower1 = dataModel['lower1'];\n    lower2 = dataModel['lower2'];\n    lower3 = dataModel['lower3'];\n    upper1 = dataModel['upper1'];\n    upper2 = dataModel['upper2'];\n    upper3 = dataModel['upper3'];\n\n    let bands = getBands(x_m_data, y_m_data, prams);\n\n    for (let i = 0; i &lt; x_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n        err_x_up[i] = x_data[i] + err_x_data[i];\n        err_y_up[i] = y_data[i] + err_y_data[i];\n        err_x_down[i] = x_data[i] - err_x_data[i];\n        err_y_down[i] = y_data[i] - err_y_data[i];\n    }\n\n    for (let i = 0; i &lt; x_m_data.length; i++){\n        x_m[i] = x_m_data[i];\n        y_m[i] = y_m_data[i];\n\n        lower1[i] = bands[0][i];\n        lower2[i] = bands[1][i];\n        lower3[i] = bands[2][i];\n        upper1[i] = bands[3][i];\n        upper2[i] = bands[4][i];\n        upper3[i] = bands[5][i];\n    }\n\n    dataData['x'] = x;\n    dataData['y'] = y;\n    dataData['err_x_up'] = err_x_up;\n    dataData['err_y_up'] = err_y_up;\n    dataData['err_x_down'] = err_x_down;\n    dataData['err_y_down'] = err_y_down;\n\n    dataModel['x_m'] = x_m;\n    dataModel['y_m'] = y_m;\n    dataModel['lower1'] = lower1;\n    dataModel['lower2'] = lower2;\n    dataModel['lower3'] = lower3;\n    dataModel['upper1'] = upper1;\n    dataModel['upper2'] = upper2;\n    dataModel['upper3'] = upper3;\n\n    //console.log(lower1)\n    //console.log(lower2)\n    //console.log(lower3)\n    //console.log(upper1)\n    //console.log(upper2)\n    //console.log(upper3)\n\n    srcData.change.emit();  \n    srcModel.change.emit(); \n    p.change.emit();\n"},"id":"1051","type":"CustomJS"},{"attributes":{"source":{"id":"1002","type":"ColumnDataSource"}},"id":"1044","type":"CDSView"},{"attributes":{"text":"Fitted Model"},"id":"1004","type":"Title"},{"attributes":{},"id":"1024","type":"PanTool"},{"attributes":{},"id":"1025","type":"WheelZoomTool"},{"attributes":{},"id":"1055","type":"BasicTickFormatter"},{"attributes":{"base":{"field":"x_m","units":"data"},"fill_alpha":{"value":0.2},"fill_color":{"value":"blue"},"level":"underlay","line_color":{"value":"black"},"line_width":{"value":2},"lower":{"field":"lower2","units":"data"},"source":{"id":"1002","type":"ColumnDataSource"},"upper":{"field":"upper2","units":"data"}},"id":"1047","type":"Band"},{"attributes":{},"id":"1026","type":"ResetTool"},{"attributes":{},"id":"1015","type":"BasicTicker"},{"attributes":{"callback":null,"data":{"err_x_down":[],"err_x_up":[],"err_y_down":[],"err_y_up":[],"x":[],"y":[]},"selected":{"id":"1062","type":"Selection"},"selection_policy":{"id":"1061","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"axis_label":"y","formatter":{"id":"1055","type":"BasicTickFormatter"},"ticker":{"id":"1020","type":"BasicTicker"}},"id":"1019","type":"LinearAxis"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1033","type":"Scatter"}],"root_ids":["1003"]},"title":"Fitted Model","version":"1.3.4"}}
-        </script>
-        <script type="text/javascript">
-          (function() {
-            var fn = function() {
-              Bokeh.safely(function() {
-                (function(root) {
-                  function embed_document(root) {
-                    
-                  var docs_json = document.getElementById('1169').textContent;
-                  var render_items = [{"docid":"ab71f052-1274-48a6-9cec-d9acd25f1298","roots":{"1003":"a5c6a122-8c4b-4caa-baf8-996ebe9f2c64"}}];
-                  root.Bokeh.embed.embed_items(docs_json, render_items);
-                
-                  }
-                  if (root.Bokeh !== undefined) {
-                    embed_document(root);
-                  } else {
-                    var attempts = 0;
-                    var timer = setInterval(function(root) {
-                      if (root.Bokeh !== undefined) {
-                        embed_document(root);
-                        clearInterval(timer);
-                      }
-                      attempts++;
-                      if (attempts > 100) {
-                        console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
-                        clearInterval(timer);
-                      }
-                    }, 10, root)
-                  }
-                })(window);
-              });
-            };
-            if (document.readyState != "loading") fn();
-            else document.addEventListener("DOMContentLoaded", fn);
-          })();
-        </script>
+              <h2>Plot of Fitted Model</h2>
+              <br>
+              <i style="padding-top:10px">Shaded regions indicate the 1-, 2- and 3σslop envelopes of the model distribution.</i>
+              <br>
+              <div class="bk-root" id="a5c6a122-8c4b-4caa-baf8-996ebe9f2c64" data-root-id="1003"></div>
+              <script type="application/json" id="1169">
+                {"ab71f052-1274-48a6-9cec-d9acd25f1298":{"roots":{"references":[{"attributes":{"ticker":{"id":"1015","type":"BasicTicker"}},"id":"1018","type":"Grid"},{"attributes":{"callback":null,"data":{"lower1":[],"lower2":[],"lower3":[],"upper1":[],"upper2":[],"upper3":[],"x_m":[],"y_m":[]},"selected":{"id":"1064","type":"Selection"},"selection_policy":{"id":"1063","type":"UnionRenderers"}},"id":"1002","type":"ColumnDataSource"},{"attributes":{},"id":"1020","type":"BasicTicker"},{"attributes":{"axis_label":"x","formatter":{"id":"1053","type":"BasicTickFormatter"},"ticker":{"id":"1015","type":"BasicTicker"}},"id":"1014","type":"LinearAxis"},{"attributes":{"dimension":1,"ticker":{"id":"1020","type":"BasicTicker"}},"id":"1023","type":"Grid"},{"attributes":{"base":{"field":"x_m","units":"data"},"fill_alpha":{"value":0.1},"fill_color":{"value":"blue"},"level":"underlay","line_color":{"value":"black"},"line_width":{"value":2},"lower":{"field":"lower3","units":"data"},"source":{"id":"1002","type":"ColumnDataSource"},"upper":{"field":"upper3","units":"data"}},"id":"1049","type":"Band"},{"attributes":{},"id":"1053","type":"BasicTickFormatter"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1032","type":"Scatter"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1033","type":"Scatter"},"selection_glyph":null,"view":{"id":"1035","type":"CDSView"}},"id":"1034","type":"GlyphRenderer"},{"attributes":{"base":{"field":"x","units":"data"},"lower":{"field":"err_y_down","units":"data"},"lower_head":{"id":"1057","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_y_up","units":"data"},"upper_head":{"id":"1058","type":"TeeHead"}},"id":"1036","type":"Whisker"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1035","type":"CDSView"},{"attributes":{"level":"underlay","size":10},"id":"1058","type":"TeeHead"},{"attributes":{"level":"underlay","size":10},"id":"1059","type":"TeeHead"},{"attributes":{"fill_color":{"value":"red"},"line_color":{"value":"red"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1032","type":"Scatter"},{"attributes":{},"id":"1010","type":"LinearScale"},{"attributes":{"level":"underlay","size":10},"id":"1060","type":"TeeHead"},{"attributes":{},"id":"1061","type":"UnionRenderers"},{"attributes":{},"id":"1062","type":"Selection"},{"attributes":{"line_alpha":0.6,"line_width":3,"x":{"field":"x_m"},"y":{"field":"y_m"}},"id":"1041","type":"Line"},{"attributes":{"base":{"field":"y","units":"data"},"dimension":"width","lower":{"field":"err_x_down","units":"data"},"lower_head":{"id":"1059","type":"TeeHead"},"source":{"id":"1001","type":"ColumnDataSource"},"upper":{"field":"err_x_up","units":"data"},"upper_head":{"id":"1060","type":"TeeHead"}},"id":"1038","type":"Whisker"},{"attributes":{},"id":"1063","type":"UnionRenderers"},{"attributes":{"callback":null},"id":"1008","type":"DataRange1d"},{"attributes":{"line_alpha":0.1,"line_color":"#1f77b4","line_width":3,"x":{"field":"x_m"},"y":{"field":"y_m"}},"id":"1042","type":"Line"},{"attributes":{},"id":"1064","type":"Selection"},{"attributes":{"callback":null},"id":"1006","type":"DataRange1d"},{"attributes":{"background_fill_color":{"value":"#fafafa"},"below":[{"id":"1014","type":"LinearAxis"}],"center":[{"id":"1018","type":"Grid"},{"id":"1023","type":"Grid"},{"id":"1036","type":"Whisker"},{"id":"1038","type":"Whisker"},{"id":"1045","type":"Band"},{"id":"1047","type":"Band"},{"id":"1049","type":"Band"}],"js_event_callbacks":{"mouseenter":[{"id":"1051","type":"CustomJS"}]},"left":[{"id":"1019","type":"LinearAxis"}],"min_border":10,"min_border_left":50,"renderers":[{"id":"1034","type":"GlyphRenderer"},{"id":"1043","type":"GlyphRenderer"}],"title":{"id":"1004","type":"Title"},"toolbar":{"id":"1027","type":"Toolbar"},"toolbar_location":"above","x_range":{"id":"1006","type":"DataRange1d"},"x_scale":{"id":"1010","type":"LinearScale"},"y_range":{"id":"1008","type":"DataRange1d"},"y_scale":{"id":"1012","type":"LinearScale"}},"id":"1003","subtype":"Figure","type":"Plot"},{"attributes":{"base":{"field":"x_m","units":"data"},"fill_alpha":{"value":0.3},"fill_color":{"value":"blue"},"level":"underlay","line_color":{"value":"black"},"line_width":{"value":2},"lower":{"field":"lower1","units":"data"},"source":{"id":"1002","type":"ColumnDataSource"},"upper":{"field":"upper1","units":"data"}},"id":"1045","type":"Band"},{"attributes":{"level":"underlay","size":10},"id":"1057","type":"TeeHead"},{"attributes":{},"id":"1012","type":"LinearScale"},{"attributes":{"data_source":{"id":"1002","type":"ColumnDataSource"},"glyph":{"id":"1041","type":"Line"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1042","type":"Line"},"selection_glyph":null,"view":{"id":"1044","type":"CDSView"}},"id":"1043","type":"GlyphRenderer"},{"attributes":{"active_drag":{"id":"1024","type":"PanTool"},"active_inspect":"auto","active_multi":null,"active_scroll":{"id":"1025","type":"WheelZoomTool"},"active_tap":"auto","tools":[{"id":"1024","type":"PanTool"},{"id":"1025","type":"WheelZoomTool"},{"id":"1026","type":"ResetTool"}]},"id":"1027","type":"Toolbar"},{"attributes":{"args":{"p":{"id":"1003","subtype":"Figure","type":"Plot"},"srcData":{"id":"1001","type":"ColumnDataSource"},"srcModel":{"id":"1002","type":"ColumnDataSource"},"xaxis":{"id":"1014","type":"LinearAxis"},"yaxis":{"id":"1019","type":"LinearAxis"}},"code":"\n    p.reset.emit();\n\n    let input_data = getData();\n    let model_plot = getModelData();\n\n    let x_data = input_data[0];\n    let err_x_data = input_data[1];\n    let y_data = input_data[2];\n    let err_y_data = input_data[3];\n\n    let x_m_data = model_plot[0];\n    let y_m_data = model_plot[1];\n    let prams = model_plot[3];\n\n    let x = [];\n    let err_x_up = [];\n    let err_x_down = [];\n    let y = []; \n    let err_y_up = [];\n    let err_y_down = [];\n\n    let x_m = [];\n    let y_m = [];\n    let lower1 = [];\n    let lower2 = [];\n    let lower3 = [];\n    let upper1 = [];\n    let upper2 = [];\n    let upper3 = [];\n    \n    var dataData = srcData.data;\n    var dataModel = srcModel.data;\n\n    dataData['x'] = [];\n    dataData['y'] = [];\n    dataData['err_x_up'] = [];\n    dataData['err_y_up'] = [];\n    dataData['err_x_down'] = [];\n    dataData['err_y_down'] = [];\n\n    dataModel['x_m'] = [];\n    dataModel['y_m'] = [];\n    dataModel['lower1'] = [];\n    dataModel['lower2'] = [];\n    dataModel['lower3'] = [];\n    dataModel['upper1'] = [];\n    dataModel['upper2'] = [];\n    dataModel['upper3'] = [];\n\n    x = dataData['x'];\n    y = dataData['y'];\n    err_x_up = dataData['err_x_up']\n    err_y_up = dataData['err_y_up']\n    err_x_down = dataData['err_x_down']\n    err_y_down = dataData['err_y_down']\n    \n    x_m = dataModel['x_m'];\n    y_m = dataModel['y_m'];\n    lower1 = dataModel['lower1'];\n    lower2 = dataModel['lower2'];\n    lower3 = dataModel['lower3'];\n    upper1 = dataModel['upper1'];\n    upper2 = dataModel['upper2'];\n    upper3 = dataModel['upper3'];\n\n    let bands = getBands(x_m_data, y_m_data, prams);\n\n    for (let i = 0; i &lt; x_data.length; i++){\n        x[i] = x_data[i];\n        y[i] = y_data[i];\n        err_x_up[i] = x_data[i] + err_x_data[i];\n        err_y_up[i] = y_data[i] + err_y_data[i];\n        err_x_down[i] = x_data[i] - err_x_data[i];\n        err_y_down[i] = y_data[i] - err_y_data[i];\n    }\n\n    for (let i = 0; i &lt; x_m_data.length; i++){\n        x_m[i] = x_m_data[i];\n        y_m[i] = y_m_data[i];\n\n        lower1[i] = bands[0][i];\n        lower2[i] = bands[1][i];\n        lower3[i] = bands[2][i];\n        upper1[i] = bands[3][i];\n        upper2[i] = bands[4][i];\n        upper3[i] = bands[5][i];\n    }\n\n    dataData['x'] = x;\n    dataData['y'] = y;\n    dataData['err_x_up'] = err_x_up;\n    dataData['err_y_up'] = err_y_up;\n    dataData['err_x_down'] = err_x_down;\n    dataData['err_y_down'] = err_y_down;\n\n    dataModel['x_m'] = x_m;\n    dataModel['y_m'] = y_m;\n    dataModel['lower1'] = lower1;\n    dataModel['lower2'] = lower2;\n    dataModel['lower3'] = lower3;\n    dataModel['upper1'] = upper1;\n    dataModel['upper2'] = upper2;\n    dataModel['upper3'] = upper3;\n\n    //console.log(lower1)\n    //console.log(lower2)\n    //console.log(lower3)\n    //console.log(upper1)\n    //console.log(upper2)\n    //console.log(upper3)\n\n    srcData.change.emit();  \n    srcModel.change.emit(); \n    p.change.emit();\n"},"id":"1051","type":"CustomJS"},{"attributes":{"source":{"id":"1002","type":"ColumnDataSource"}},"id":"1044","type":"CDSView"},{"attributes":{"text":"Fitted Model"},"id":"1004","type":"Title"},{"attributes":{},"id":"1024","type":"PanTool"},{"attributes":{},"id":"1025","type":"WheelZoomTool"},{"attributes":{},"id":"1055","type":"BasicTickFormatter"},{"attributes":{"base":{"field":"x_m","units":"data"},"fill_alpha":{"value":0.2},"fill_color":{"value":"blue"},"level":"underlay","line_color":{"value":"black"},"line_width":{"value":2},"lower":{"field":"lower2","units":"data"},"source":{"id":"1002","type":"ColumnDataSource"},"upper":{"field":"upper2","units":"data"}},"id":"1047","type":"Band"},{"attributes":{},"id":"1026","type":"ResetTool"},{"attributes":{},"id":"1015","type":"BasicTicker"},{"attributes":{"callback":null,"data":{"err_x_down":[],"err_x_up":[],"err_y_down":[],"err_y_up":[],"x":[],"y":[]},"selected":{"id":"1062","type":"Selection"},"selection_policy":{"id":"1061","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"axis_label":"y","formatter":{"id":"1055","type":"BasicTickFormatter"},"ticker":{"id":"1020","type":"BasicTicker"}},"id":"1019","type":"LinearAxis"},{"attributes":{"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"size":{"units":"screen","value":10},"x":{"field":"x"},"y":{"field":"y"}},"id":"1033","type":"Scatter"}],"root_ids":["1003"]},"title":"Fitted Model","version":"1.3.4"}}
+              </script>
+              <script type="text/javascript">
+                (function() {
+                  var fn = function() {
+                    Bokeh.safely(function() {
+                      (function(root) {
+                        function embed_document(root) {
+                          
+                        var docs_json = document.getElementById('1169').textContent;
+                        var render_items = [{"docid":"ab71f052-1274-48a6-9cec-d9acd25f1298","roots":{"1003":"a5c6a122-8c4b-4caa-baf8-996ebe9f2c64"}}];
+                        root.Bokeh.embed.embed_items(docs_json, render_items);
+                      
+                        }
+                        if (root.Bokeh !== undefined) {
+                          embed_document(root);
+                        } else {
+                          var attempts = 0;
+                          var timer = setInterval(function(root) {
+                            if (root.Bokeh !== undefined) {
+                              embed_document(root);
+                              clearInterval(timer);
+                            }
+                            attempts++;
+                            if (attempts > 100) {
+                              console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+                              clearInterval(timer);
+                            }
+                          }, 10, root)
+                        }
+                      })(window);
+                    });
+                  };
+                  if (document.readyState != "loading") fn();
+                  else document.addEventListener("DOMContentLoaded", fn);
+                })();
+              </script>
             </div>
           <br style="clear: left;" />
           <br style="clear: left;" />
@@ -375,57 +374,56 @@
           <br>
           <div id="Histogram">
             <h2>Plot of Model Parameter Distributions</h2>
+            <br>
+            <i style="padding-top:10px">Expore the MCMC-generated probability distributions of the model parameters. Use the dropdown menu at the top left to select which parameter to display.</i>
+            <br>
             <div style="float:left; width:50%">
-                <div class="bk-root" id="ba500b2a-0f8a-48da-9fa5-cb7388bfdf5f" data-root-id="1036"></div>
+              <div class="bk-root" id="8612bb93-d226-4b4e-a4b4-9a5411cfbf97" data-root-id="1036"></div>
             
           
         
       
       
-                <script type="application/json" id="1109">
-                  {"adb7ba65-77fc-4659-ac92-e707fc94be80":{"roots":{"references":[{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1027","type":"Quad"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1028","type":"Quad"},"selection_glyph":null,"view":{"id":"1030","type":"CDSView"}},"id":"1029","type":"GlyphRenderer"},{"attributes":{},"id":"1039","type":"BasicTickFormatter"},{"attributes":{},"id":"1041","type":"BasicTickFormatter"},{"attributes":{"callback":null,"data":{"arr_hist":[],"left":[],"right":[]},"selected":{"id":"1043","type":"Selection"},"selection_policy":{"id":"1044","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"dimensions":"width"},"id":"1022","type":"WheelZoomTool"},{"attributes":{},"id":"1012","type":"BasicTicker"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{"code":"\n    let val = this.value;\n    whichParam = Number(val.slice(-1));\n"},"id":"1032","type":"CustomJS"},{"attributes":{"dimensions":"width"},"id":"1021","type":"PanTool"},{"attributes":{"text":""},"id":"1038","type":"Title"},{"attributes":{"dimension":1,"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1020","type":"Grid"},{"attributes":{"axis_label":"probability","formatter":{"id":"1041","type":"BasicTickFormatter"},"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1016","type":"LinearAxis"},{"attributes":{},"id":"1017","type":"BasicTicker"},{"attributes":{"callback":null,"js_event_callbacks":{"mouseenter":[{"id":"1034","type":"CustomJS"}]},"js_property_callbacks":{"change:value":[{"id":"1032","type":"CustomJS"},{"id":"1031","type":"CustomJS"}]},"options":[],"title":"Select Model Parameter"},"id":"1033","type":"Select"},{"attributes":{"below":[{"id":"1011","type":"LinearAxis"}],"center":[{"id":"1015","type":"Grid"},{"id":"1020","type":"Grid"}],"js_event_callbacks":{"mouseenter":[{"id":"1034","type":"CustomJS"},{"id":"1031","type":"CustomJS"}]},"left":[{"id":"1016","type":"LinearAxis"}],"plot_height":400,"plot_width":500,"renderers":[{"id":"1029","type":"GlyphRenderer"}],"title":{"id":"1038","type":"Title"},"toolbar":{"id":"1023","type":"Toolbar"},"x_range":{"id":"1003","type":"Range1d"},"x_scale":{"id":"1007","type":"LinearScale"},"y_range":{"id":"1005","type":"DataRange1d"},"y_scale":{"id":"1009","type":"LinearScale"}},"id":"1002","subtype":"Figure","type":"Plot"},{"attributes":{"bottom":{"value":0},"fill_color":{"value":"cornflowerblue"},"left":{"field":"left"},"right":{"field":"right"},"top":{"field":"arr_hist"}},"id":"1027","type":"Quad"},{"attributes":{"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1015","type":"Grid"},{"attributes":{},"id":"1044","type":"UnionRenderers"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{"children":[{"id":"1035","type":"Row"},{"id":"1002","subtype":"Figure","type":"Plot"}]},"id":"1036","type":"Column"},{"attributes":{"active_drag":{"id":"1021","type":"PanTool"},"active_inspect":"auto","active_multi":null,"active_scroll":{"id":"1022","type":"WheelZoomTool"},"active_tap":"auto","tools":[{"id":"1021","type":"PanTool"},{"id":"1022","type":"WheelZoomTool"}]},"id":"1023","type":"Toolbar"},{"attributes":{"axis_label":"parameter","formatter":{"id":"1039","type":"BasicTickFormatter"},"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1011","type":"LinearAxis"},{"attributes":{},"id":"1043","type":"Selection"},{"attributes":{"args":{"select":{"id":"1033","type":"Select"}},"code":"\n    let options = [];\n    for (let m = 0; m &lt; parameters.length - 2; m++){ //excluding slop\n        options.push(\"a\" + m.toString());\n    }\n    select.options = options;\n"},"id":"1034","type":"CustomJS"},{"attributes":{},"id":"1007","type":"LinearScale"},{"attributes":{"children":[{"id":"1033","type":"Select"}]},"id":"1035","type":"Row"},{"attributes":{"callback":null},"id":"1003","type":"Range1d"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1030","type":"CDSView"},{"attributes":{"bottom":{"value":0},"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"left":{"field":"left"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"right":{"field":"right"},"top":{"field":"arr_hist"}},"id":"1028","type":"Quad"},{"attributes":{"args":{"axis":{"id":"1011","type":"LinearAxis"},"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"},"x_range":{"id":"1003","type":"Range1d"}},"code":"\n\n    p.reset.emit();\n\n\n    var hist_result = paramHistograms[whichParam];\n\n    var arr_hist_result = hist_result[0];\n    var left_result = hist_result[1].slice(0,-1);\n    var right_result = hist_result[1].slice(1);\n\n    let bincount = arr_hist_result.length;\n\n    var data = src.data;\n\n    var arr_hist = [];\n    var left = [];\n    var right = [];\n\n    data['arr_hist'] = [];\n    data['left'] = [];\n    data['right'] = [];\n\n    arr_hist = data['arr_hist'];\n    left = data['left'];\n    right = data['right'];\n\n    for (var i = 0; i &lt; bincount; i++){\n        arr_hist[i] = arr_hist_result[i];\n        left[i] = left_result[i];\n        right[i] = right_result[i];\n    }\n\n    data['arr_hist'] = arr_hist;\n    data['left'] = left;\n    data['right'] = right;\n\n    x_range.start = left[0];\n    x_range.end = right[bincount-1];\n\n    p.change.emit();\n    src.change.emit();\n\n"},"id":"1031","type":"CustomJS"}],"root_ids":["1036"]},"title":"Histogram of Parameter Distributions","version":"1.3.4"}}
-                </script>
-                <script type="text/javascript">
-                  (function() {
-                    var fn = function() {
-                      Bokeh.safely(function() {
-                        (function(root) {
-                          function embed_document(root) {
-                            
-                          var docs_json = document.getElementById('1109').textContent;
-                          var render_items = [{"docid":"adb7ba65-77fc-4659-ac92-e707fc94be80","roots":{"1036":"ba500b2a-0f8a-48da-9fa5-cb7388bfdf5f"}}];
-                          root.Bokeh.embed.embed_items(docs_json, render_items);
-                        
-                          }
-                          if (root.Bokeh !== undefined) {
-                            embed_document(root);
-                          } else {
-                            var attempts = 0;
-                            var timer = setInterval(function(root) {
-                              if (root.Bokeh !== undefined) {
-                                embed_document(root);
-                                clearInterval(timer);
-                              }
-                              attempts++;
-                              if (attempts > 100) {
-                                console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
-                                clearInterval(timer);
-                              }
-                            }, 10, root)
-                          }
-                        })(window);
-                      });
-                    };
-                    if (document.readyState != "loading") fn();
-                    else document.addEventListener("DOMContentLoaded", fn);
-                  })();
-                </script>
+              <script type="application/json" id="1174">
+                {"22211530-5d9e-46c7-8aed-4b4949cace4b":{"roots":{"references":[{"attributes":{"axis_label":"probability","formatter":{"id":"1040","type":"BasicTickFormatter"},"major_label_text_font_size":{"value":"0pt"},"major_tick_line_color":{"value":null},"minor_tick_line_color":{"value":null},"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1016","type":"LinearAxis"},{"attributes":{"code":"\n    let val = this.value;\n    whichParam = Number(val.slice(-1));\n"},"id":"1032","type":"CustomJS"},{"attributes":{"callback":null,"data":{"arr_hist":[],"left":[],"right":[]},"selected":{"id":"1044","type":"Selection"},"selection_policy":{"id":"1043","type":"UnionRenderers"}},"id":"1001","type":"ColumnDataSource"},{"attributes":{"source":{"id":"1001","type":"ColumnDataSource"}},"id":"1030","type":"CDSView"},{"attributes":{"axis_label":"parameter","formatter":{"id":"1042","type":"BasicTickFormatter"},"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1011","type":"LinearAxis"},{"attributes":{},"id":"1044","type":"Selection"},{"attributes":{},"id":"1009","type":"LinearScale"},{"attributes":{},"id":"1040","type":"BasicTickFormatter"},{"attributes":{"data_source":{"id":"1001","type":"ColumnDataSource"},"glyph":{"id":"1027","type":"Quad"},"hover_glyph":null,"muted_glyph":null,"nonselection_glyph":{"id":"1028","type":"Quad"},"selection_glyph":null,"view":{"id":"1030","type":"CDSView"}},"id":"1029","type":"GlyphRenderer"},{"attributes":{"dimension":1,"ticker":{"id":"1017","type":"BasicTicker"}},"id":"1020","type":"Grid"},{"attributes":{"args":{"axis":{"id":"1011","type":"LinearAxis"},"p":{"id":"1002","subtype":"Figure","type":"Plot"},"src":{"id":"1001","type":"ColumnDataSource"},"x_range":{"id":"1003","type":"Range1d"}},"code":"\n\n    p.reset.emit();\n\n\n    var hist_result = paramHistograms[whichParam];\n\n    var arr_hist_result = hist_result[0];\n    var left_result = hist_result[1].slice(0,-1);\n    var right_result = hist_result[1].slice(1);\n\n    let bincount = arr_hist_result.length;\n\n    var data = src.data;\n\n    var arr_hist = [];\n    var left = [];\n    var right = [];\n\n    data['arr_hist'] = [];\n    data['left'] = [];\n    data['right'] = [];\n\n    arr_hist = data['arr_hist'];\n    left = data['left'];\n    right = data['right'];\n\n    for (var i = 0; i &lt; bincount; i++){\n        arr_hist[i] = arr_hist_result[i];\n        left[i] = left_result[i];\n        right[i] = right_result[i];\n    }\n\n    data['arr_hist'] = arr_hist;\n    data['left'] = left;\n    data['right'] = right;\n\n    x_range.start = left[0];\n    x_range.end = right[bincount-1];\n\n    p.change.emit();\n    src.change.emit();\n\n"},"id":"1031","type":"CustomJS"},{"attributes":{},"id":"1017","type":"BasicTicker"},{"attributes":{},"id":"1012","type":"BasicTicker"},{"attributes":{"callback":null},"id":"1005","type":"DataRange1d"},{"attributes":{"ticker":{"id":"1012","type":"BasicTicker"}},"id":"1015","type":"Grid"},{"attributes":{"callback":null},"id":"1003","type":"Range1d"},{"attributes":{"callback":null,"js_event_callbacks":{"mouseenter":[{"id":"1034","type":"CustomJS"}]},"js_property_callbacks":{"change:value":[{"id":"1032","type":"CustomJS"},{"id":"1031","type":"CustomJS"}]},"options":[],"title":"Select Model Parameter"},"id":"1033","type":"Select"},{"attributes":{"dimensions":"width"},"id":"1021","type":"PanTool"},{"attributes":{},"id":"1043","type":"UnionRenderers"},{"attributes":{"below":[{"id":"1011","type":"LinearAxis"}],"center":[{"id":"1015","type":"Grid"},{"id":"1020","type":"Grid"}],"js_event_callbacks":{"mouseenter":[{"id":"1034","type":"CustomJS"},{"id":"1031","type":"CustomJS"}]},"left":[{"id":"1016","type":"LinearAxis"}],"plot_height":400,"plot_width":500,"renderers":[{"id":"1029","type":"GlyphRenderer"}],"title":{"id":"1038","type":"Title"},"toolbar":{"id":"1023","type":"Toolbar"},"x_range":{"id":"1003","type":"Range1d"},"x_scale":{"id":"1007","type":"LinearScale"},"y_range":{"id":"1005","type":"DataRange1d"},"y_scale":{"id":"1009","type":"LinearScale"}},"id":"1002","subtype":"Figure","type":"Plot"},{"attributes":{"text":""},"id":"1038","type":"Title"},{"attributes":{"dimensions":"width"},"id":"1022","type":"WheelZoomTool"},{"attributes":{"bottom":{"value":0},"fill_alpha":{"value":0.1},"fill_color":{"value":"#1f77b4"},"left":{"field":"left"},"line_alpha":{"value":0.1},"line_color":{"value":"#1f77b4"},"right":{"field":"right"},"top":{"field":"arr_hist"}},"id":"1028","type":"Quad"},{"attributes":{"bottom":{"value":0},"fill_color":{"value":"cornflowerblue"},"left":{"field":"left"},"right":{"field":"right"},"top":{"field":"arr_hist"}},"id":"1027","type":"Quad"},{"attributes":{"children":[{"id":"1035","type":"Row"},{"id":"1002","subtype":"Figure","type":"Plot"}]},"id":"1036","type":"Column"},{"attributes":{"active_drag":{"id":"1021","type":"PanTool"},"active_inspect":"auto","active_multi":null,"active_scroll":{"id":"1022","type":"WheelZoomTool"},"active_tap":"auto","tools":[{"id":"1021","type":"PanTool"},{"id":"1022","type":"WheelZoomTool"}]},"id":"1023","type":"Toolbar"},{"attributes":{"args":{"select":{"id":"1033","type":"Select"}},"code":"\n    let options = [];\n    for (let m = 0; m &lt; parameters.length - 2; m++){ //excluding slop\n        options.push(\"a\" + m.toString());\n    }\n    select.options = options;\n"},"id":"1034","type":"CustomJS"},{"attributes":{},"id":"1007","type":"LinearScale"},{"attributes":{},"id":"1042","type":"BasicTickFormatter"},{"attributes":{"children":[{"id":"1033","type":"Select"}]},"id":"1035","type":"Row"}],"root_ids":["1036"]},"title":"Histogram of Parameter Distributions","version":"1.3.4"}}
+              </script>
+              <script type="text/javascript">
+                (function() {
+                  var fn = function() {
+                    Bokeh.safely(function() {
+                      (function(root) {
+                        function embed_document(root) {
+                          
+                        var docs_json = document.getElementById('1174').textContent;
+                        var render_items = [{"docid":"22211530-5d9e-46c7-8aed-4b4949cace4b","roots":{"1036":"8612bb93-d226-4b4e-a4b4-9a5411cfbf97"}}];
+                        root.Bokeh.embed.embed_items(docs_json, render_items);
+                      
+                        }
+                        if (root.Bokeh !== undefined) {
+                          embed_document(root);
+                        } else {
+                          var attempts = 0;
+                          var timer = setInterval(function(root) {
+                            if (root.Bokeh !== undefined) {
+                              embed_document(root);
+                              clearInterval(timer);
+                            }
+                            attempts++;
+                            if (attempts > 100) {
+                              console.log("Bokeh: ERROR: Unable to run BokehJS code because BokehJS library is missing");
+                              clearInterval(timer);
+                            }
+                          }, 10, root)
+                        }
+                      })(window);
+                    });
+                  };
+                  if (document.readyState != "loading") fn();
+                  else document.addEventListener("DOMContentLoaded", fn);
+                })();
+              </script>
             </div>
             <div style="padding: 25px">
-              <i style="padding-top:10px">Above: plot of the fitted model with the data points. Shaded regions indicate the 1-, 2- and 3σslop envelopes of the model distribution. </i>
-              <br>
-              <br>
-              <i style="padding-top:10px">To the left, generated distributions of the model parameters are shown. Use the dropdown menu at the top left to select which parameter.</i>
             </div>
           </div>
         </div>
@@ -930,6 +928,9 @@
         paramHistogramsData = paramHistogramsData.split("\n")
         for (let m = 0; m < paramHistogramsData.length; m++) {
             let inner = paramHistogramsData[m].split("\t");
+            if (inner.length < 2){ //if not tab seperated, try space seperated
+              inner = paramHistogramsData[m].split(" ");
+            }
             let bothsigs = [];
             for (let n = 0; n < 2; n++) {
                 let inter = inner[n].split(" ");
@@ -971,16 +972,23 @@
 	    if (has_Weights){
         for (var i = 0; i < N; i++){
     	    datapoint = inputData_Arr[i].split("\t");
-    	    if (datapoint.length < 3){ //if not tab seperated, try space seperated
+    	    if (datapoint.length < 5){ //if not tab seperated, try space seperated
     		    datapoint = inputData_Arr[i].split(" ");
     	    }
-            x_data.push(Number(datapoint[0]));
-            err_x_data.push(Number(datapoint[1]));
-            y_data.push(Number(datapoint[2]));
-            err_y_data.push(Number(datapoint[3]));
-				
-		    w_data.push(Number(datapoint[4]));
-				
+          if (datapoint.length < 5){ // at this point, data must be missing
+            if (datapoint.length === 4){
+              alert("Check data:  Missing weights!");
+              return;
+            } else {
+              alert("Check input:  Missing data!");
+              return;
+            }
+          }
+          x_data.push(Number(datapoint[0]));
+          err_x_data.push(Number(datapoint[1]));
+          y_data.push(Number(datapoint[2]));
+          err_y_data.push(Number(datapoint[3]));
+				  w_data.push(Number(datapoint[4]));
 		    }
 		    return [x_data, err_x_data, y_data, err_y_data, w_data];
 	    } else {
@@ -1172,6 +1180,9 @@
       if (has_Weights){ //creates lists of data (list of strings)
         for (var i = 0; i < N; i++){
     	    datapoint = inputData_Arr[i].split("\t");
+          if (datapoint.length < 2){ //if not tab seperated, try space seperated
+              datapoint = inputData_Arr[i].split(" ");
+            }
     	    if (datapoint.length < 3){ //if not tab seperated, try space seperated
     		    datapoint = inputData_Arr[i].split(" ");
     	    }
@@ -1182,6 +1193,9 @@
 	    } else {
           for (var i = 0; i < N; i++){
       	    datapoint = inputData_Arr[i].split("\t");
+            if (datapoint.length < 2){ //if not tab seperated, try space seperated
+              datapoint = inputData_Arr[i].split(" ");
+            }
       	    if (datapoint.length < 2){ //if not tab seperated, try space seperated
       		    datapoint = inputData_Arr[i].split(" ");
       	    }
@@ -1335,7 +1349,7 @@
 
     function createBasisNotice(){
       switch(y_basis){
-        case 'linear':
+        case 'linear': 
           $('#BasisNotice').css('display','none');
           break;
         case 'log':
@@ -1522,6 +1536,9 @@
         bestFit_123SigmasData = bestFit_123SigmasData.split("\n")
         for (let m = 0; m < bestFit_123SigmasData.length; m++) {
             let inner = bestFit_123SigmasData[m].split("\t");
+            if (inner.length < 2){ //if not tab seperated, try space seperated
+              inner = bestFit_123SigmasData[m].split(" ");
+            }
             let bothsigs = [];
             for (let n = 0; n < 2; n++) {
                 let inter = inner[n].split(" ");
@@ -1537,6 +1554,10 @@
         return bestFit_123Sigmas;
     }
 
+    function roundNumber(num, dec) {
+      return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
+    }
+
     function displayOutputs(data) {
         document.getElementById('finalParameters').value = data['finalParametersData'];
         if (findPivot){
@@ -1546,7 +1567,7 @@
         }
         document.getElementById('scales').value = data['scales']; //assuming scales = "s0\na\nb"
         if (doMCMC){
-          document.getElementById('parameterSigmas') = data['bestFit_123SigmasData'];
+          document.getElementById('parameterSigmas').value = data['bestFit_123SigmasData'];
         }
 
         return;
@@ -1576,9 +1597,6 @@
       guessDataContents = document.getElementById('guessarea').value
       priorsDataContents = document.getElementById('priorsArea').value
 
-      $('#OutputTableWrapper').css('display', 'inline');
-        $('#OutputPlot').css('display', 'inline');
-        $('#Histogram').css('display', 'inline');
 
       doScale = $('#OpScale').data('clicked');
       doMCMC = $('#YesMCMC').data('clicked');
@@ -1619,24 +1637,29 @@
                   dataType: "json",
                   success: function(data, textStatus, jqXHR)
                   {
-                      console.log('yes');
-                      console.log(data);
+                    $('#OutputTableWrapper').css('display', 'inline');
+                    $('#OutputPlot').css('display', 'inline');
+                    if (doMCMC){
+                      $('#Histogram').css('display', 'inline');
+                    } else {
+                    $('#Histogram').css('display', 'none');
+                    }
+                    console.log('yes');
+                    console.log(data);
 
-                      var parameters_result = data['finalParametersData'].split("\n");
-                      parameters = parameters_result.map(Number);
+                    var parameters_result = data['finalParametersData'].split("\n");
+                    parameters = parameters_result.map(Number);
 
-                      console.log("parameters:", parameters)
+                    console.log("parameters:", parameters)
 
-                      if (doMCMC){
-                        bestFit_123Sigmas = convertSigmaData(data['bestFit_123SigmasData']);
-                        paramHistograms = getHistData(data['paramHistogramsData']);
-                      }
+                    if (doMCMC){
+                      bestFit_123Sigmas = convertSigmaData(data['bestFit_123SigmasData']);
+                      paramHistograms = getHistData(data['paramHistogramData']);
+                    }
 
-                      pivot = Number(data['pivotData']);
+                    pivot = Number(data['pivotData']);
 
-                      displayOutputs(data);
-
-
+                    displayOutputs(data);
                   },
                   error: function (jqXHR, textStatus, errorThrown)
                   {
@@ -1644,7 +1667,8 @@
                       console.log('no');
                       console.log(jqXHR);
                       console.log(textStatus);
-                  }
+                  },
+                  timeout: 600000
               }
           );
 
@@ -1671,6 +1695,7 @@
             $('#Option00').css('display','none');
 
             $('#Histogram').css('display','none');
+            $('#OutputPlot').css('display','none');
 
             document.getElementById("SelectContaminantSectionTitle").innerHTML = "Generate Model Parameter Distributions/Uncertainties?";
       	    document.getElementById("PerformTRK").innerHTML = "Perform Fit!";

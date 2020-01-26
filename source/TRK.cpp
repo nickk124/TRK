@@ -1820,6 +1820,25 @@ double TRK::regularChiSquared(std::vector <double> params) {
 	return sum;
 }
 
+double TRK::regularChiSquaredWSlop(std::vector <double> allparams, double s) {
+    unsigned long N = y.size();
+
+    double L = 1.0/(2.0*PI);
+    
+    double sigma = allparams[(int) allparams.size() - 1];
+    
+    std::vector <double> params;
+
+    for (int i = 0; i < M; i++) {
+        params.push_back(allparams[i]);
+    }
+
+    for (int i = 0; i < N; i++) {
+        L *= std::exp(-0.5 * std::pow(((*yc)(x[i], params) - y[i])/std::sqrt(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0)), 2.0)) / std::sqrt(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0));
+    }
+    return -2.0 * std::log(L);
+}
+
 std::vector <double> TRK::tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n) {
 	double Sig_xn2 = std::pow(sx[n], 2.0) + std::pow(slop_x, 2.0);
 	double Sig_yn2 = std::pow(sy[n], 2.0) + std::pow(slop_y, 2.0);
@@ -2304,12 +2323,12 @@ double TRK::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> all
 	//clock_t time = startTimer();
     
     
-    std::vector <double> allparams_s = downhillSimplex(selectedChiSq, allparams_guess, ss[0]);
+    allparams_s = downhillSimplex(selectedChiSq, allparams_guess, ss[0]);
 
     if (hasAsymSlop){
         printf("%f \t %f \t %f \t %f \t %f \t(slop x optimization)\n", ss[0], allparams_s[M], allparams_s[M + 1], allparams_s[M + 2], allparams_s[M + 3]);
     } else {
-        printf("%f \t %f \t %f \n", ss[0], allparams_s[M], allparams_s[M + 1]);
+        printf("%f \t %f \t %f \t(slop x optimization)\n", ss[0], allparams_s[M], allparams_s[M + 1]);
     }
     
 
@@ -2326,12 +2345,12 @@ double TRK::innerSlopY_Simplex(std::vector <double> ss, std::vector <double> all
 	//s = ss[0];
 
 	
-    std::vector <double> allparams_s = downhillSimplex(selectedChiSq, allparams_guess, ss[0]);
+    allparams_s = downhillSimplex(selectedChiSq, allparams_guess, ss[0]);
         
 	if (hasAsymSlop){
         printf("%f \t %f \t %f \t %f \t %f \t(slop y optimization)\n", ss[0], allparams_s[M], allparams_s[M + 1], allparams_s[M + 2], allparams_s[M + 3]);
     } else {
-        printf("%f \t %f \t %f \n", ss[0], allparams_s[M], allparams_s[M + 1]);
+        printf("%f \t %f \t %f \t(slop y optimization)\n", ss[0], allparams_s[M], allparams_s[M + 1]);
     }
 
 	return allparams_s[M + 1];
@@ -2341,13 +2360,13 @@ double TRK::innerR2_Simplex(std::vector <double> ss, std::vector <double> allpar
 	//s = ss[0];
 
 	whichExtrema = S;
-	std::vector <double> allparams_s = downhillSimplex(selectedChiSq, allparams_guess, ss[0]);
+	allparams_s = downhillSimplex(selectedChiSq, allparams_guess, ss[0]);
 	whichExtrema = none;
 
 	if (hasAsymSlop){
         printf("%f \t %f \t %f \t %f \t %f \t(initial R2 optimization)\n", ss[0], allparams_s[M], allparams_s[M + 1], allparams_s[M + 2], allparams_s[M + 3]);
     } else {
-        printf("%f \t %f \t %f \n", ss[0], allparams_s[M], allparams_s[M + 1]);
+        printf("%f \t %f \t %f \t(initial R2 optimization)\n", ss[0], allparams_s[M], allparams_s[M + 1]);
     }
 
 	double R2as = R2TRK_prime_as();
@@ -2360,13 +2379,13 @@ double TRK::innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> a
 	//s = ss[0];
 
 	whichExtrema = S;
-    std::vector <double> allparams_s = downhillSimplex(selectedChiSq, allparams_guess, ss[0]);
+    allparams_s = downhillSimplex(selectedChiSq, allparams_guess, ss[0]);
 	whichExtrema = none;
 
 	if (hasAsymSlop){
         printf("%f \t %f \t %f \t %f \t %f \t(additional R2 optimization)\n", ss[0], allparams_s[M], allparams_s[M + 1], allparams_s[M + 2], allparams_s[M + 3]);
     } else {
-        printf("%f \t %f \t %f \n", ss[0], allparams_s[M], allparams_s[M + 1]);
+        printf("%f \t %f \t %f \t(additional R2 optimization)\n", ss[0], allparams_s[M], allparams_s[M + 1]);
     }
 
 	double R2as = R2TRK_prime_as0(s0, x_t_s, params_s);
@@ -2758,7 +2777,13 @@ void TRK::optimizeScale() {
 
 	std::vector <double> scale_extrema;
 
-	std::vector <double> s_slops(4, 0.0);
+    std::vector <double> s_slops;
+    
+    if (hasAsymSlop){
+        s_slops = {0.0, 0.0, 0.0, 0.0};
+    } else {
+        s_slops = {0.0, 0.0};
+    }
 
 	//optimize simultaneously
 	if (cpp17MultiThread) {
@@ -4248,8 +4273,8 @@ std::vector <std::vector <double > > getData(std::string fileName, int dataSize)
     {
         std::string line;
         std::getline(readFile, line);
-        if (!readFile.good())
-            break;
+//        if (!readFile.good())
+//            break;
         
         std::stringstream iss(line);
         
