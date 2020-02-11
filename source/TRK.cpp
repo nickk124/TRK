@@ -3314,8 +3314,8 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
                 while (loopCheck){
                     for (int j = 0; j < M + 2; j++) {
                         //X_trial.push_back(delta[j] * rnorm(0.0, 1.0) + X_i[j]);
-                        X_trial[j] = rnorm(mu_i[j], lamb * std::sqrt(cov_i[j][j]));
-                    }
+                        X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
+                    }ß
                     
                     a = posterior(X_trial) / posterior(X_i);
                     rand_unif = runiform(0.0, 1.0);
