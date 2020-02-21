@@ -172,17 +172,18 @@ int main()
 
     std::string filename;
 
-    filename = "asymmdata.csv";
+//    filename = "asymmdata.csv";
     //filename = "rvc2_data.csv";
 //    filename = "c1c2_data.csv";                                                                                                    //**********
 //    filename = "simplelinear_data.csv";
+    filename = "simplelinear_data_sloppy.csv";
 //    filename = "topsecretdata.csv";
 
     filename = "/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/" + filename;
-//    std::vector <std::vector <double> > data = getData(filename, 9);
+    std::vector <std::vector <double> > data = getData(filename, 9);
 //    std::vector <std::vector <double> > data = getData(filename, 13);
 //    std::vector <std::vector <double> > data = getData(filename, 441);
-    std::vector <std::vector <double> > data = getData(filename, 101);
+//    std::vector <std::vector <double> > data = getData(filename, 101);
     
     std::vector <double> x, y, sx, sy, w;
 
@@ -226,11 +227,11 @@ int main()
     //std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };    //rvc2
 //    std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };                //bhc2                                                                                    //**********
 //    std::vector <double> params_guess = { -1.5038, std::tan(toRad(106.953)) };    //c1c2
-//    std::vector <double> params_guess = { 0.89, 1.04};     //test lin
+    std::vector <double> params_guess = { 0.89, 1.04};     //test lin
 //      std::vector <double> params_guess = { 701.0, 0.3}; // top secret
 
-//    double slopx_guess = 0.3;       // test lin                                                                                              //**********
-//    double slopy_guess = 0.3;
+    double slopx_guess = 0.3;       // test lin                                                                                              //**********
+    double slopy_guess = 0.3;
     
 //      double slopx_guess = 0.05;       //  top secret
 //      double slopy_guess = 0.3;
@@ -257,9 +258,9 @@ int main()
 
     // constructors #############################################################################################################
     //
-    TRK TRKtest = TRK(linearTest, dLinearTest, ddLinearTest, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
+//    TRK TRKtest = TRK(linearTest, dLinearTest, ddLinearTest, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 
-//    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
+    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 //    TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);                                                            //**********
 //    TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, bhc2Priors);
     //TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, rvc2Priors);
@@ -367,7 +368,8 @@ int main()
 
 //    TRKtest.findPivotPoints = true;
 //    TRKtest.writePivots = true;
-//    TRKtest.outputDistributionToFile = true;
+    TRKtest.outputDistributionToFile = true;
+    TRKtest.R = 1000000;
 
 //    TRKtest.linearizedIntercept = linearIntercept;
 //    TRKtest.linearizedSlope = linearSlope;
@@ -382,7 +384,7 @@ int main()
     
 //    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 
-    TRKtest.cpp11MultiThread = false;
+//    TRKtest.cpp11MultiThread = false;
 //    TRKtest.showSimplexSteps = true;
 
 //    TRKtest.slop_x_minus_guess = 1.0;

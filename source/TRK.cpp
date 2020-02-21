@@ -772,8 +772,7 @@ std::vector <double> TRK::getAsymSigs2(std::vector <double> allparams, int n){
     std::vector <double> EBs = {sx[n], sy[n]};
     
     if (hasAsymSlop && !hasAsymEB){
-        slops.push_back(allparams[M+2]);
-        slops.push_back(allparams[M+3]);
+        slops = concat({allparams[M+2], allparams[M+3]}, slops);
         
         EBs = concat(EBs, EBs);
         
@@ -784,8 +783,7 @@ std::vector <double> TRK::getAsymSigs2(std::vector <double> allparams, int n){
         EBs.push_back(sy_minus[n]);
         
     } else if (hasAsymSlop && hasAsymEB){
-        slops.push_back(allparams[M+2]);
-        slops.push_back(allparams[M+3]);
+        slops = concat({allparams[M+2], allparams[M+3]}, slops);
         
         EBs.push_back(sx_minus[n]);
         EBs.push_back(sy_minus[n]);
@@ -3315,7 +3313,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
                     for (int j = 0; j < M + 2; j++) {
                         //X_trial.push_back(delta[j] * rnorm(0.0, 1.0) + X_i[j]);
                         X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
-                    }ß
+                    }
                     
                     a = posterior(X_trial) / posterior(X_i);
                     rand_unif = runiform(0.0, 1.0);
