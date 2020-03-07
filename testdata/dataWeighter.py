@@ -49,6 +49,11 @@ def main(filename):
     for n in range(data.shape[0]): #normalize weights
         data["Weight"][n] = data["Weight"][n] / minWeight
 
+    print("Normalized Weights: \n")
+
+    for j in range(data.shape[0]):
+        print(data["Weight"][j])
+
 
     data.to_csv(filename)
 

@@ -1013,6 +1013,9 @@ double TRK::modifiedChiSquaredAsym(std::vector <double> allparams, double s)
 double TRK::likelihoodAsym(std::vector <double> allparams) {
     std::vector <double> all_x_t(N, 0.0);
     double L = 1.0;
+    if (useLogPosterior){
+        L = 0.0;
+    }
 
     std::vector <double> params;
 
@@ -1062,7 +1065,11 @@ double TRK::likelihoodAsym(std::vector <double> allparams) {
             std::vector <double> results;
             results = tangentParallelLikelihoodAsym(allparams, i); //pointer to fn run through MT, arguments to fn
             all_x_t[i] = results[0];
-            L *= results[1];
+            if (useLogPosterior){
+                L += std::log(results[1]);
+            } else {
+                L *= results[1];
+            }
         }
 
         //double sec_elapsed = secElapsed(time);
@@ -1098,7 +1105,11 @@ double TRK::likelihoodAsym(std::vector <double> allparams) {
         {
             results = futureVec[i].get();
             all_x_t.push_back(results[0]);
-            L *= results[1];
+            if (useLogPosterior){
+                L += std::log(results[1]);
+            } else {
+                L *= results[1];
+            }
         }
     }
     else {
@@ -1107,7 +1118,11 @@ double TRK::likelihoodAsym(std::vector <double> allparams) {
             std::vector <double> results;
             results = tangentParallelLikelihoodAsym(allparams, i); //pointer to fn run through MT, arguments to fn
             all_x_t[i] = results[0];
-            L *= results[1];
+            if (useLogPosterior){
+                L += std::log(results[1]);
+            } else {
+                L *= results[1];
+            }
         }
     }
     return L;
@@ -1850,6 +1865,8 @@ std::vector <double> TRK::tangentParallelLikelihood(std::vector<double> params, 
 
 	double l = w[n] * std::sqrt((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
 	l *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2)));
+    
+//    printf("%f\n",l);
 
 	return { x_t, l};
 }
@@ -1858,6 +1875,10 @@ double TRK::likelihood(std::vector <double> allparams) {
 	std::vector <double> SigXVec, SigYVec;
 	std::vector <double> all_x_t(N, 0.0);
 	double L = 1.0;
+    
+    if (useLogPosterior){
+        L = 0.0;
+    }
 
 	double slop_x = allparams[M];
 	double slop_y = allparams[M + 1];
@@ -1910,7 +1931,12 @@ double TRK::likelihood(std::vector <double> allparams) {
 			std::vector <double> results;
 			results = tangentParallelLikelihood(params, slop_x, slop_y, i); //pointer to fn run through MT, arguments to fn
 			all_x_t[i] = results[0];
-			L *= results[1];
+            
+            if (useLogPosterior){
+                L += std::log(results[1]);
+            } else {
+                L *= results[1];
+            }
 		}
 
 		//double sec_elapsed = secElapsed(time);
@@ -1946,7 +1972,11 @@ double TRK::likelihood(std::vector <double> allparams) {
 		{
 			results = futureVec[i].get();
 			all_x_t.push_back(results[0]);
-			L *= results[1];
+			if (useLogPosterior){
+                L += std::log(results[1]);
+            } else {
+                L *= results[1];
+            }
 		}
 	}
 	else {
@@ -1955,10 +1985,20 @@ double TRK::likelihood(std::vector <double> allparams) {
 			std::vector <double> results;
 			results = tangentParallelLikelihood(params, slop_x, slop_y, i); //pointer to fn run through MT, arguments to fn
 			all_x_t[i] = results[0];
-			L *= results[1];
+			if (useLogPosterior){
+                L += std::log(results[1]);
+            } else {
+                L *= results[1];
+            }
+            
+//            if (isinf(L)){
+//                printf("Inf\n");
+//            }
+//            printf("%f\n",L);
 		}
+        
 	}
-	return L;
+	return L; // returns log L = logL1 + logL2 + ... given L = L1*L2*L3... if useLogPosterior == true
 }
 
 double TRK::priors(std::vector <double> allparams) {
@@ -2037,15 +2077,27 @@ double TRK::priors(std::vector <double> allparams) {
 double TRK::posterior(std::vector <double> allparams) {
     double post;
 	if (hasPriors) {
-        post = (*this.*selectedLikelihood)(allparams) * priors(allparams);
+        if (useLogPosterior){
+            post = (*this.*selectedLikelihood)(allparams) + std::log(priors(allparams));
+            // this returns the log likelihood; the computation is done WITHIN the function.
+        }
+        else {
+            post = (*this.*selectedLikelihood)(allparams) * priors(allparams);
+        }
 
         return post;
 	}
 	else {
-        post = (*this.*selectedLikelihood)(allparams);
-
-        return post;
+        if (useLogPosterior){
+            post = (*this.*selectedLikelihood)(allparams);
+            // this returns the log likelihood; the computation is done WITHIN the function.
+        }
+        else {
+            post = (*this.*selectedLikelihood)(allparams);
+        }
 	}
+    
+    return post;
 }
 
 double TRK::stDevUnweighted(std::vector <double> x) {
@@ -2947,6 +2999,10 @@ double TRK::innerMetHastSimplex(int burncount, std::vector <double> delta, doubl
         allparams_0 = pivotPointParamsGuess;
     }
     
+    if (posterior(allparams_0) == 0){
+        printf("Alert: zero posterior for initial guess of MCMC!\n");
+    }
+    
 	while (delta_count < sampleCount){// + burncount) {
 		//create trial
 
@@ -2956,7 +3012,7 @@ double TRK::innerMetHastSimplex(int burncount, std::vector <double> delta, doubl
 			allparams_trial.push_back(delta[j] * rnorm(0.0, 1.0) + allparams_0[j]);
 		}
 
-		a = posterior(allparams_trial) / posterior(allparams_0);
+		a = metHastRatio(allparams_trial, allparams_0);
 		rand_unif = runiform(0.0, 1.0);
 
 		if (a >= 1) {
@@ -3002,6 +3058,19 @@ std::vector <double> TRK::pegToNonZeroDelta(std::vector <double> vertex, std::ve
 	return vertexfixed;
 }
 
+double TRK::metHastRatio(std::vector <double> X_trial, std::vector <double> X_i){
+    double a = posterior(X_trial) / posterior(X_i);
+    
+    if (isinf(a)){
+        printf("Alert: infinite MetHast ratio in MCMC!\n");
+    } else if (a == 0){
+        printf("Alert: zero MetHast ratio in MCMC!\n");
+    }
+    
+    return a;
+    // returns log post / log post if useLogPosterior == true
+}
+
 std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess) {
 	double tol = 0.175;
     double optRatio = best_ratio;
@@ -3009,6 +3078,8 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 
 	unsigned long n = delta_guess.size(); //number of model parameters plus two slop parameters
     std::vector <double> best_delta;
+    
+    printf("Optimizing MCMC Proposal Distribution...\n");
     
     switch (thisTuningAlgo){
         case SIMPLEX: {
@@ -3300,6 +3371,10 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
             if (pivotPointActive){
                 X_i = pivotPointParamsGuess;
             }
+            
+            if (posterior(X_i) == 0){
+                printf("Initial guess for pivot-point MCMC sampling gives posterior = 0 !\n");
+            }
 
             while (!tolCheck){// + burncount) {
                 //create trial
@@ -3315,7 +3390,8 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
                         X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
                     }
                     
-                    a = posterior(X_trial) / posterior(X_i);
+                    a = metHastRatio(X_trial, X_i);
+                    
                     rand_unif = runiform(0.0, 1.0);
                     
                     if (a >= 1) {
@@ -3441,6 +3517,10 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 	int delta_count = 0;
 
 	allparams_0 = allparams_guess;
+    
+    if (posterior(allparams_0) == 0){
+        printf("Alert: zero posterior for initial guess of MCMC!\n");
+    }
 
 	while (delta_count < R + burncount) {
 		//create trial
@@ -3451,7 +3531,8 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 			allparams_trial.push_back(delta[j] * rnorm(0.0, 1.0) + allparams_0[j]);
 		}
 
-		a = posterior(allparams_trial) / posterior(allparams_0);
+        a = metHastRatio(allparams_trial, allparams_0);
+        
 		rand_unif = runiform(0.0, 1.0);
 
 		if (a >= 1) {
@@ -3695,6 +3776,11 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 }
 
 void TRK::calculateUncertainties() {
+    
+    useLogPosterior = false;
+    // only needed the above true for pivot point sampling
+    goodDeltasFound = false;
+    // recompute step sizes cause they may be different given new pivot point
 
 	std::vector <std::vector <std::vector <double> > > allparam_uncertainties;
 
@@ -3842,6 +3928,9 @@ void TRK::getPivotGuess(){
 
 void TRK::findPivots() {
 	if (findPivotPoints) {
+        
+        useLogPosterior = true;
+        
 		std::vector < std::vector <double > > allparam_samples;
 		std::vector < std::vector < std::vector <double> > > drawnCombos;
         std::vector <double> pivots, pivotWeights, allPivots, allparams_better;
@@ -3872,7 +3961,7 @@ void TRK::findPivots() {
             
                 allparams_better = downhillSimplex(selectedChiSq, allparams_guess, s);
                 
-                printf("re-fit for new pivot point; old / new params:");
+                printf("re-fit for new pivot point; old / new params:\n");
                 
                 for (int j = 0; j < (int)allparams_better.size(); j++){
                     printf("%f %f\n", allparams_guess[j], allparams_better[j]);
@@ -3885,6 +3974,8 @@ void TRK::findPivots() {
 			pivots.clear();
 			pivotWeights.clear();
             std::vector < std::vector <double> > param_samples(pivotR, { 0.0, 0.0 });
+            
+            printf("Sampling for pivot points...\n");
 
 			allparam_samples = methastPosterior(pivotR, pivotBurnIn, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
             

@@ -222,6 +222,7 @@ class TRK
 		std::vector <double> pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex);
 		std::vector <double> optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess);
 		double innerMetHastSimplex(int burncount, std::vector <double> delta, double best_ratio);
+        double metHastRatio(std::vector <double> X_trial, std::vector <double> X_i);
 		double rnorm(double mu, double sig);
 		double runiform(double a, double b);
 		std::vector <std::vector <std::vector <double> > > lowerBar(std::vector <std::vector <double> > allparam_samples);
@@ -234,6 +235,8 @@ class TRK
 		int burncount = 10000;
         double best_ratio = 0.325;
         double simplexSuperShrink = 1e-3;
+    
+        bool useLogPosterior = false;
     
 
 		//pivot points
