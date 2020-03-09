@@ -79,6 +79,7 @@ class TRK
 		std::vector <double> x, y, sx, sy, w; //datapoints; errorbars
 		double datawidth, x_min, x_max;
 		void getDataWidth();
+        void checkZeroErrorBars();
 
 		//core algorithms
 		void performTRKFit(); //finds optimum scale AND calculates uncertainties
@@ -188,7 +189,7 @@ class TRK
 		double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s);
 		double likelihood(std::vector <double> allparams);
 		double priors(std::vector <double> allparams);
-		double posterior(std::vector <double> allparams);
+		double posterior(std::vector <double> allparams, std::vector <double> allparams_trial);
 		double stDevUnweighted(std::vector <double> x);
 		std::vector <double> tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n);
 		double getMedian(std::vector<double> y);
@@ -237,6 +238,7 @@ class TRK
         double simplexSuperShrink = 1e-3;
     
         bool useLogPosterior = false;
+        bool currentlyOptimizingProposal = false;
     
 
 		//pivot points

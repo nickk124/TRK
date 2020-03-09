@@ -70,6 +70,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->hasPriors = false;
     
     guessMCMCDeltas();
+    
+    checkZeroErrorBars();
 
 	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
 
@@ -115,6 +117,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->hasPriors = false;
     
     guessMCMCDeltas();
+    
+    checkZeroErrorBars();
 
 	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
 
@@ -163,6 +167,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->hasPriors = true;
     
     guessMCMCDeltas();
+    
+    checkZeroErrorBars();
 
 	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
 
@@ -210,6 +216,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	this->hasPriors = true;
     
     guessMCMCDeltas();
+    
+    checkZeroErrorBars();
 
 	std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
 
@@ -277,6 +285,25 @@ void TRK::getDataWidth() {
 	x_min = bounds[0];
 	x_max = bounds[1];
     
+    return;
+}
+
+void TRK::checkZeroErrorBars(){
+    std::vector <int> badInds;
+    bool check = false;
+    for (int i = 0; i < N; i++){
+        if (sx[i] == 0 || sy[i] == 0){
+            badInds.push_back(i);
+            check = true;
+        }
+    }
+    if (check){
+        printf("Warning: Error bars of zero founds at data points (indexing starting at 1) of:\n");
+        for (int j = 0; j < (int)badInds.size(); j++){
+            printf(" %i,", badInds[j]);
+        }
+        printf(".\n Could create likelihood overflow errors if slop also zero/close to zero.");
+    }
     return;
 }
 
@@ -1994,7 +2021,7 @@ double TRK::likelihood(std::vector <double> allparams) {
 //            if (isinf(L)){
 //                printf("Inf\n");
 //            }
-//            printf("%f\n",L);
+            printf("%f\n",L);
 		}
         
 	}
@@ -2074,11 +2101,11 @@ double TRK::priors(std::vector <double> allparams) {
 	return jointPrior;
 }
 
-double TRK::posterior(std::vector <double> allparams) {
+double TRK::posterior(std::vector <double> allparams, std::vector <double> allparams_trial) {
     double post;
 	if (hasPriors) {
         if (useLogPosterior){
-            post = (*this.*selectedLikelihood)(allparams) + std::log(priors(allparams));
+            post = std::exp((*this.*selectedLikelihood)(allparams) - (*this.*selectedLikelihood)(allparams_trial)) * (priors(allparams));
             // this returns the log likelihood; the computation is done WITHIN the function.
         }
         else {
@@ -2089,7 +2116,7 @@ double TRK::posterior(std::vector <double> allparams) {
 	}
 	else {
         if (useLogPosterior){
-            post = (*this.*selectedLikelihood)(allparams);
+            post = std::exp((*this.*selectedLikelihood)(allparams) - (*this.*selectedLikelihood)(allparams_trial));
             // this returns the log likelihood; the computation is done WITHIN the function.
         }
         else {
@@ -2999,7 +3026,7 @@ double TRK::innerMetHastSimplex(int burncount, std::vector <double> delta, doubl
         allparams_0 = pivotPointParamsGuess;
     }
     
-    if (posterior(allparams_0) == 0){
+    if (posterior(allparams_0, allparams_0) == 0){
         printf("Alert: zero posterior for initial guess of MCMC!\n");
     }
     
@@ -3059,13 +3086,52 @@ std::vector <double> TRK::pegToNonZeroDelta(std::vector <double> vertex, std::ve
 }
 
 double TRK::metHastRatio(std::vector <double> X_trial, std::vector <double> X_i){
-    double a = posterior(X_trial) / posterior(X_i);
+    double a = posterior(X_trial, X_trial) / posterior(X_i, X_trial);
+    
+    bool switchcheck = false;
     
     if (isinf(a)){
-        printf("Alert: infinite MetHast ratio in MCMC!\n");
-    } else if (a == 0){
-        printf("Alert: zero MetHast ratio in MCMC!\n");
+//        printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+        switchcheck = true;
+//    } else if (a == 0){
+////        printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+//        switchcheck = true;
+    } else if (isnan(a)){
+//        printf("Alert: NaN MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+        switchcheck = true;
     }
+    
+//    useLogPosterior = true;
+    a = posterior(X_trial, X_trial) / posterior(X_i, X_trial);
+//    useLogPosterior = false;
+    
+    if (isinf(a)){
+            printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+            switchcheck = true;
+    } else if (a == 0){
+        printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+        switchcheck = true;
+    } else if (isnan(a)){
+        printf("Alert: NaN MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+        switchcheck = true;
+    }
+    
+//    if (switchcheck and !currentlyOptimizingProposal){
+//        useLogPosterior = true;
+//        a = posterior(X_trial, X_trial) / posterior(X_i, X_trial);
+//        useLogPosterior = false;
+//
+//        if (isinf(a)){
+//                printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+//                switchcheck = true;
+//        } else if (a == 0){
+//            printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+//            switchcheck = true;
+//        } else if (isnan(a)){
+//            printf("Alert: NaN MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+//            switchcheck = true;
+//        }
+//    }
     
     return a;
     // returns log post / log post if useLogPosterior == true
@@ -3075,6 +3141,8 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 	double tol = 0.175;
     double optRatio = best_ratio;
     bool tolCheck = false;
+    
+//    currentlyOptimizingProposal = true;
 
 	unsigned long n = delta_guess.size(); //number of model parameters plus two slop parameters
     std::vector <double> best_delta;
@@ -3372,9 +3440,23 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
                 X_i = pivotPointParamsGuess;
             }
             
-            if (posterior(X_i) == 0){
+            if (posterior(X_i, X_i) == 0){
                 printf("Initial guess for pivot-point MCMC sampling gives posterior = 0 !\n");
+            } else if (isinf(posterior(X_i, X_i))){
+                printf("Initial guess for pivot-point MCMC sampling gives posterior = inf! \n");
             }
+            
+//            int k = 1;
+//            while (isinf(posterior(X_i, {}))){
+//                printf("Initial guess for pivot-point MCMC sampling gives posterior = inf! Perturbing X_i until escape...\n");
+//
+//                for (int j = 0; j < M + 2; j++) {
+//                    //X_trial.push_back(delta[j] * rnorm(0.0, 1.0) + X_i[j]);
+//                    X_i[j] = rnorm(X_i[j], std::sqrt(k * lamb * cov_i[j][j]));
+//                }
+//                k += 1;
+//
+//            }
 
             while (!tolCheck){// + burncount) {
                 //create trial
@@ -3448,6 +3530,7 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
 //                std::cout << std::endl;
                 
                 i += 1;
+                std::cout << i << std::endl;
                 
                 if (i > 1000){
                     break;
@@ -3466,6 +3549,8 @@ std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <doub
             break;
     }
 
+//    currentlyOptimizingProposal = false;
+    
 	return best_delta;
 }
 
@@ -3515,10 +3600,12 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 
 	int accept_count = 0;
 	int delta_count = 0;
+    int tenth = (int) R/10;
+    int prog = 0;
 
 	allparams_0 = allparams_guess;
     
-    if (posterior(allparams_0) == 0){
+    if (posterior(allparams_0, allparams_0) == 0){
         printf("Alert: zero posterior for initial guess of MCMC!\n");
     }
 
@@ -3553,6 +3640,11 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 		}
 
 		accept_frac = (double) accept_count / (double)delta_count;
+        
+        if (accept_count % tenth == 0){
+            printf("Posterior sampling %i%% complete, acceptance fraction currently %f...\n", prog, accept_frac);
+            prog += 10;
+        }
 	}
 
 	//cut off burn-in
@@ -3777,7 +3869,7 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
 
 void TRK::calculateUncertainties() {
     
-    useLogPosterior = false;
+//    useLogPosterior = false;
     // only needed the above true for pivot point sampling
     goodDeltasFound = false;
     // recompute step sizes cause they may be different given new pivot point
@@ -3929,7 +4021,7 @@ void TRK::getPivotGuess(){
 void TRK::findPivots() {
 	if (findPivotPoints) {
         
-        useLogPosterior = true;
+//        useLogPosterior = true;
         
 		std::vector < std::vector <double > > allparam_samples;
 		std::vector < std::vector < std::vector <double> > > drawnCombos;
@@ -4132,7 +4224,7 @@ void TRK::getBetterGuess(){
         allparams_guess[j] = results.bestFitParams[j];
     }
     allparams_guess[M] = results.slop_x;
-    allparams_guess[M+1] = results.slop_x;
+    allparams_guess[M+1] = results.slop_y;
     
     if (hasAsymSlop){
         allparams_guess[M+2] = results.slop_x_minus;
