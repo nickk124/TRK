@@ -557,7 +557,7 @@ double TRK::zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_sh
     return (quadSig_yn2 * (x - xn_shifted) + std::pow(m_tn, 2.0) * quadSig_xn2 * (x - x_tn - (yn_shifted - y_tn)/m_tn)) / (std::sqrt(quadSig_xn2) * std::sqrt(quadSig_yn2) * std::sqrt(std::pow(m_tn, 2.0) * quadSig_xn2 + quadSig_yn2));
 }
 
-double TRK::pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s){
+double TRK::pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn){
     
     // INITIALIZATIONS
     
@@ -629,17 +629,17 @@ double TRK::pnAsym(std::vector <double> params, double xn_shifted, double yn_shi
     
 }
 
-double TRK::singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s){
+double TRK::singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn){
     
-    return -2.0 * std::log(pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s));
+    return -2.0 * std::log(pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s, wn));
 }
 
-double TRK::findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s) {
+double TRK::findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn) {
     std::vector <double> posts;
     long minindex;
 
     for (int i = 0; i < x_tn_vec.size(); i++) {
-        posts.push_back(singlePointLnLAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec[i], quadSig_xn2Ind, quadSig_yn2Ind, shifts, s));
+        posts.push_back(singlePointLnLAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec[i], quadSig_xn2Ind, quadSig_yn2Ind, shifts, s, wn));
     }
 
     std::vector<double>::iterator result = std::min_element(std::begin(posts), std::end(posts));
@@ -880,9 +880,9 @@ std::vector <double> TRK::tangentParallelAsym(std::vector<double> allparams, int
     
     std::vector <double> x_tn_vec = tangentsFinder(params, xn_shifted, yn_shifted, quadSig_xn2, quadSig_yn2, xn_shifted); // we use x_n as the initial guess for this. gives the three closest tangest points
 
-    double x_t = findBestTangentAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s);
+    double x_t = findBestTangentAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s, w[n]);
 
-    double subsum = std::log(pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_t, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s));
+    double subsum = std::log(pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_t, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s, w[n]));
 
     return {x_t, subsum}; // returns x_t_n and ln(p_n)
 }
@@ -1212,9 +1212,9 @@ std::vector <double> TRK::tangentParallelLikelihoodAsym(std::vector<double> allp
     
     std::vector <double> x_tn_vec = tangentsFinder(params, xn_shifted, yn_shifted, quadSig_xn2, quadSig_yn2, xn_shifted); // we use x_n as the initial guess for this. gives the three closest tangest points
 
-    double x_t = findBestTangentAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s);
+    double x_t = findBestTangentAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn_vec, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s, w[n]);
 
-    double l = pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_t, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s);
+    double l = pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_t, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s, w[n]);
 
     return { x_t, l};
 }
@@ -1890,7 +1890,7 @@ std::vector <double> TRK::tangentParallelLikelihood(std::vector<double> params, 
 	double m_tn = dyc(x_t, params);
 	double y_tn = yc(x_t, params);
 
-	double l = w[n] * std::sqrt((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
+	double l = std::pow((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)), w[n]/2.0);
 	l *= std::exp(-0.5 * w[n] * (std::pow(y[n] - y_tn - m_tn * (x[n] - x_t), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2)));
     
 //    printf("%f\n",l);

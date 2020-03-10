@@ -205,7 +205,10 @@ int main()
         w.push_back(data[4][i]);
     }
 
-
+//    printf("YOU REMOVED WEIGHTS, JUST SO YOU KNOW!!!\n");
+//    for (int i = 0; i < data[0].size(); i++) {
+//        w[i] = 1.0;
+//    }
 
 //    typedef double (TRK::*TRKMemFn)(std::vector <double> allparams, double s); //here, TRKMemFn is the name of the type. A pointer of this type points to a member of a TRK object that has those specific input and output
 
@@ -236,7 +239,7 @@ int main()
 
     //std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };    //rvc2
 //    std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };                //bhc2                                                                                    //**********
-    std::vector <double> params_guess = { -1.33601, std::tan(toRad(106.953)) };    //c1c2
+    std::vector <double> params_guess = { 2.5, std::tan(toRad(106.953)) };    //c1c2
 //    std::vector <double> params_guess = { 0.89, 1.04};     //test lin
 //      std::vector <double> params_guess = { 701.0, 0.3}; // top secret
 
@@ -359,7 +362,7 @@ int main()
     //TRKtest.openMPMultiThread = true;
     
 //    TRKtest.cpp17MultiThread = true;
-//    TRKtest.cpp11MultiThread = false;
+    TRKtest.cpp11MultiThread = false;
 
     TRKtest.findPivotPoints = true;
     TRKtest.writePivots = true;
@@ -382,7 +385,7 @@ int main()
 //    TRKtest.slop_x_minus_guess = 1.0;
 //    TRKtest.slop_y_minus_guess = 2.5;
     
-    TRKtest.performTRKFit();
+    TRKtest.performTRKFit(0.282295);
 
     printf("Optimum scale: %f \n", TRKtest.results.optimumScale);
     printf("Minimum scale: %f \n", TRKtest.results.minimumScale);
