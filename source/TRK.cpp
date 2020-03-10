@@ -2021,7 +2021,7 @@ double TRK::likelihood(std::vector <double> allparams) {
 //            if (isinf(L)){
 //                printf("Inf\n");
 //            }
-            printf("%f\n",L);
+//            printf("%f\n",L);
 		}
         
 	}
@@ -2102,6 +2102,7 @@ double TRK::priors(std::vector <double> allparams) {
 }
 
 double TRK::posterior(std::vector <double> allparams, std::vector <double> allparams_trial) {
+    // DEPRECATED !!!
     double post;
 	if (hasPriors) {
         if (useLogPosterior){
@@ -3086,35 +3087,43 @@ std::vector <double> TRK::pegToNonZeroDelta(std::vector <double> vertex, std::ve
 }
 
 double TRK::metHastRatio(std::vector <double> X_trial, std::vector <double> X_i){
-    double a = posterior(X_trial, X_trial) / posterior(X_i, X_trial);
+    double log_a;
+    if (hasPriors) {
+        log_a = (*this.*selectedLikelihood)(X_trial) - (*this.*selectedLikelihood)(X_i) + std::log(priors(X_trial)) - std::log(priors(X_i));
+            // these likelihoods return log likelihood given useLogPosterior = true; the computation is done WITHIN the function.
+    }
+    else {
+        log_a = (*this.*selectedLikelihood)(X_trial) - (*this.*selectedLikelihood)(X_i);
+            // this returns the log likelihood given useLogPosterior = true; the computation is done WITHIN the function.
+    }
     
-    bool switchcheck = false;
+//    bool switchcheck = false;
     
-    if (isinf(a)){
-//        printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-        switchcheck = true;
-//    } else if (a == 0){
-////        printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+//    if (isinf(a)){
+////        printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
 //        switchcheck = true;
-    } else if (isnan(a)){
+////    } else if (a == 0){
+//////        printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+////        switchcheck = true;
+//    } else if (isnan(a)){
+////        printf("Alert: NaN MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+//        switchcheck = true;
+//    }
+//
+////    useLogPosterior = true;
+//    a = posterior(X_trial, X_trial) / posterior(X_i, X_trial);
+////    useLogPosterior = false;
+//
+//    if (isinf(a)){
+//            printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+//            switchcheck = true;
+//    } else if (a == 0){
+//        printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
+//        switchcheck = true;
+//    } else if (isnan(a)){
 //        printf("Alert: NaN MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-        switchcheck = true;
-    }
-    
-//    useLogPosterior = true;
-    a = posterior(X_trial, X_trial) / posterior(X_i, X_trial);
-//    useLogPosterior = false;
-    
-    if (isinf(a)){
-            printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-            switchcheck = true;
-    } else if (a == 0){
-        printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-        switchcheck = true;
-    } else if (isnan(a)){
-        printf("Alert: NaN MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-        switchcheck = true;
-    }
+//        switchcheck = true;
+//    }
     
 //    if (switchcheck and !currentlyOptimizingProposal){
 //        useLogPosterior = true;
@@ -3133,11 +3142,14 @@ double TRK::metHastRatio(std::vector <double> X_trial, std::vector <double> X_i)
 //        }
 //    }
     
-    return a;
+    return log_a;
     // returns log post / log post if useLogPosterior == true
 }
 
 std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess) {
+    
+    // DEPRECATED!!!
+    
 	double tol = 0.175;
     double optRatio = best_ratio;
     bool tolCheck = false;
@@ -3570,74 +3582,121 @@ void TRK::guessMCMCDeltas(){
 }
 
 std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, std::vector <double> sigmas_guess) {
+    
+    useLogPosterior = true;
 	
 	//initialization of adaptive delta
-	std::vector <double> delta;
+//	std::vector <double> delta;
 
-	//optimize deltas
-
-	if (!goodDeltasFound) {
-		delta = optimizeMetHastDeltas(burncount, sigmas_guess);
-        
-        allParamsFinalDeltas = delta;
-        
-        printf("final delta:");
-        
-        for (int j = 0; j < M + 2; j++) {
-            printf("%f ", delta[j]);
-        }
-        std::cout << std::endl;
-        
-        goodDeltasFound = true;
-	}
-	else if (goodDeltasFound) {
-		delta = allParamsFinalDeltas;
-	}
+//	//optimize deltas
+//
+//	if (!goodDeltasFound) {
+//		delta = optimizeMetHastDeltas(burncount, sigmas_guess);
+//
+//        allParamsFinalDeltas = delta;
+//
+//        printf("final delta:");
+//
+//        for (int j = 0; j < M + 2; j++) {
+//            printf("%f ", delta[j]);
+//        }
+//        std::cout << std::endl;
+//
+//        goodDeltasFound = true;
+//	}
+//	else if (goodDeltasFound) {
+//		delta = allParamsFinalDeltas;
+//	}
+    
+//  Adaptive MCMC:
+    unsigned long n = M + 2;
+    
+    std::vector <std::vector <double > > cov_i(n, std::vector <double> (n, 0.0));
+    for (int j = 0; j < n; j++){
+        cov_i[j][j] = std::pow(sigmas_guess[j], 2.0);
+    }
+    std::vector <std::vector <double > > cov_i1(n, std::vector <double> (n, 0.0));
+    
 
 	std::vector < std::vector <double > > result, result_final;
 	std::vector <double> allparams_trial, allparams_0; //allparams_0 is the previous step
-    double a, rand_unif, accept_frac = 0.0;
+    double log_a, rand_unif_log, accept_frac = 0.0;
 
 	int accept_count = 0;
 	int delta_count = 0;
     int tenth = (int) R/10;
     int prog = 0;
-
-	allparams_0 = allparams_guess;
     
-    if (posterior(allparams_0, allparams_0) == 0){
-        printf("Alert: zero posterior for initial guess of MCMC!\n");
+    std::vector <double> mu_i = allparams_guess;
+    std::vector <double> mu_i1(n, 0.0);
+    std::vector <double> X_i = allparams_guess;
+    std::vector <double> X_i1;
+    std::vector <double> X_trial(n, 0.0);
+    double lamb = std::pow(2.38, 2.0) / n;
+    double gam_i1 = 1.0;
+    int i = 0;
+    
+    if (pivotPointActive){
+        X_i = pivotPointParamsGuess;
     }
+    
+//    if (posterior(allparams_0, allparams_0) == 0){
+//        printf("Alert: zero posterior for initial guess of MCMC!\n");
+//    }
 
 	while (delta_count < R + burncount) {
-		//create trial
-
-		allparams_trial.clear();
-
-		for (int j = 0; j < M + 2; j++) {
-			allparams_trial.push_back(delta[j] * rnorm(0.0, 1.0) + allparams_0[j]);
-		}
-
-        a = metHastRatio(allparams_trial, allparams_0);
+		//create trial:
+		//sample X_i
         
-		rand_unif = runiform(0.0, 1.0);
-
-		if (a >= 1) {
-			allparams_0 = allparams_trial;
-			delta_count += 1;
-			result.push_back(allparams_0);
-			accept_count += 1;
-		}
-		else if (rand_unif <= a) {
-			allparams_0 = allparams_trial;
-			delta_count += 1;
-			result.push_back(allparams_0);
-			accept_count += 1;
-		}
-		else {
-			delta_count += 1;
-			result.push_back(allparams_0);
-		}
+        bool loopCheck = true;
+        
+        while (loopCheck){
+            for (int j = 0; j < M + 2; j++) {
+                //X_trial.push_back(delta[j] * rnorm(0.0, 1.0) + X_i[j]);
+                X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
+            }
+            
+            log_a = metHastRatio(X_trial, X_i);
+            
+            rand_unif_log = std::log(runiform(0.0, 1.0));
+            
+            if (rand_unif_log <= log_a) { // accept
+                X_i1 = X_trial;
+                loopCheck = false;
+                delta_count += 1;
+                result.push_back(X_i1);
+                accept_count += 1;
+            }
+            else { // reject
+                delta_count += 1;
+                result.push_back(X_i);
+            }
+        }
+        
+        //update proposal dist params (not until Markov Chain moves on, given loopCheck boolean above)
+        
+        gam_i1 = 1.0/((double)(i + 1));
+        
+        for (int j = 0; j < n; j++){
+            mu_i1[j] = mu_i[j] + gam_i1*(X_i1[j] - mu_i[j]);
+        }
+        
+        for (int l = 0; l < n; l++){
+            for (int m = 0; m < n; m++){
+                cov_i1[l][m] = cov_i[l][m] + gam_i1*((X_i1[l] - mu_i[l])*(X_i1[m] - mu_i[m])-cov_i[l][m]);
+            }
+        }
+        
+        mu_i = mu_i1;
+        cov_i = cov_i1;
+        X_i = X_i1;
+        
+        i += 1;
+        
+//                for (int j = 0; j < n; j++){
+//                    printf("%f ", std::sqrt(cov_i[j][j]));
+//                }
+//                std::cout << std::endl;
 
 		accept_frac = (double) accept_count / (double)delta_count;
         
@@ -3653,13 +3712,15 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 		result_final.push_back(result[i + burncount]);
 	}
 
-	printf("final delta:");
+	printf("final MCMC step-sizes/proposal dist. deviations:");
 	for (int j = 0; j < M + 2; j++) {
-		printf("%f ", delta[j]);
+		printf("%f ", cov_i[j][j]);
 	}
 	printf("\t final full MCMC acceptance ratio: %f \n", accept_frac);
 
 	result_final = checkSlopSignMCMC(result_final);
+    
+    useLogPosterior = false;
 
 	return result_final;
 }
@@ -3871,7 +3932,7 @@ void TRK::calculateUncertainties() {
     
 //    useLogPosterior = false;
     // only needed the above true for pivot point sampling
-    goodDeltasFound = false;
+//    goodDeltasFound = false;
     // recompute step sizes cause they may be different given new pivot point
 
 	std::vector <std::vector <std::vector <double> > > allparam_uncertainties;
@@ -4112,6 +4173,8 @@ void TRK::findPivots() {
                 pivots = removeOutlierPivots(pivots);
             }
             
+            printf("Weighting pivot points...\n");
+            
             pivotWeights = std::vector <double>(pivots.size(), 1.0);
 
             std::vector <double> finalPivots, finalWeights;
@@ -4160,7 +4223,7 @@ void TRK::findPivots() {
 				else std::cout << "Unable to open file";
 			}
 
-			printf("new, old = %f \t %f \n", finalPivot, pivot);
+			printf("new pivot, old pivot= %f \t, %f \n", finalPivot, pivot);
             
             allPivots.push_back(finalPivot);
             iter += 1;

@@ -229,7 +229,7 @@ class TRK
 		std::vector <std::vector <std::vector <double> > > lowerBar(std::vector <std::vector <double> > allparam_samples);
 		void calculateUncertainties();
 		std::vector <double> allParamsFinalDeltas;
-		bool goodDeltasFound = false;
+//		bool goodDeltasFound = false;
         void guessMCMCDeltas();
 
 		int R = 100000; //adjustable; could make accessible by users later

@@ -371,8 +371,6 @@ int main()
 //
     TRKtest.linearizedIntercept = linearIntercept;
     TRKtest.linearizedSlope = linearSlope;
-
-    TRKtest.pivot = 1.161099;
     
 //
     
