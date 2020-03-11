@@ -21,3 +21,6 @@
 /Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data_sloppy.csv	1.32383	2.2666	0.900864	1566.64
 /Users/nickk124/research/reichart/TRK/TRKrepo/testdata/simplelinear_data_sloppy.csv	0.952738	2.16309	0.895652	1200.18
 /Users/nickk124/research/reichart/TRK/TRKrepo/testdata/c1c2_data.csv	1.04502	-6.16325e+247	0.283173	7527.58
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/c1c2_data.csv	-6.16325e+247	8.48798e-314	0.282295	10553.3
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/c1c2_data.csv	-6.16325e+247	8.48798e-314	0.2823	96269
+/Users/nickk124/research/reichart/TRK/TRKrepo/testdata/bhc2_data.csv	0.118164	0.94043	0.281172	53722.7

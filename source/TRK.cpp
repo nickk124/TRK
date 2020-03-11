@@ -2,6 +2,7 @@
 
 
 double TRK::pivot = 0.0;
+double TRK::pivot2 = 1.0;
 
 // PRIORS
 
@@ -3700,7 +3701,7 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 
 		accept_frac = (double) accept_count / (double)delta_count;
         
-        if (accept_count % tenth == 0){
+        if (delta_count % tenth == 0){
             printf("Posterior sampling %i%% complete, acceptance fraction currently %f...\n", prog, accept_frac);
             prog += 10;
         }
@@ -4015,6 +4016,16 @@ double TRK::pivotFunc(std::vector <double> params1, std::vector <double> params2
 	return (a02 - a01) / (a11 - a12);
 }
 
+double TRK::pivotFunc2(std::vector <double> params1, std::vector <double> params2) {
+    double a01 = linearizedIntercept2(params1);
+    double a11 = linearizedSlope2(params1);
+
+    double a02 = linearizedIntercept2(params2);
+    double a12 = linearizedSlope2(params2);
+
+    return (a02 - a01) / (a11 - a12);
+}
+
 double TRK::weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot) {
 	std::vector <double> squares(oldPivots.size(), 0.0);
 	double w;
@@ -4074,7 +4085,23 @@ std::vector <double> TRK::removeOutlierPivots(std::vector <double> pivots){
 
 void TRK::getPivotGuess(){
     if (findPivotPoints){
-        pivot = getAverage(x, w);
+        if (twoPivots){
+            double medX = getMedian((int)N, w, x);
+            
+            std::vector <double> lowX, highX, lowW, highW;
+            
+            for (int i = 0; i < N ; i++){
+                x[i] >= medX ? highX.push_back(x[i]) : lowX.push_back(x[i]);
+                x[i] >= medX ? highW.push_back(w[i]) : lowW.push_back(w[i]);
+            }
+            pivot = getAverage(lowX, lowW);
+            pivot2 = getAverage(highX, highW);
+            
+            printf("p1: %f\t p2: %f \n", pivot, pivot2);
+            
+        } else {
+            pivot = getAverage(x, w);
+        }
     }
     return;
 }
@@ -4091,6 +4118,13 @@ void TRK::findPivots() {
         double onePivot, oneWeight;
         double finalPivot = 1.0;
 		int iter = 0;
+        
+        // for two pivot point special case (e.g. bh v c2 and rv v c2):
+        std::vector < std::vector <double > > allparam_samples2;
+        std::vector <double> pivots2, pivotWeights2, allPivots2;
+        std::vector <double> oldPivots2((int)(randomSampleCount*(randomSampleCount - 1)) / 2, pivot2);
+        double onePivot2, oneWeight2;
+        double finalPivot2 = 2.0;
 
 		while (true) {
             if (iter > 0){
@@ -4100,6 +4134,7 @@ void TRK::findPivots() {
             //refit for better guess for MCMC to avoid zero likelihood
             
             if (modeInterceptGuess){
+                printf("modeInterceptGuess=true not currently configured for multiple pivot points.\n");
                 allparams_better = allparams_guess;
                 
                 std::vector <double> preIntercepts;
@@ -4126,6 +4161,10 @@ void TRK::findPivots() {
 
 			pivots.clear();
 			pivotWeights.clear();
+            
+            pivots2.clear();
+            pivotWeights2.clear();
+            
             std::vector < std::vector <double> > param_samples(pivotR, { 0.0, 0.0 });
             
             printf("Sampling for pivot points...\n");
@@ -4135,19 +4174,27 @@ void TRK::findPivots() {
             pivotPointParamsGuess = allparams_guess;
             
             if (averageIntercepts){
-                std::vector <double> allBs;
+                std::vector <double> allBs, allBs2;
                 for (int i = 0; i < (int)allparam_samples.size(); i++){
                     allBs.push_back(allparam_samples[i][0]);
+                    
+                    if (twoPivots){
+                        allBs2.push_back(allparam_samples[i][2]);
+                    }
                 }
             
                 pivotPointParamsGuess[0] = getAverage(allBs);
+                if (twoPivots){
+                    pivotPointParamsGuess[2] = getAverage(allBs2);
+                }
             }
 
-			for (int j = 0; j < allparam_samples.size(); j++) {
-				param_samples[j] = slice(allparam_samples[j], 0, (int)M);
-			}
-
+            for (int j = 0; j < allparam_samples.size(); j++) {
+                param_samples[j] = slice(allparam_samples[j], 0, (int)M);
+            }
+            
 			if (!getCombosFromSampleDirectly) { //this option takes the ~10,000 MH samples, selects ~200 of them, then generates combos out of this subset
+                printf("getCombosFromSampleDirectly=false not currently configured for multiple pivot points.\n");
 				random_unique(param_samples.begin(), param_samples.end(), randomSampleCount);
 
 				param_samples = slice(param_samples, 0, randomSampleCount);
@@ -4161,40 +4208,91 @@ void TRK::findPivots() {
                 drawnCombos = directCombos(param_samples, maxCombos);
 			}
 
-			for (int j = 0; j < drawnCombos.size(); j++) {
-				onePivot = pivot + pivotFunc(drawnCombos[j][0], drawnCombos[j][1]);
-				if (!std::isnan(onePivot)) {
-					pivots.push_back(onePivot);
-					//std::cout << onePivot << std::endl;
-				}
+            if (twoPivots){
+                for (int j = 0; j < drawnCombos.size(); j++) {
+                    onePivot = pivot + pivotFunc(drawnCombos[j][0], drawnCombos[j][1]);
+                    onePivot2 = pivot2 + pivotFunc2(drawnCombos[j][0], drawnCombos[j][1]);
+                    if (!std::isnan(onePivot) && !std::isnan(onePivot2)) {
+                        pivots.push_back(onePivot);
+                        pivots2.push_back(onePivot2);
+                        //std::cout << onePivot << std::endl;
+                    }
+                }
+            } else {
+                for (int j = 0; j < drawnCombos.size(); j++) {
+                    onePivot = pivot + pivotFunc(drawnCombos[j][0], drawnCombos[j][1]);
+                    if (!std::isnan(onePivot)) {
+                        pivots.push_back(onePivot);
+                        //std::cout << onePivot << std::endl;
+                    }
+                }
             }
             
             if (pruneOutlierPivots){
+                if (twoPivots){
+                    pivots2 = removeOutlierPivots(pivots2);
+                }
                 pivots = removeOutlierPivots(pivots);
             }
             
             printf("Weighting pivot points...\n");
             
             pivotWeights = std::vector <double>(pivots.size(), 1.0);
+            pivotWeights2 = std::vector <double>(pivots2.size(), 1.0);
 
             std::vector <double> finalPivots, finalWeights;
+            std::vector <double> finalPivots2, finalWeights2;
             
 			if (weightPivots) {
-				for (int i = 0; i < pivots.size(); i++) {
-                    oneWeight = weightPivot(drawnCombos[i][0], drawnCombos[i][1], oldPivots, pivots[i]);
-                    if (!std::isnan(oneWeight)){
-                        finalPivots.push_back(pivots[i]);
-                        finalWeights.push_back(oneWeight);
+                if (twoPivots){
+                    for (int i = 0; i < pivots.size(); i++) {
+                        oneWeight = weightPivot(drawnCombos[i][0], drawnCombos[i][1], oldPivots, pivots[i]);
+                        if (!std::isnan(oneWeight)){
+                            finalPivots.push_back(pivots[i]);
+                            finalWeights.push_back(oneWeight);
+                        }
                     }
-				}
+                    for (int i = 0; i < pivots2.size(); i++) {
+                        oneWeight2 = weightPivot(drawnCombos[i][0], drawnCombos[i][1], oldPivots2, pivots2[i]);
+                        if (!std::isnan(oneWeight2)){
+                            finalPivots2.push_back(pivots2[i]);
+                            finalWeights2.push_back(oneWeight2);
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < pivots.size(); i++) {
+                        oneWeight = weightPivot(drawnCombos[i][0], drawnCombos[i][1], oldPivots, pivots[i]);
+                        if (!std::isnan(oneWeight)){
+                            finalPivots.push_back(pivots[i]);
+                            finalWeights.push_back(oneWeight);
+                        }
+                    }
+                }
             } else {
                 finalWeights = pivotWeights;
                 finalPivots = pivots;
+                
+                finalWeights2 = pivotWeights2;
+                finalPivots2 = pivots2;
             }
             
             pivots = finalPivots;
             pivotWeights = finalWeights;
             
+            pivots2 = finalPivots2;
+            pivotWeights2 = finalWeights2;
+            
+            if (twoPivots){
+                if (pivotMedian){
+                    finalPivot2 = getMedian((int) pivots2.size(), pivotWeights2, pivots2);
+                } else if (pivotMean){
+                    finalPivot2 = getAverage(pivots2, pivotWeights2);
+                } else if (pivotHalfSampleMode){
+                    finalPivot2 = getMode((int) pivots2.size(), pivotWeights2, pivots2);
+                } else { //mode
+                    finalPivot2 = getPeakCoord(pivots2, pivotWeights2);
+                }
+            }
             if (pivotMedian){
                 finalPivot = getMedian((int) pivots.size(), pivotWeights, pivots);
             } else if (pivotMean){
@@ -4205,7 +4303,7 @@ void TRK::findPivots() {
                 finalPivot = getPeakCoord(pivots, pivotWeights);
             }
 
-			if (writePivots) {
+			if (writePivots && !twoPivots) {
 
                 std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo/diagnostics/") + std::string("TRKpivots") + (getCombosFromSampleDirectly ? "1" : "0") + (weightPivots ? "1_" : "0_") + std::to_string(iter) + std::string("_") + std::to_string(finalPivot) + std::string(".txt");
 
@@ -4223,31 +4321,59 @@ void TRK::findPivots() {
 				else std::cout << "Unable to open file";
 			}
 
-			printf("new pivot, old pivot= %f \t, %f \n", finalPivot, pivot);
+            if (twoPivots){
+                printf("new pivot1, old pivot1= %f \t, %f \n", finalPivot, pivot);
+                printf("new pivot2, old pivot2= %f \t, %f \n", finalPivot2, pivot2);
+                
+                allPivots2.push_back(finalPivot2);
+            } else {
+                printf("new pivot, old pivot= %f \t, %f \n", finalPivot, pivot);
+            }
             
             allPivots.push_back(finalPivot);
             iter += 1;
-
-			if (std::abs(finalPivot - pivot) < pivotTol) {
-                pivot = finalPivot;
-				break;
-			}
-            
-            if (iter >= maxPivotIter) {
-                if (weightPivots){
-                    pivot = getAverage(slice(allPivots, 1, (int)allPivots.size()));
-                } else {
-                    pivot = getAverage(allPivots);
+            if (twoPivots){
+                if (((stDevUnweighted(allPivots) <= pivotTol && stDevUnweighted(allPivots2) <= pivotTol)|| iter >= maxPivotIter) && maxPivotIter > 1) {
+                    if (weightPivots){
+                        pivot = getAverage(slice(allPivots, 1, (int)allPivots.size()));
+                        pivot2 = getAverage(slice(allPivots2, 1, (int)allPivots2.size()));
+                    } else {
+                        pivot = getAverage(allPivots);
+                        pivot2 = getAverage(allPivots2);
+                    }
+                    break;
+                } else if (maxPivotIter == 1){
+                    pivot = finalPivot;
+                    pivot2 = finalPivot2;
+                    break;
                 }
-                break;
+            } else {
+                if ((stDevUnweighted(allPivots) <= pivotTol || iter >= maxPivotIter) && maxPivotIter > 1) {
+                    if (weightPivots){
+                        pivot = getAverage(slice(allPivots, 1, (int)allPivots.size()));
+                    } else {
+                        pivot = getAverage(allPivots);
+                    }
+                    break;
+                } else if (maxPivotIter == 1){
+                    pivot = finalPivot;
+                    break;
+                }
             }
 
-			pivot = finalPivot;
-
 			oldPivots = pivots;
+            if (twoPivots){
+                oldPivots2 = pivots2;
+            }
 		}
-
-		printf("final pivot point: %f \n", pivot);
+        if (twoPivots){
+            printf("final pivot point 1: %f \n", pivot);
+            printf("final pivot point 2: %f \n", pivot2);
+            
+            results.pivot2 = pivot2;
+        } else {
+            printf("final pivot point: %f \n", pivot);
+        }
         
         results.pivot = pivot;
         
@@ -4314,6 +4440,7 @@ void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for
     checkAsym();
     
 	s = scale;
+    results.optimumScale = s;
     
     getPivotGuess();
 
@@ -4375,6 +4502,7 @@ void TRK::performSimpleTRKFit(double scale) {//given some provided scale, perfor
     checkAsym();
     
     s = scale;
+    
     getPivotGuess();
     
     findPivots();

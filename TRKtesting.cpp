@@ -80,7 +80,7 @@ double bhc2(double c2, std::vector <double> params) {
     double b2BH = params[2];
     double theta2BH = params[3];
 
-    return -std::log(std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH)));
+    return -std::log(std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2)));
 }
 
 double dbhc2(double c2, std::vector <double> params) {
@@ -90,8 +90,8 @@ double dbhc2(double c2, std::vector <double> params) {
     double b2BH = params[2];
     double theta2BH = params[3];
 
-    double top = -std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH))*std::tan(theta2BH);
-    double bottom = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH));
+    double top = -std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2))*std::tan(theta2BH);
+    double bottom = std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2));
 
     return -top/bottom;
 }
@@ -103,13 +103,26 @@ double ddbhc2(double c2, std::vector <double> params) {
     double b2BH = params[2];
     double theta2BH = params[3];
 
-    double top1 = std::pow(-std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH))*std::tan(theta2BH), 2.0);
-    double bottom1 = std::pow(std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH)), 2.0);
+    double top1 = std::pow(-std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2))*std::tan(theta2BH), 2.0);
+    double bottom1 = std::pow(std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2)), 2.0);
 
-    double top2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH))*std::pow(std::tan(theta1BH), 2.0) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH))*std::pow(std::tan(theta2BH), 2.0);
-    double bottom2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - c2p1BH)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - c2p2BH));
+    double top2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot))*std::pow(std::tan(theta1BH), 2.0) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2))*std::pow(std::tan(theta2BH), 2.0);
+    double bottom2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2));
 
     return top1 / bottom1 - top2 / bottom2;
+}
+
+double bhc2Intercept1(std::vector <double> params){
+    return params[0];
+}
+double bhc2Slope1(std::vector <double> params){
+    return std::tan(params[1]);
+}
+double bhc2Intercept2(std::vector <double> params){
+    return params[2];
+}
+double bhc2Slope2(std::vector <double> params){
+    return std::tan(params[3]);
 }
 
 //RV vs c2
@@ -121,7 +134,7 @@ double rvc2(double c2, std::vector <double> params) {
     double b2RV = params[2];
     double theta2RV = params[3];
 
-    return std::log(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV)));
+    return std::log(std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2)));
 }
 
 double drvc2(double c2, std::vector <double> params) {
@@ -131,8 +144,8 @@ double drvc2(double c2, std::vector <double> params) {
     double b2RV = params[2];
     double theta2RV = params[3];
 
-    double top = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::tan(theta2RV);
-    double bottom = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV));
+    double top = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2))*std::tan(theta2RV);
+    double bottom = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2));
 
     return top / bottom;
 }
@@ -144,14 +157,28 @@ double ddrvc2(double c2, std::vector <double> params) {
     double b2RV = params[2];
     double theta2RV = params[3];
 
-    double top1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::tan(theta2RV), 2.0);
-    double bottom1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV)), 2.0);
+    double top1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2))*std::tan(theta2RV), 2.0);
+    double bottom1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2)), 2.0);
 
-    double top2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV))*std::pow(std::tan(theta1RV), 2.0) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV))*std::pow(std::tan(theta2RV), 2.0);
-    double bottom2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - c2p1RV)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - c2p2RV));
+    double top2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot))*std::pow(std::tan(theta1RV), 2.0) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2))*std::pow(std::tan(theta2RV), 2.0);
+    double bottom2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2));
 
     return -(top1 / bottom1) + top2 / bottom2;
 }
+
+double rvc2Intercept1(std::vector <double> params){
+    return params[0];
+}
+double rvc2Slope1(std::vector <double> params){
+    return std::tan(params[1]);
+}
+double rvc2Intercept2(std::vector <double> params){
+    return params[2];
+}
+double rvc2Slope2(std::vector <double> params){
+    return std::tan(params[3]);
+}
+
 // for secret testing
 double xBarTest = 42.006115;
 
@@ -180,8 +207,9 @@ int main()
     std::string filename;
 
 //    filename = "asymmdata.csv";
-    //filename = "rvc2_data.csv";
-    filename = "c1c2_data.csv";                                                                                                    //**********
+    filename = "rvc2_data.csv";
+//    filename = "c1c2_data.csv";                                                                                                    //**********
+//    filename = "bhc2_data.csv";
 //    filename = "simplelinear_data.csv";
 //    filename = "simplelinear_data_sloppy.csv";
 //    filename = "topsecretdata.csv";
@@ -191,9 +219,9 @@ int main()
 //    std::vector <std::vector <double> > data = getData(filename, 13);
 //    std::vector <std::vector <double> > data = getData(filename, 441);
 //    std::vector <std::vector <double> > data = getData(filename, 101);
-    std::vector <std::vector <double> > data = getData(filename, 767); // c1 c2 updated
-//    std::vector <std::vector <double> > data = getData(filename, 770); // rv c2 updated
-//    std::vector <std::vector <double> > data = getData(filename, 739); // rv c2 updated
+//    std::vector <std::vector <double> > data = getData(filename, 767); // c1 c2 updated
+//    std::vector <std::vector <double> > data = getData(filename, 770); // bh c2 updated
+    std::vector <std::vector <double> > data = getData(filename, 739); // rv c2 updated
     
     std::vector <double> x, y, sx, sy, w;
 
@@ -228,18 +256,18 @@ int main()
     // priors #############################################################################################################
 
 //    std::vector <std::vector <double> > bhc2prior_params = { {NAN, NAN}, {PI, 1.5*PI}, {NAN, NAN}, {-0.5*PI, 0} };
-//    std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0, PI}, {NAN, NAN}, {-0.5*PI, 0} };
+    std::vector <std::vector <double> > rvc2prior_params = { {NAN, NAN}, {PI/2.0, PI}, {NAN, NAN}, {-0.5*PI, 0} };
 //    //std::vector <std::vector <double> > testlinprior_params = { {NAN, NAN}, {NAN, NAN}, {0.0, NAN}, {0.0, NAN} }; //including slop for testing
 
 //    Priors bhc2Priors = Priors(CONSTRAINED, bhc2prior_params);
-//    Priors rvc2Priors = Priors(CONSTRAINED, rvc2prior_params);
+    Priors rvc2Priors = Priors(CONSTRAINED, rvc2prior_params);
     //Priors testlinPriors = Priors(CONSTRAINED, testlinprior_params);
 
     // guesses #############################################################################################################
 
-    //std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };    //rvc2
+    std::vector <double> params_guess = { 5.0, 1.7, 2.5, -0.3 };    //rvc2
 //    std::vector <double> params_guess = { 4.0, 4.6, 2.0, -1.1 };                //bhc2                                                                                    //**********
-    std::vector <double> params_guess = { 2.5, std::tan(toRad(106.953)) };    //c1c2
+//    std::vector <double> params_guess = { 2.5, std::tan(toRad(106.953)) };    //c1c2
 //    std::vector <double> params_guess = { 0.89, 1.04};     //test lin
 //      std::vector <double> params_guess = { 701.0, 0.3}; // top secret
 
@@ -256,9 +284,9 @@ int main()
 //    TRK TRKtest = TRK(linearTest, dLinearTest, ddLinearTest, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
 
 //    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
-    TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);                                                            //**********
+//    TRK TRKtest = TRK(c1c2, dc1c2, ddc1c2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);                                                            //**********
 //    TRK TRKtest = TRK(bhc2, dbhc2, ddbhc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, bhc2Priors);
-    //TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess, rvc2Priors);
+    TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, rvc2Priors);
     //TRK TRKtest = TRK(rvc2, drvc2, ddrvc2, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess, testsigma_guess, testslop_x_sigma_guess, testslop_y_sigma_guess);
 
     //TRKtest.s = 0.257858;     //optimum for test lin
@@ -362,28 +390,26 @@ int main()
     //TRKtest.openMPMultiThread = true;
     
 //    TRKtest.cpp17MultiThread = true;
-    TRKtest.cpp11MultiThread = false;
+//    TRKtest.cpp11MultiThread = false;
 
     TRKtest.findPivotPoints = true;
     TRKtest.writePivots = true;
+    TRKtest.linearizedIntercept = rvc2Intercept1;
+    TRKtest.linearizedSlope = rvc2Slope1;
+    
+    TRKtest.linearizedIntercept2 = rvc2Intercept2;
+    TRKtest.linearizedSlope2 = rvc2Slope2;
+    TRKtest.twoPivots = true;
+    
+//    TRKtest.R = 1000000;
+    
+    
     TRKtest.outputDistributionToFile = true;
-    TRKtest.R = 100000;
-//
-    TRKtest.linearizedIntercept = linearIntercept;
-    TRKtest.linearizedSlope = linearSlope;
     
-//
-    
-    
-//    TRK TRKtest = TRK(linear, dLinear, ddLinear, x, y, w, sx, sy, params_guess, slopx_guess, slopy_guess);
+//    TRKtest.pivot = 1.024747;
 
-//    TRKtest.cpp11MultiThread = false;
-//    TRKtest.showSimplexSteps = true;
-
-//    TRKtest.slop_x_minus_guess = 1.0;
-//    TRKtest.slop_y_minus_guess = 2.5;
     
-    TRKtest.performTRKFit(0.282295);
+    TRKtest.performTRKFit();
 
     printf("Optimum scale: %f \n", TRKtest.results.optimumScale);
     printf("Minimum scale: %f \n", TRKtest.results.minimumScale);

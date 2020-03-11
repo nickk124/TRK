@@ -46,6 +46,7 @@ struct Results
 		double slop_y;
 		double optimumScale, minimumScale, maximumScale;
         double pivot;
+        double pivot2;
 		std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
 		std::vector < std::vector <double> > slopX_123Sigmas;
 		std::vector < std::vector <double> > slopY_123Sigmas;
@@ -248,7 +249,7 @@ class TRK
 		void findPivots();
 		static double pivot;
 		//double(*pf)(std::vector <double>, std::vector <double>); //pointer to pivotFunction: arguments of std::vector <double> params1, std::vector <double> params2
-		double pivotTol = 1e-3;
+		double pivotTol = 1e-1;
 		double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot);
 		double pivotFunc(std::vector <double> params1, std::vector <double> params2);
         std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
@@ -256,6 +257,13 @@ class TRK
     
         double (*linearizedIntercept)(std::vector <double>);
         double (*linearizedSlope)(std::vector <double>);
+        
+        // for bhc2/rvc2 special cases:
+        double (*linearizedIntercept2)(std::vector <double>);
+        double (*linearizedSlope2)(std::vector <double>);
+        static double pivot2;
+        double pivotFunc2(std::vector <double> params1, std::vector <double> params2);
+        bool twoPivots = false;
     
 
 		bool getCombosFromSampleDirectly = true;
@@ -267,10 +275,10 @@ class TRK
         bool pivotMean = false;
         bool pruneOutlierPivots = true;
         double pruneWidth = 10.0;
-        int pivotR = 10000; //1000 too low
+        int pivotR = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
         int randomSampleCount = 450;
-        int maxCombos = 100000;
-        int maxPivotIter = 10;
+        int maxCombos = 50000; // 50,000 seems sufficient, but 100,000 works for sure
+        int maxPivotIter = 1; // 1 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
         int pivotBurnIn = 1000;
         bool pivotHalfSampleMode= false;
         bool modeInterceptGuess = false;
