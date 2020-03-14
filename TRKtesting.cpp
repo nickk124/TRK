@@ -392,14 +392,14 @@ int main()
 //    TRKtest.cpp17MultiThread = true;
 //    TRKtest.cpp11MultiThread = false;
 
-    TRKtest.findPivotPoints = true;
-    TRKtest.writePivots = true;
-    TRKtest.linearizedIntercept = rvc2Intercept1;
-    TRKtest.linearizedSlope = rvc2Slope1;
-    
-    TRKtest.linearizedIntercept2 = rvc2Intercept2;
-    TRKtest.linearizedSlope2 = rvc2Slope2;
-    TRKtest.twoPivots = true;
+//    TRKtest.findPivotPoints = true;
+//    TRKtest.writePivots = true;
+//    TRKtest.linearizedIntercept = rvc2Intercept1;
+//    TRKtest.linearizedSlope = rvc2Slope1;
+//    
+//    TRKtest.linearizedIntercept2 = rvc2Intercept2;
+//    TRKtest.linearizedSlope2 = rvc2Slope2;
+//    TRKtest.twoPivots = true;
     
 //    TRKtest.R = 1000000;
     
