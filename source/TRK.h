@@ -70,12 +70,25 @@ class TRK
 		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
 		TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
     
+    
+        // 1D statistic:
+    
+        TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
+        //equal weights/unweighted
+        TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
+
+        //priors:
+        //weighted
+        TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
+        //equal weights/unweighted
+        TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
+    
 
 		//default constructor:
 		TRK();
 
 		//dataset 
-		unsigned long N, M;
+		unsigned long N, M, bigM; //bigM is total number of model AND slop params
 		std::vector <double> SigXVec, SigYVec;
 		std::vector <double> x, y, sx, sy, w; //datapoints; errorbars
 		double datawidth, x_min, x_max;
@@ -189,6 +202,7 @@ class TRK
 		double normal(double x, double mu, double sig);
 		double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s);
 		double likelihood(std::vector <double> allparams);
+        double likelihood1D(std::vector <double> allparams);
 		double priors(std::vector <double> allparams);
 		double posterior(std::vector <double> allparams, std::vector <double> allparams_trial);
 		double stDevUnweighted(std::vector <double> x);
@@ -301,6 +315,7 @@ class TRK
 		bool findPivotPoints = false;
         bool showSimplexSteps = false;
 		int maxThreads = 8;
+        bool do1DFit = false;
 };
 
 //global functions

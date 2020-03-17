@@ -61,6 +61,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	allparams_guess.push_back(slop_y_guess);
 
 	this->allparams_guess = allparams_guess;
+    
+    this->bigM = allparams_guess.size();
 
 	this->whichExtrema = none;
 
@@ -108,6 +110,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	allparams_guess.push_back(slop_y_guess);
 
 	this->allparams_guess = allparams_guess;
+    
+    this->bigM = allparams_guess.size();
 
 	this->whichExtrema = none;
 
@@ -156,6 +160,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	allparams_guess.push_back(slop_y_guess);
 
 	this->allparams_guess = allparams_guess;
+    
+    this->bigM = allparams_guess.size();
 
 	this->whichExtrema = none;
 
@@ -205,6 +211,8 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 	allparams_guess.push_back(slop_y_guess);
 
 	this->allparams_guess = allparams_guess;
+    
+    this->bigM = allparams_guess.size();
 
 	this->whichExtrema = none;
 
@@ -227,6 +235,204 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 
 	this->allparams_sigmas_guess = allparams_sigmas_guess;
 }
+
+// 1D statistic
+
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) {
+    this->do1DFit = true;
+    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
+    
+    this->yc = (*yc);
+    this->dyc = (*dyc);
+    this->ddyc = (*ddyc);
+
+    this->x = x;
+    this->y = y;
+    this->w = w;
+    this->sy = sy;
+
+    this->params_guess = params_guess;
+    this->slop_y_guess = slop_y_guess;
+
+    this->N = x.size();
+    this->M = params_guess.size();
+
+    std::vector <double> allparams_guess = params_guess;
+    
+    allparams_guess.push_back(slop_y_guess);
+
+    this->allparams_guess = allparams_guess;
+    
+    this->bigM = allparams_guess.size();
+
+    this->whichExtrema = none;
+
+    this->s = 1.0;
+
+    getDataWidth();
+
+    this->hasPriors = false;
+    
+    guessMCMCDeltas();
+    
+    checkZeroErrorBars();
+
+    std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
+
+    allparams_sigmas_guess.push_back(slop_y_sigma_guess);
+
+    this->allparams_sigmas_guess = allparams_sigmas_guess;
+}
+//equal weights/unweighted
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) {
+    this->do1DFit = true;
+    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
+    
+    this->yc = (*yc);
+    this->dyc = (*dyc);
+    this->ddyc = (*ddyc);
+
+    this->x = x;
+    this->y = y;
+    this->sy = sy;
+
+    this->params_guess = params_guess;
+    this->slop_y_guess = slop_y_guess;
+
+    this->N = x.size();
+    this->M = params_guess.size();
+
+    std::vector <double> w(N, 1.0); //no weights === equal weights
+    this->w = w;
+
+    std::vector <double> allparams_guess = params_guess;
+
+    allparams_guess.push_back(slop_y_guess);
+
+    this->allparams_guess = allparams_guess;
+    
+    this->bigM = allparams_guess.size();
+
+    this->whichExtrema = none;
+
+    this->s = 1.0;
+
+    getDataWidth();
+
+    this->hasPriors = false;
+    
+    guessMCMCDeltas();
+    
+    checkZeroErrorBars();
+
+    std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
+
+    allparams_sigmas_guess.push_back(slop_y_sigma_guess);
+
+    this->allparams_sigmas_guess = allparams_sigmas_guess;
+}
+
+
+//priors:
+//weighted
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) {
+    this->do1DFit = true;
+    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
+    
+    this->yc = (*yc);
+    this->dyc = (*dyc);
+    this->ddyc = (*ddyc);
+
+    this->x = x;
+    this->y = y;
+    this->w = w;
+    this->sy = sy;
+
+    this->params_guess = params_guess;
+    this->slop_y_guess = slop_y_guess;
+
+    this->N = x.size();
+    this->M = params_guess.size();
+
+    std::vector <double> allparams_guess = params_guess;
+
+    allparams_guess.push_back(slop_y_guess);
+    
+    this->bigM = allparams_guess.size();
+
+    this->allparams_guess = allparams_guess;
+
+    this->whichExtrema = none;
+
+    this->s = 1.0;
+
+    getDataWidth();
+
+    this->priorsObject = priorsObject;
+
+    this->hasPriors = true;
+    
+    guessMCMCDeltas();
+    
+    checkZeroErrorBars();
+
+    std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
+
+    allparams_sigmas_guess.push_back(slop_y_sigma_guess);
+
+    this->allparams_sigmas_guess = allparams_sigmas_guess;
+}
+//equal weights/unweighted
+TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) {
+    this->do1DFit = true;
+    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
+    
+    this->yc = (*yc);
+    this->dyc = (*dyc);
+    this->ddyc = (*ddyc);
+
+    this->x = x;
+    this->y = y;
+    this->sy = sy;
+
+    this->params_guess = params_guess;
+    this->slop_y_guess = slop_y_guess;
+
+    this->N = x.size();
+    this->M = params_guess.size();
+
+    std::vector <double> w(N, 1.0); //no weights === equal weights
+    this->w = w;
+
+    std::vector <double> allparams_guess = params_guess;
+
+    allparams_guess.push_back(slop_y_guess);
+
+    this->allparams_guess = allparams_guess;
+    
+    this->bigM = allparams_guess.size();
+
+    this->whichExtrema = none;
+
+    this->s = 1.0;
+
+    getDataWidth();
+
+    this->priorsObject = priorsObject;
+
+    this->hasPriors = true;
+    
+    guessMCMCDeltas();
+    
+    checkZeroErrorBars();
+
+    std::vector <double> allparams_sigmas_guess = params_sigmas_guess;
+
+    allparams_sigmas_guess.push_back(slop_y_sigma_guess);
+
+    this->allparams_sigmas_guess = allparams_sigmas_guess;
+}
+
 
 //default
 TRK::TRK() {
@@ -292,18 +498,35 @@ void TRK::getDataWidth() {
 void TRK::checkZeroErrorBars(){
     std::vector <int> badInds;
     bool check = false;
-    for (int i = 0; i < N; i++){
-        if (sx[i] == 0 || sy[i] == 0){
-            badInds.push_back(i);
-            check = true;
+    if (do1DFit){
+        for (int i = 0; i < N; i++){
+            if (sy[i] == 0){
+                badInds.push_back(i);
+                check = true;
+            }
         }
-    }
-    if (check){
-        printf("Warning: Error bars of zero founds at data points (indexing starting at 1) of:\n");
-        for (int j = 0; j < (int)badInds.size(); j++){
-            printf(" %i,", badInds[j]);
+        if (check){
+            printf("Warning: Error bars of zero found at data points (indexing starting at 1) of:\n");
+            for (int j = 0; j < (int)badInds.size(); j++){
+                printf(" %i,", badInds[j]);
+            }
+            printf("\n Could create likelihood overflow errors if slop also zero/close to zero.");
         }
-        printf(".\n Could create likelihood overflow errors if slop also zero/close to zero.");
+        
+    } else {
+        for (int i = 0; i < N; i++){
+            if (sx[i] == 0 || sy[i] == 0){
+                badInds.push_back(i);
+                check = true;
+            }
+        }
+        if (check){
+            printf("Warning: Error bars of zero found at data points (indexing starting at 1) of:\n");
+            for (int j = 0; j < (int)badInds.size(); j++){
+                printf(" %i,", badInds[j]);
+            }
+            printf("\n Could create likelihood overflow errors if slop also zero/close to zero.");
+        }
     }
     return;
 }
@@ -537,6 +760,12 @@ void TRK::checkAsym(){ //checks to see whether any or all of the asymmetric erro
         
         allparams_sigmas_guess.push_back(slop_x_sigma_guess);
         allparams_sigmas_guess.push_back(slop_y_sigma_guess);
+    }
+    
+    if (do1DFit){
+        selectedChiSq = &TRK::regularChiSquaredWSlop;
+        selectedLikelihood = &TRK::likelihood1D;
+        printf("Running 1D fit.\n");
     }
     
     return;
@@ -1335,20 +1564,26 @@ double TRK::twoPointNR(std::vector <double> params, double x_n, double y_n, doub
 }
 
 std::vector <double> TRK::pegToZeroSlop(std::vector <double> vertex){
-
-	if (std::abs(vertex[M]) <= pegToZeroTol) {
-		vertex[M] = 0;
-	}
-	if (std::abs(vertex[M+1]) <= pegToZeroTol) {
-		vertex[M+1] = 0;
-	}
     
-    if (hasAsymSlop){
-        if (std::abs(vertex[M+2]) <= pegToZeroTol) {
-            vertex[M+2] = 0;
+    if (do1DFit){
+        if (std::abs(vertex[M]) <= pegToZeroTol) {
+            vertex[M] = 0;
         }
-        if (std::abs(vertex[M+3]) <= pegToZeroTol) {
-            vertex[M+3] = 0;
+    } else {
+        if (std::abs(vertex[M]) <= pegToZeroTol) {
+            vertex[M] = 0;
+        }
+        if (std::abs(vertex[M+1]) <= pegToZeroTol) {
+            vertex[M+1] = 0;
+        }
+        
+        if (hasAsymSlop){
+            if (std::abs(vertex[M+2]) <= pegToZeroTol) {
+                vertex[M+2] = 0;
+            }
+            if (std::abs(vertex[M+3]) <= pegToZeroTol) {
+                vertex[M+3] = 0;
+            }
         }
     }
 	
@@ -1421,7 +1656,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>, 
 
 	double tol = simplexTol;
 
-	unsigned long n = M + 2; //number of model parameters plus two slop parameters
+	unsigned long n = bigM; //number of model parameters plus two slop parameters
     
     if (hasAsymSlop){
         n += 2;
@@ -1875,7 +2110,7 @@ double TRK::regularChiSquaredWSlop(std::vector <double> allparams, double s) {
     }
 
     for (int i = 0; i < N; i++) {
-        L *= std::exp(-0.5 * std::pow(((*yc)(x[i], params) - y[i])/std::sqrt(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0)), 2.0)) / std::sqrt(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0));
+        L *= std::exp(-0.5 * w[i]* std::pow(((*yc)(x[i], params) - y[i])/std::sqrt(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0)), 2.0)) / std::pow(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0), w[i]/2.0);
     }
     return -2.0 * std::log(L);
 }
@@ -2028,6 +2263,41 @@ double TRK::likelihood(std::vector <double> allparams) {
 	}
 	return L; // returns log L = logL1 + logL2 + ... given L = L1*L2*L3... if useLogPosterior == true
 }
+
+double TRK::likelihood1D(std::vector <double> allparams) {
+//    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
+    
+    double L = 1.0;
+    
+    if (useLogPosterior){
+        L = 0.0;
+    }
+    
+    unsigned long N = y.size();
+
+//    double L = 1.0/(2.0*PI); constant multiple doesn't matter
+    
+    double sigma = allparams[(int) allparams.size() - 1];
+    
+    std::vector <double> params;
+
+    for (int i = 0; i < M; i++) {
+        params.push_back(allparams[i]);
+    }
+    
+    double l;
+
+    for (int i = 0; i < N; i++) {
+        l = std::exp(-0.5 * w[i]* std::pow(((*yc)(x[i], params) - y[i])/std::sqrt(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0)), 2.0)) / std::pow(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0), w[i]/2.0);
+        if (useLogPosterior){
+            L += std::log(l);
+        } else {
+            L *= l;
+        }
+    }
+    return L; // returns log L = logL1 + logL2 + ... given L = L1*L2*L3... if useLogPosterior == true
+}
+
 
 double TRK::priors(std::vector <double> allparams) {
 	double jointPrior = 1.0; //uninformative prior by default
@@ -2868,6 +3138,14 @@ double TRK::iterateR2_OptimumScale(double s0) {
 
 void TRK::optimizeScale() {
 	s = 1.0; //initially begin with s = 1
+    
+    if (do1DFit){
+        whichExtrema = S;
+        allparams_s = downhillSimplex(selectedChiSq, allparams_guess, s);
+        whichExtrema = none;
+        
+        return;
+    }
 
 	std::vector <double> scale_extrema;
 
@@ -3625,7 +3903,7 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 //	}
     
 //  Adaptive MCMC:
-    unsigned long n = M + 2;
+    unsigned long n = bigM;
     
     std::vector <std::vector <double > > cov_i(n, std::vector <double> (n, 0.0));
     for (int j = 0; j < n; j++){
@@ -3652,9 +3930,9 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
     double gam_i1 = 1.0;
     int i = 0;
     
-    if (pivotPointActive){
-        X_i = pivotPointParamsGuess;
-    }
+//    if (pivotPointActive){
+//        X_i = pivotPointParamsGuess;
+//    }
     
 //    if (posterior(allparams_0, allparams_0) == 0){
 //        printf("Alert: zero posterior for initial guess of MCMC!\n");
@@ -3667,7 +3945,7 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
         bool loopCheck = true;
         
         while (loopCheck){
-            for (int j = 0; j < M + 2; j++) {
+            for (int j = 0; j < bigM; j++) {
                 //X_trial.push_back(delta[j] * rnorm(0.0, 1.0) + X_i[j]);
                 X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
             }
@@ -3729,7 +4007,7 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 	}
 
 	printf("final MCMC step-sizes/proposal dist. deviations:");
-	for (int j = 0; j < M + 2; j++) {
+	for (int j = 0; j < bigM; j++) {
 		printf("%f ", cov_i[j][j]);
 	}
 	printf("\t final full MCMC acceptance ratio: %f \n", accept_frac);
@@ -3867,7 +4145,7 @@ std::vector <std::vector <std::vector <double> > >  TRK::lowerBar(std::vector <s
         m = 2;
     }
 
-	for (int j = 0; j < M + 2 + m; j++) { //for each model param plus slop
+	for (int j = 0; j < bigM + m; j++) { //for each model param plus slop
 		data.clear();
 
 		for (int i = 0; i < totalCount; i++) {
@@ -3959,7 +4237,7 @@ void TRK::calculateUncertainties() {
 
 	if (outputDistributionToFile) {
 
-		std::string fileName = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo/diagnostics/TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
+		std::string fileName = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo_public/diagnostics/TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
 
 		std::ofstream myfile;
 		myfile.open(fileName, std::ofstream::trunc);
@@ -3973,7 +4251,7 @@ void TRK::calculateUncertainties() {
 		{
 			// filename    a     b     optimum scale    total computation time (s)
 			for (int i = 0; i < allparam_samples.size(); i++) {
-				for (int j = 0; j < M + 2 + m; j++) {
+				for (int j = 0; j < bigM + m; j++) {
 					myfile << allparam_samples[i][j] << " ";
 				}
 				myfile << std::endl;
@@ -3993,12 +4271,16 @@ void TRK::calculateUncertainties() {
 	for (int j = 0; j < M; j++) {
 		results.bestFit_123Sigmas.push_back(allparam_uncertainties[j]);
 	}
-	results.slopX_123Sigmas = allparam_uncertainties[M];
-	results.slopY_123Sigmas = allparam_uncertainties[M + 1];
-    
-    if (hasAsymSlop){
-        results.slopX_minus_123Sigmas = allparam_uncertainties[M];
-        results.slopY_minus_123Sigmas = allparam_uncertainties[M + 1];
+    if (do1DFit){
+        results.slopY_123Sigmas = allparam_uncertainties[M];
+    } else {
+        results.slopX_123Sigmas = allparam_uncertainties[M];
+        results.slopY_123Sigmas = allparam_uncertainties[M + 1];
+        
+        if (hasAsymSlop){
+            results.slopX_minus_123Sigmas = allparam_uncertainties[M];
+            results.slopY_minus_123Sigmas = allparam_uncertainties[M + 1];
+        }
     }
 
 	return;
@@ -4320,7 +4602,7 @@ void TRK::findPivots() {
 
 			if (writePivots && !twoPivots) {
 
-                std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo/diagnostics/") + std::string("TRKpivots") + (getCombosFromSampleDirectly ? "1" : "0") + (weightPivots ? "1_" : "0_") + std::to_string(iter) + std::string("_") + std::to_string(finalPivot) + std::string(".txt");
+                std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo_public/diagnostics/") + std::string("TRKpivots") + (getCombosFromSampleDirectly ? "1" : "0") + (weightPivots ? "1_" : "0_") + std::to_string(iter) + std::string("_") + std::to_string(finalPivot) + std::string(".txt");
 
 				std::ofstream myfile(filename, std::ofstream::trunc);
 				if (myfile.is_open())
@@ -4424,15 +4706,36 @@ double TRK::getPeakCoord(std::vector <double> x, std::vector <double> w){
 // CORE ALGORITHMS/TRK FITS
 
 void TRK::getBetterGuess(){
+    if (do1DFit){
+        results.bestFitParams.clear();
+
+        whichExtrema = S;
+        allparams_s = downhillSimplex(selectedChiSq, allparams_guess, s);
+        whichExtrema = none;
+
+        for (int j = 0; j < M; j++) {
+            results.bestFitParams.push_back(allparams_s[j]);
+        }
+        results.slop_y = allparams_s[M];
+        
+        if (hasAsymSlop){
+            printf("NOTE: no current support for asymmetric 1D statistics.\n");
+        }
+    }
+    
     for (int j = 0; j < M; j++){
         allparams_guess[j] = results.bestFitParams[j];
     }
-    allparams_guess[M] = results.slop_x;
-    allparams_guess[M+1] = results.slop_y;
-    
-    if (hasAsymSlop){
-        allparams_guess[M+2] = results.slop_x_minus;
-        allparams_guess[M+3] = results.slop_y_minus;
+    if (do1DFit){
+        allparams_guess[M] = results.slop_y;
+    } else {
+        allparams_guess[M] = results.slop_x;
+        allparams_guess[M+1] = results.slop_y;
+        
+        if (hasAsymSlop){
+            allparams_guess[M+2] = results.slop_x_minus;
+            allparams_guess[M+3] = results.slop_y_minus;
+        }
     }
     
     return;
@@ -4457,7 +4760,11 @@ void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for
 	s = scale;
     results.optimumScale = s;
     
+//    printf("%f\n", pivot);
+    
     getPivotGuess();
+    
+//    printf("%f\n", pivot);
 
 	findPivots();
 
@@ -4627,7 +4934,7 @@ double secElapsed(clock_t t_i) {
 
 void writeResults(TRK TRKobj, double t_sec, std::string filename) {
 
-	std::ofstream myfile("/Users/nickk124/research/reichart/TRK/TRKrepo/diagnostics/TRKresults.txt", std::ofstream::app);
+	std::ofstream myfile("/Users/nickk124/research/reichart/TRK/TRKrepo_public/diagnostics/TRKresults.txt", std::ofstream::app);
 	if (myfile.is_open())
 	{	
 		// filename    a     b     optimum scale    total computation time (s)
