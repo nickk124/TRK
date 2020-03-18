@@ -7,7 +7,7 @@
 #*.pdf
 *.ipch
 /TRK
-/.vs
+/.vs/
 /source/TRK
 /.vscode
 /swigcpp11/*.h
