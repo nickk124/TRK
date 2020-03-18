@@ -9,7 +9,7 @@ Here, we introduce a novel statistic (the Trotter, Reichart, Konz statistic, or 
 ![](example_imgs/statistic_geometry.png)
 *Illustration of the basic geometry of the TRK statistic given a single
 datapoint and model curve/distribution, from [Trotter 2011](https://cdr.lib.unc.edu/concern/dissertations/1544bq461). The datapoint is centered at (x<sub>n</sub>; y<sub>n</sub>) (point O), with error
-ellipse described by the widths (&Sigma;<sub>x,n</sub>,&Sigma;<sub>y,n</sub>) that combines the intrinsic 2D uncertainty of the datapoint with the extrinsic 2D uncertainty of the model/dataset in general. The model curve y<sub>c</sub>(x; &theta;) is tangent to the error ellipse at tangent point (x<sub>t,n</sub>, y<sub>t,n</sub>) (point T), and the red line is the linear approximation of the model curve. The blue line indicates the rotated coordinate axis u<sub>n</sub> for the TRK statistic (see Konz 2020, in this repo).)
+ellipse described by the widths (&Sigma;<sub>x,n</sub>,&Sigma;<sub>y,n</sub>) that combines the intrinsic 2D uncertainty of the datapoint with the extrinsic 2D uncertainty of the model/dataset in general. The model curve y<sub>c</sub>(x; &theta;) is tangent to the error ellipse at tangent point (x<sub>t,n</sub>, y<sub>t,n</sub>) (point T), and the red line is the linear approximation of the model curve. The blue line indicates the rotated coordinate axis u<sub>n</sub> for the TRK statistic (see Konz 2020, in this repo).)*
 
 # How to Use the TRK Statistical Suite
 This statistic, originally introduced in [Trotter 2011](https://cdr.lib.unc.edu/concern/dissertations/1544bq461) is now implemented as a suite of fitting algorithms in C++ that comes equipped with many capabilities, including: 
