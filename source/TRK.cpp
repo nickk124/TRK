@@ -240,7 +240,6 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 
 TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) {
     this->do1DFit = true;
-    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
     
     this->yc = (*yc);
     this->dyc = (*dyc);
@@ -286,7 +285,6 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 //equal weights/unweighted
 TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) {
     this->do1DFit = true;
-    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
     
     this->yc = (*yc);
     this->dyc = (*dyc);
@@ -337,7 +335,6 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 //weighted
 TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) {
     this->do1DFit = true;
-    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
     
     this->yc = (*yc);
     this->dyc = (*dyc);
@@ -385,7 +382,6 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 //equal weights/unweighted
 TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) {
     this->do1DFit = true;
-    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
     
     this->yc = (*yc);
     this->dyc = (*dyc);
@@ -752,7 +748,9 @@ void TRK::checkAsym(){ //checks to see whether any or all of the asymmetric erro
         selectedLikelihood = &TRK::likelihoodAsym;
     }
     
-    printf("Asymmetries: slop: %s\tError bars: %s\n", hasAsymSlop ? "true" : "false", hasAsymEB ? "true" : "false");
+    if (verboseAsymmetric){
+        printf("Asymmetries: slop: %s\tError bars: %s\n", hasAsymSlop ? "true" : "false", hasAsymEB ? "true" : "false");
+    }
     
     if (hasAsymSlop){
         allparams_guess.push_back(slop_x_minus_guess);
@@ -3995,7 +3993,9 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 		accept_frac = (double) accept_count / (double)delta_count;
         
         if (delta_count % tenth == 0){
-            printf("Posterior sampling %i%% complete, acceptance fraction currently %f...\n", prog, accept_frac);
+            if (verboseMCMC){
+                printf("Posterior sampling %i%% complete, acceptance fraction currently %f...\n", prog, accept_frac);
+            }
             prog += 10;
         }
 	}
@@ -4005,12 +4005,14 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
 	for (int i = 0; i < R; i++) {
 		result_final.push_back(result[i + burncount]);
 	}
-
-	printf("final MCMC step-sizes/proposal dist. deviations:");
-	for (int j = 0; j < bigM; j++) {
-		printf("%f ", cov_i[j][j]);
-	}
-	printf("\t final full MCMC acceptance ratio: %f \n", accept_frac);
+    
+    if (verboseMCMC){
+        printf("final MCMC step-sizes/proposal dist. deviations:");
+        for (int j = 0; j < bigM; j++) {
+            printf("%f ", cov_i[j][j]);
+        }
+        printf("\t final full MCMC acceptance ratio: %f \n", accept_frac);
+    }
 
 	result_final = checkSlopSignMCMC(result_final);
     
@@ -4230,14 +4232,16 @@ void TRK::calculateUncertainties() {
     // recompute step sizes cause they may be different given new pivot point
 
 	std::vector <std::vector <std::vector <double> > > allparam_uncertainties;
-
-	std::cout << "Sampling Posterior...\n";
+    
+    if (verboseMCMC){
+        std::cout << "Sampling Posterior...\n";
+    }
 
 	std::vector <std::vector <double >> allparam_samples = methastPosterior(R, burncount, allparams_sigmas_guess);
 
 	if (outputDistributionToFile) {
 
-		std::string fileName = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo_public/diagnostics/TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
+		std::string fileName = outputPath + std::string("/TRKMCMC_") + std::to_string(allparams_guess[0]) + std::string("_") + std::to_string(R) + std::string(".txt");
 
 		std::ofstream myfile;
 		myfile.open(fileName, std::ofstream::trunc);
@@ -4262,7 +4266,9 @@ void TRK::calculateUncertainties() {
 		else std::cout << "Unable to open file";
 	}
 
-	std::cout << "Computing Uncertainties...\n";
+    if (verboseMCMC){
+        std::cout << "Computing Uncertainties...\n";
+    }
 
 	allparam_uncertainties = lowerBar(allparam_samples); //for each parameter including slope, there is a vector containing 1 vector of -sigmas, 1 vector of +sigmas. This vector contains all of those 2-vectors.
 
@@ -4374,8 +4380,9 @@ std::vector <double> TRK::removeOutlierPivots(std::vector <double> pivots){
             outCount++;
         }
     }
-    
-    printf("%i pivots outside of reasonable region \n", outCount);
+    if (verbosePivotPoints){
+        printf("%i pivots outside of reasonable region \n", outCount);
+    }
     
     return newpivots;
 }
@@ -4446,10 +4453,12 @@ void TRK::findPivots() {
             
                 allparams_better = downhillSimplex(selectedChiSq, allparams_guess, s);
                 
-                printf("re-fit for new pivot point; old / new params:\n");
+                if (verbosePivotPoints){
+                    printf("re-fit for new pivot point; old / new params:\n");
                 
-                for (int j = 0; j < (int)allparams_better.size(); j++){
-                    printf("%f %f\n", allparams_guess[j], allparams_better[j]);
+                    for (int j = 0; j < (int)allparams_better.size(); j++){
+                        printf("%f %f\n", allparams_guess[j], allparams_better[j]);
+                    }
                 }
             }
             
@@ -4464,7 +4473,9 @@ void TRK::findPivots() {
             
             std::vector < std::vector <double> > param_samples(pivotR, { 0.0, 0.0 });
             
-            printf("Sampling for pivot points...\n");
+            if (verbosePivotPoints){
+                printf("Sampling for pivot points...\n");
+            }
 
 			allparam_samples = methastPosterior(pivotR, pivotBurnIn, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
             
@@ -4532,7 +4543,9 @@ void TRK::findPivots() {
                 pivots = removeOutlierPivots(pivots);
             }
             
-            printf("Weighting pivot points...\n");
+            if (verbosePivotPoints){
+                printf("Weighting pivot points...\n");
+            }
             
             pivotWeights = std::vector <double>(pivots.size(), 1.0);
             pivotWeights2 = std::vector <double>(pivots2.size(), 1.0);
@@ -4619,12 +4632,16 @@ void TRK::findPivots() {
 			}
 
             if (twoPivots){
-                printf("new pivot1, old pivot1= %f \t, %f \n", finalPivot, pivot);
-                printf("new pivot2, old pivot2= %f \t, %f \n", finalPivot2, pivot2);
+                if (verbosePivotPoints){
+                    printf("new pivot1, old pivot1= %f \t, %f \n", finalPivot, pivot);
+                    printf("new pivot2, old pivot2= %f \t, %f \n", finalPivot2, pivot2);
+                }
                 
                 allPivots2.push_back(finalPivot2);
             } else {
-                printf("new pivot, old pivot= %f \t, %f \n", finalPivot, pivot);
+                if (verbosePivotPoints){
+                    printf("new pivot, old pivot= %f \t, %f \n", finalPivot, pivot);
+                }
             }
             
             allPivots.push_back(finalPivot);
@@ -4664,12 +4681,16 @@ void TRK::findPivots() {
             }
 		}
         if (twoPivots){
-            printf("final pivot point 1: %f \n", pivot);
-            printf("final pivot point 2: %f \n", pivot2);
+            if (verbosePivotPoints){
+                printf("final pivot point 1: %f \n", pivot);
+                printf("final pivot point 2: %f \n", pivot2);
+            }
             
             results.pivot2 = pivot2;
         } else {
-            printf("final pivot point: %f \n", pivot);
+            if (verbosePivotPoints){
+                printf("final pivot point: %f \n", pivot);
+            }
         }
         
         results.pivot = pivot;
@@ -4701,6 +4722,15 @@ double TRK::getPeakCoord(std::vector <double> x, std::vector <double> w){
     xPeak = (edges[maxInd + 1] + edges[maxInd]) / 2.0;
     
     return xPeak;
+}
+
+void TRK::checkVerbose(){
+    if (verbose){
+        verboseMCMC = true;
+        verbosePivotPoints = true;
+        verboseAsymmetric = true;
+    }
+    return;
 }
 
 // CORE ALGORITHMS/TRK FITS
@@ -4742,6 +4772,8 @@ void TRK::getBetterGuess(){
 }
 
 void TRK::performTRKFit() {//finds optimum scale AND performs TRK fit + uncertainty
+    checkVerbose();
+    
     checkAsym();
     
     getPivotGuess();
@@ -4752,9 +4784,13 @@ void TRK::performTRKFit() {//finds optimum scale AND performs TRK fit + uncertai
 
     getBetterGuess();
 	calculateUncertainties();
+    
+    showResults(true, true);
 }
 
 void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this) and calculates uncertainties
+    checkVerbose();
+    
     checkAsym();
     
 	s = scale;
@@ -4788,9 +4824,13 @@ void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for
 
     getBetterGuess();
 	calculateUncertainties();
+    
+    showResults(false, true);
 }
 
 void TRK::performSimpleTRKFit() {//finds optimum scale and performs TRK fit but without finding uncertainties
+    checkVerbose();
+    
     checkAsym();
     
     getPivotGuess();
@@ -4816,11 +4856,15 @@ void TRK::performSimpleTRKFit() {//finds optimum scale and performs TRK fit but 
         results.slop_x_minus = allparams_s[M + 2];
         results.slop_y_minus = allparams_s[M + 3];
     }
+    
+    showResults(true, false);
 
 	return;
 }
 
 void TRK::performSimpleTRKFit(double scale) {//given some provided scale, performs TRK fit but without finding uncertainties
+    checkVerbose();
+    
     checkAsym();
     
     s = scale;
@@ -4845,6 +4889,59 @@ void TRK::performSimpleTRKFit(double scale) {//given some provided scale, perfor
     if (hasAsymSlop){
         results.slop_x_minus = allparams_s[M + 2];
         results.slop_y_minus = allparams_s[M + 3];
+    }
+    
+    showResults(false, false);
+    
+    return;
+}
+
+void TRK::showResults(bool didScaleOp, bool didMCMC){
+    printf("TRK RESULTS:\n\n");
+    
+    if (didScaleOp && !do1DFit){
+        printf("Optimum scale: %f \n", results.optimumScale);
+        printf("Minimum scale: %f \n", results.minimumScale);
+        printf("Maximum scale: %f \n", results.maximumScale);
+    }
+
+
+    printf("Fitted parameters (including slop): ");
+    for (int k = 0; k < params_guess.size(); k++) {
+        printf("%f ", results.bestFitParams[k]);
+    }
+    printf(" %f %f", results.slop_x, results.slop_y);
+    std::cout << std::endl;
+    
+    if (didMCMC){
+        printf("Uncertainties: (- 1 2 3, + 1 2 3): \n");
+        for (int k = 0; k < params_guess.size(); k++) { //kth param
+            for (int j = 0; j < 2; j++) { // - and + sigmas
+                for (int i = 0; i < 3; i++) { // 1, 2 and 3 sigmas
+                    printf("%f ", results.bestFit_123Sigmas[k][j][i]);
+                }
+                printf("\t");
+            }
+            std::cout << std::endl;
+        }
+
+        printf("Slop Uncertainties: (- 1 2 3, + 1 2 3): \n");
+        if (!do1DFit){
+            for (int j = 0; j < 2; j++) {
+                for (int i = 0; i < 3; i++) {
+                    printf("%f ", results.slopX_123Sigmas[j][i]);
+                }
+                printf("\t");
+            }
+            std::cout << std::endl;
+        }
+        for (int j = 0; j < 2; j++) {
+            for (int i = 0; i < 3; i++) {
+                printf("%f ", results.slopY_123Sigmas[j][i]);
+            }
+            printf("\t");
+        }
+        std::cout << std::endl;
     }
     
     return;
@@ -4938,7 +5035,7 @@ void writeResults(TRK TRKobj, double t_sec, std::string filename) {
 	if (myfile.is_open())
 	{	
 		// filename    a     b     optimum scale    total computation time (s)
-		myfile << filename << "\t" <<  TRKobj.a << "\t" << TRKobj.b << "\t" << TRKobj.s << "\t" << t_sec << "\n";
+		myfile << filename << "\t" <<  TRKobj.results.minimumScale << "\t" << TRKobj.results.maximumScale << "\t" << TRKobj.results.optimumScale << "\t" << t_sec << "\n";
 		myfile.close();
 	}
 	else std::cout << "Unable to open file";

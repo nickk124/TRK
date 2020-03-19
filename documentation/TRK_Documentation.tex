@@ -175,7 +175,7 @@ Another core part of the TRK regression suite is the ability to generate the act
 \end{lstlisting}.
 
 \subsection{Accessing Parameter Uncertainty Results}
-The results of this uncertainty calculation can be called from the \li{results} attribute of the \li{TRK} instance. The parameter distributions, generated with an adaptive Monte Carlo Metropolis-Hastings sampler, are assumed to be Gaussian, potentially asymmetric---i.e. the width $\sigma_+$ on the positive side of the mean could be different from the width on the negative side $\sigma_-$---when analyzed. Each of the first three confidence intervals $\sigma_{\pm1}$, $\sigma_{\pm2}$ and $\sigma_{\pm3}$ (analogous to the first three standard deviations) are found numerically, such that for each model parameter, the algorithm determines $(\sigma_{-1}, \sigma_{-2}, \sigma_{-3})$ and $(\sigma_{+1}, \sigma_{+2}, \sigma_{+3})$. 
+The results of this uncertainty calculation can be called from the \li{results} attribute of the \li{TRK} instance. The parameter distributions, generated with an adaptive Monte Carlo Metropolis-Hastings sampler, are assumed to be Gaussian, potentially asymmetric---i.e. the width $\sigma_+$ on the positive side of the mean could be different from the width on the negative side $\sigma_-$---when analyzed. Each of the first three confidence intervals $\sigma_{\pm1}$, $\sigma_{\pm2}$ and $\sigma_{\pm3}$ (analogous to the first three standard deviations) are found numerically, such that for each model parameter, the algorithm determines $(\sigma_{-1}, \sigma_{-2}, \sigma_{-3})$ and $(\sigma_{+1}, \sigma_{+2}, \sigma_{+3})$. Note that by default, the Metropolis-Hastings sampler generates $R=100,000$ samples; this number can be changed, as shown in \S\ref{sec:basicsettings}. 
 
 In the code, these values are found with (still using the same example of the instance of \li{TRK}) the \li{std::vector < std::vector < std::vector <double> > >} variable
 
@@ -229,6 +229,12 @@ This variable is organized schematically as
 
 where for some model parameter $a_i$, the vector $\vec{h}_i$ contains the count values for each histogram bin in order, in the direction from negative $a_i$ to positive $a_i$. The vector $\vec{e}_i$ contains the $a_i$-values for the vertical edges of these histogram bins, ordered along the same direction. So, the ``left-most'' bin of a parameter's histogram would have a left boundary at the $a_i$-value of the first element of $\vec{e}_i$, a right boundary at the $a_i$-value of the second element of $\vec{e}_i$, and a height/count value of the first element of $\vec{h}_i$.
 
+\subsection{Outputting Parameter Distributions to a File}
+If desired, the sampled parameter distribution can also be outputted in the form of a text file. To do this, set \li{outputDistributionToFile} to \li{true} for the chosen instance of \li{TRK}, and define the output path by setting the \li{outputPath} attribute of the TRK instance to be a directory path string, e.g. 
+\begin{lstlisting}
+    TRKtest.outputPath = "/Users/username/outputfolder";
+\end{lstlisting}
+.
 \section{Advanced: Using Prior Probability Distributions for Model Parameters}
 
 \subsection{Instantiating Priors}
@@ -433,8 +439,10 @@ The $x_p$ variables are the ``pivot points'' of the models, which are covered in
 In addition to the core material covered in the previous sections, there are more settings that can be configured for the TRK suite. The following section again uses \li{TRKtest} as the example instance of the \li{TRK} class.
 
 \subsection{Basic Settings}
+\label{sec:basicsettings}
 \begin{enumerate}
     \item \textbf{Sample count for the generated model parameter distribution(s)}: To generate the model parameter probability distributions, an adaptive Monte Carlo Metropolis-Hastings sampler is run until some number, $R$ of samples of the parameter space is produced. This samples are then binned into histograms, where are used as the probability distributions of the model parameters. If desired, $R$ can be modified from the default $R=100,000$, in order to modify the precision/smoothness of the generated distribution. This will of course also affect the time that it takes to run the sampler. This is done by modifying the \li{R} attribute of \li{TRK}, e.g. setting \li{TRKtest.R} equal to a new value.
+    \item \textbf{Printing Results and Showing Algorithm Progress}: The \li{printResults} attribute of the \li{TRK} class is \li{true} by default, which can be toggled; if \li{true}, results of running a TRK fit will be displayed, dependent on the specific fit/algorithms used. Similarly, the \li{TRK} class attribute \li{verbose} is \li{false} by default; if \li{true}, various steps of the algorithms will be printed out when reached during the fitting process. Attributes \li{verboseMCMC} and \li{verbosePivotPoints} can also be configured similarly; \li{verbose} being made \li{true} will turn both of these on.
 \end{enumerate}
 \subsection{Advanced Settings}
 These settings should only be modified if the user knows what they're doing.
