@@ -218,7 +218,6 @@ class TRK
         bool weightPivots = true;
         bool pivotMedian = false;
         bool pivotMean = false;
-        bool twoPivots = false;
         bool pruneOutlierPivots = true;
         bool pivotPointActive = false;
         bool pivotHalfSampleMode= false;
@@ -272,13 +271,13 @@ class TRK
     
     
         // 1D statistic (weighted)
-        TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
+        TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
         // equal weights/unweighted
-        TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
+        TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
         // with priors (weighted)
-        TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
+        TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
         // equal weights/unweighted with priors
-        TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
+        TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
     
 
 		// default constructor:
@@ -317,6 +316,7 @@ class TRK
     
 
 		// pivot points / linearized model parameter correlation removal
+        bool twoPivots = false; // two pivot points in the model?
         static double pivot;
         static double pivot2; // for two-pivot models
         double (*linearizedIntercept)(std::vector <double>);

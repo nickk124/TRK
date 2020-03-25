@@ -238,12 +238,10 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 
 // 1D statistic
 
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) {
+TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) {
     this->do1DFit = true;
     
     this->yc = (*yc);
-    this->dyc = (*dyc);
-    this->ddyc = (*ddyc);
 
     this->x = x;
     this->y = y;
@@ -283,12 +281,10 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
     this->allparams_sigmas_guess = allparams_sigmas_guess;
 }
 //equal weights/unweighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) {
+TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) {
     this->do1DFit = true;
     
     this->yc = (*yc);
-    this->dyc = (*dyc);
-    this->ddyc = (*ddyc);
 
     this->x = x;
     this->y = y;
@@ -333,12 +329,10 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
 
 //priors:
 //weighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) {
+TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) {
     this->do1DFit = true;
     
     this->yc = (*yc);
-    this->dyc = (*dyc);
-    this->ddyc = (*ddyc);
 
     this->x = x;
     this->y = y;
@@ -380,12 +374,10 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
     this->allparams_sigmas_guess = allparams_sigmas_guess;
 }
 //equal weights/unweighted
-TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) {
+TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) {
     this->do1DFit = true;
     
     this->yc = (*yc);
-    this->dyc = (*dyc);
-    this->ddyc = (*ddyc);
 
     this->x = x;
     this->y = y;
@@ -3138,10 +3130,7 @@ void TRK::optimizeScale() {
 	s = 1.0; //initially begin with s = 1
     
     if (do1DFit){
-        whichExtrema = S;
-        allparams_s = downhillSimplex(selectedChiSq, allparams_guess, s);
-        whichExtrema = none;
-        
+        printf("1D fit: no need for scale optimization.");
         return;
     }
 
@@ -4401,7 +4390,9 @@ void TRK::getPivotGuess(){
             pivot = getAverage(lowX, lowW);
             pivot2 = getAverage(highX, highW);
             
-            printf("p1: %f\t p2: %f \n", pivot, pivot2);
+            if (verbosePivotPoints){
+                printf("p1: %f\t p2: %f \n", pivot, pivot2);
+            }
             
         } else {
             pivot = getAverage(x, w);
