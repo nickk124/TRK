@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<head>
+        {{response.files.append(URL('static','css/rcr.css'))}}
+
+        {{include 'web2py_ajax.html'}}
+		<link href='https://fonts.googleapis.com/css?family=Josefin+Sans:300' rel='stylesheet' type='text/css'>
+		<title> Trotter-Reichart-Konz Regression </title>
+	</head>
+
+
+	<body>
+
+<!--////////////////////////////////////////////////////////////////////////////-->
+<!-- NAVIGATION BAR -->
+<!--////////////////////////////////////////////////////////////////////////////-->
+		<div id="wrap">
+            <ul class="navbar">
+                <li style="margin-left:50px;"><a href="{{=URL(request.application, 'calculator', 'index')}}">Home</a> </li>
+								<li><a href="{{=URL(request.application, 'calculator', 'value')}}">Single-Value RCR Calculator</a></li>
+		            <li><a href="{{=URL(request.application, 'calculator', 'functional')}}">Functional RCR Calculator</a></li>
+								<li><a href="{{=URL(request.application, 'calculator', 'trk')}}">TRK Regression Calculator</a> </li>
+                <li><a href="{{=URL(request.application, 'calculator', 'downloads')}}">Code and Downloads</a> </li>
+                <li><a href="{{=URL(request.application, 'calculator', 'contact')}}">Contact Us</a> </li>
+            </ul>
+		</div>
+
+<!--////////////////////////////////////////////////////////////////////////////-->
+<!-- REJECTION METHOD SECTION -->
+<!--////////////////////////////////////////////////////////////////////////////-->
+		<div id="RMInput">
+            <h1 style="font-size:3.5em;"> Trotter-Reichart-Konz Regression (TRK) </h1>
+            <p style="padding-bottom: 1em;">  </p>
+            <img src="{{=URL('static', 'example_modelfit.png')}}">
+            <p style="padding: 0em 1em 0em 1em;">
+                <i>Example "broken-linear" model distribution fit to interstellar extinction model parameter data (see <a href="{{=URL(request.application, 'calculator', 'downloads')}}" style="color:#639BF1">Konz 2020</a>) using the TRK statistic. Shaded regions indicate the 1σ, 2σ and 3σ confidence regions of the model distribution.</i>
+            </p>
+            <p style="padding-bottom: 1em;">  </p>
+
+            <h1 style="font-size:2.5em;"> What is the TRK Statistic? </h1>
+            <div id="StepOne">
+                <p style="padding: 1em 0em 1em 0em;">
+                TRK is a suite for work-case uncertainty Bayesian Regression in 2D.
+                </p>
+
+                <p style="padding: 0em 0em 1em 0em;">
+                Robustly fitting a statistical model to data is a task ubiquitous to practically all data-driven fields, but the more nonlinear, uncertain and/or scattered the dataset is, the more diffcult this task becomes. In the common case of two dimensional models (i.e. one independent variable x and one dependent variable y(x)), datasets with intrinsic uncertainties, or error bars, along both x and y prove diffcult to fit to in general, and if the dataset has some extrinsic uncertainty/scatter (i.e., sample variance) that cannot be accounted for solely by the error bars, the difficulty increases still.
+                </p>
+
+                <p style="padding: 0em 0em 1em 0em;">
+                    Here, we introduce a novel statistic (the Trotter, Reichart, Konz statistic, or TRK) developed that is advantageous towards model-fitting in this "worst-case data" scenario, especially when compared to other methods.
+                </p>
+
+            </div>
+            <p style="padding-bottom: 1em;">  </p>
+            <img src="{{=URL('static', 'statistic_geometry.png')}}">
+            <p style="padding: 0em 1em 0em 1em;">
+                <i>Illustration of the basic geometry of the TRK statistic given a single datapoint and model curve/distribution, from <a href="https://cdr.lib.unc.edu/concern/dissertations/1544bq461" style="color:#639BF1">Trotter 2011</a>. The datapoint is centered at (x<sub>n</sub>; y<sub>n</sub>) (point O), with error ellipse described by the widths (Σ<sub>x,n</sub>,Σ<sub>y,n</sub>) that combines the intrinsic 2D uncertainty of the datapoint with the extrinsic 2D uncertainty of the model/dataset in general. The model curve y<sub>c</sub>(x; θ) is tangent to the error ellipse at tangent point (x<sub>t,n</sub>, y<sub>t,n</sub>) (point T), and the red line is the linear approximation of the model curve. The blue line indicates the rotated coordinate axis u<sub>n</sub> for the TRK statistic (see <a href="{{=URL(request.application, 'calculator', 'downloads')}}" style="color:#639BF1">Konz 2020</a>).)</i>
+            </p>
+            <p style="padding-bottom: 1em;">  </p>
+<br>
+            <h1 style="font-size:2.5em;"> How do I use TRK? </h1>
+            <div id="StepOne">
+                <p style="padding: 1em 0em 1em 0em;">
+                    This statistic, originally introduced in Trotter 2011 is now implemented as a suite of fitting algorithms in C++ that comes equipped with many capabilities, including:
+                </p>
+                <p style="padding: 0em 1em 0em 1em;">
+        1.  Support for any nonlinear model;
+                </p>
+                <p style="padding: 0em 1em 0em 1em;">
+        2.  Probability distribution generation, correlation removal and custom priors for model parameters; 
+                </p>
+                <p style="padding: 0em 1em 0em 1em;">
+        2.  Asymmetric 2D uncertainties in the data and/or model, and more.
+                </p>
+                <p style="padding: 1em 0em 1em 0em;">
+        We also have built a web-based fitting calculator <a href="{{=URL(request.application, 'calculator', 'trk')}}" style="color:#639BF1">here</a> through which the algorithm can be used easily, but generally, with a high degree of customizability.
+                </p>
+                <p style="padding: 0em 0em 1em 0em;">
+                    The most recent/current documentation and rigorous/thorough introduction of the statistic/the TRK suite is given in <a href="{{=URL(request.application, 'calculator', 'downloads')}}" style="color:#639BF1">Konz 2020</a>. A separate, standalone documentation for the source code itself can be found <a href="{{=URL(request.application, 'calculator', 'downloads')}}" style="color:#639BF1">here</a>.
+                </p>
+                
+            </div>
+            <p style="padding-bottom: 1em;">  </p>
+            <img src="{{=URL('static', 'example_modelparams.png')}}">
+            <p style="padding: 0em 1em 0em 1em;">
+                <i>Probability distributions of model and extrinsic variance parameters describing the example "broken-linear" model fit shown in the first figure, generated using Markov Chain-Monte Carlo methods and the TRK statistic. Distributions of individual parameters are along outside columns, while 2D joint distributions are given as confidence ellipses along the center column, with 1σ, 2σ and 3σ confidence regions.</i>
+            </p>
+            <p style="padding-bottom: 1em;">  </p>
+<br>
+            <h1 style="font-size:2.5em;"> Licensing and Citation </h1>
+            <div id="StepOne">
+                <p style="padding: 1em 0em 1em 0em;">
+                    TRK is free to use for academic and non-commercial applications (<a href="{{=URL(request.application, 'calculator', 'downloads')}}" style="color:#639BF1">license</a>).  We only ask that you cite Trotter, Reichart and Konz 2020, in preparation.
+                </p>
+                <p style="padding: 0em 0em 1em 0em;">
+                    For commercial applications, or consultation, feel free to <a href="{{=URL(request.application, 'calculator', 'contact')}}" style="color:#639BF1">contact us</a>.
+                </p>
+
+            </div>
+<br>
+
+                <p style="padding: 0em 0em 0em 0em;">
+                    Nick Konz, Dan Reichart, Adam Trotter
+                </p>
+                <p style="padding: 0em;">
+                    Department of Physics and Astronomy
+                </p>
+
+                <p style="padding: 0em;">
+                    University of North Carolina at Chapel Hill
+                </p>
+	</div>
+
+	</body>
+
+</html>
