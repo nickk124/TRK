@@ -2,7 +2,7 @@
 *Example "broken-linear" model distribution fit to interstellar extinction model parameter data (see Konz 2020, in preparation) using the TRK statistic. Shaded regions indicate the 1&sigma;, 2&sigma; and 3&sigma; confidence regions of the model distribution.*
 
 # What is the TRK Statistic?
-Robustly fitting a statistical model to data is a task ubiquitous to practically all data-driven fields, but the more nonlinear, uncertain and/or scattered the dataset is, the more diffcult this task becomes. In the common case of two dimensional models (i.e. one independent variable *x* and one dependent variable *y(x)*), datasets with intrinsic uncertainties, or error bars, along both *x* and *y* prove diffcult to fit to in general, and if the dataset has some extrinsic uncertainty/scatter (i.e., sample variance) that cannot be accounted for solely by the error bars, the difficulty increases still.
+Robustly fitting a statistical model to data is a task ubiquitous to practically all data-driven fields, but the more nonlinear, uncertain and/or scattered the dataset is, the more diffcult this task becomes. In the common case of two dimensional models (i.e. one independent variable *x* and one dependent variable *y(x)*), datasets with intrinsic uncertainties, or error bars, along both *x* and *y* prove diffcult to fit to in general, and if the dataset has some extrinsic uncertainty/scatter (i.e., sample variance) that cannot be accounted for solely by the error bars, the difficulty increases still.
 
 Here, we introduce a novel statistic (the Trotter, Reichart, Konz statistic, or TRK) developed that is advantageous towards model-fitting in this "worst-case data" scenario, especially when compared to other methods.
 
