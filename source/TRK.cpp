@@ -3,6 +3,7 @@
 
 double TRK::pivot = 0.0;
 double TRK::pivot2 = 1.0;
+double TRK::covid_y12 = 2.55;
 
 // PRIORS
 
@@ -2089,7 +2090,7 @@ double TRK::regularChiSquared(std::vector <double> params) {
 double TRK::regularChiSquaredWSlop(std::vector <double> allparams, double s) {
     unsigned long N = y.size();
 
-    double L = 1.0/(2.0*PI);
+    double sum = 0.0;
     
     double sigma = allparams[(int) allparams.size() - 1];
     
@@ -2100,9 +2101,11 @@ double TRK::regularChiSquaredWSlop(std::vector <double> allparams, double s) {
     }
 
     for (int i = 0; i < N; i++) {
-        L *= std::exp(-0.5 * w[i]* std::pow(((*yc)(x[i], params) - y[i])/std::sqrt(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0)), 2.0)) / std::pow(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0), w[i]/2.0);
+        sum += w[i]* std::pow((*yc)(x[i], params) - y[i], 2)/(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0)) + 2.0*std::log(std::pow(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0), w[i]/2.0));
+//        L *= std::exp(-0.5 * w[i]* std::pow(((*yc)(x[i], params) - y[i])/std::sqrt(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0)), 2.0)) / std::pow(std::pow(sy[i], 2.0) + std::pow(sigma, 2.0), w[i]/2.0);
     }
-    return -2.0 * std::log(L);
+    
+    return sum;
 }
 
 std::vector <double> TRK::tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n) {
@@ -2285,6 +2288,7 @@ double TRK::likelihood1D(std::vector <double> allparams) {
             L *= l;
         }
     }
+//    printf("%f\n",L);
     return L; // returns log L = logL1 + logL2 + ... given L = L1*L2*L3... if useLogPosterior == true
 }
 
@@ -4315,7 +4319,7 @@ double TRK::pivotFunc2(std::vector <double> params1, std::vector <double> params
     double a02 = linearizedIntercept2(params2);
     double a12 = linearizedSlope2(params2);
 
-    return (a02 - a01) / (a11 - a12);
+    return (a02 - a01) / (a11 - a12); // (b1 - b2) / (m2 - m1);
 }
 
 double TRK::weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot) {
@@ -4327,10 +4331,37 @@ double TRK::weightPivot(std::vector <double> params1, std::vector <double> param
 	}
 
 	double avg = getAverage(squares);
+    
+    double b1 = linearizedIntercept(params1);
+    double m1 = linearizedSlope(params1);
 
-	w = std::pow(avg / std::pow(params2[1] - params1[1], 2.0) + std::pow(params1[0] - params2[0], 2.0) / std::pow(params2[1] - params1[1], 4.0), -1.0);
+    double b2 = linearizedIntercept(params2);
+    double m2 = linearizedSlope(params2);
+
+	w = std::pow(avg / std::pow(m2 - m1, 2.0) + std::pow(b1 - b2, 2.0) / std::pow(m2 - m1, 4.0), -1.0);
 
 	return w;
+}
+
+double TRK::weightPivot2(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot) {
+    std::vector <double> squares(oldPivots.size(), 0.0);
+    double w;
+
+    for (int i = 0; i < oldPivots.size(); i++) {
+        squares[i] = std::pow(newPivot - oldPivots[i], 2.0);
+    }
+
+    double avg = getAverage(squares);
+    
+    double b1 = linearizedIntercept2(params1);
+    double m1 = linearizedSlope2(params1);
+
+    double b2 = linearizedIntercept2(params2);
+    double m2 = linearizedSlope2(params2);
+
+    w = std::pow(avg / std::pow(m2 - m1, 2.0) + std::pow(b1 - b2, 2.0) / std::pow(m2 - m1, 4.0), -1.0);
+
+    return w;
 }
 
 std::vector < std::vector <std::vector <double > > > TRK::directCombos(std::vector < std::vector <double> > params_sample, int comboCount){
@@ -4554,7 +4585,7 @@ void TRK::findPivots() {
                         }
                     }
                     for (int i = 0; i < pivots2.size(); i++) {
-                        oneWeight2 = weightPivot(drawnCombos[i][0], drawnCombos[i][1], oldPivots2, pivots2[i]);
+                        oneWeight2 = weightPivot2(drawnCombos[i][0], drawnCombos[i][1], oldPivots2, pivots2[i]);
                         if (!std::isnan(oneWeight2)){
                             finalPivots2.push_back(pivots2[i]);
                             finalWeights2.push_back(oneWeight2);
@@ -4888,16 +4919,45 @@ void TRK::performSimpleTRKFit(double scale) {//given some provided scale, perfor
 }
 
 void TRK::showResults(bool didScaleOp, bool didMCMC){
-    printf("TRK RESULTS:\n\n");
+    printf("\n\nTRK RESULTS:\n\n");
     
     if (didScaleOp && !do1DFit){
-        printf("Optimum scale: %f \n", results.optimumScale);
+        printf("SCALES:\nOptimum scale: %f \n", results.optimumScale);
         printf("Minimum scale: %f \n", results.minimumScale);
-        printf("Maximum scale: %f \n", results.maximumScale);
+        printf("Maximum scale: %f \n\n", results.maximumScale);
+    }
+    
+    if (findPivotPoints){
+        printf("PIVOT POINTS:\nPivot Point 1 = %f\n", results.pivot);
+        if (twoPivots){
+            printf("PIVOT POINTS:\n\nPivot Point 2 = %f\n\n", results.pivot2);
+        }
+        printf("\n");
+    }
+    
+    if (covid19){
+        for (int i = 0; i < (int)params_guess.size()/2; i++){
+            printf("intercept %i = %4.3f +/- %4.3f\n", i+1, results.bestFitParams[0+2*i], results.bestFit_123Sigmas[0+2*i][1][0]);
+            printf("slope %i = %4.3f +/- %4.3f\n", i+1, results.bestFitParams[1+2*i], results.bestFit_123Sigmas[1+2*i][1][0]);
+        }
+        
+        if (params_guess.size() == 5){
+            printf("s = %4.3f +/- %4.3f\n", results.bestFitParams[4], results.bestFit_123Sigmas[4][1][0]);
+        }
+        
+        printf("y_slop = %4.3f +/- %4.3f\n\n", results.slop_y, results.slopY_123Sigmas[1][0]);
+        
+        std::vector <double> pivs = {results.pivot, results.pivot2};
+        
+        for (int i = 0; i < (int)params_guess.size()/2; i++){
+            printf("pivot %i = %4.3f\n", i+1, pivs[i]);
+        }
+        
+        return;
     }
 
 
-    printf("Fitted parameters (including slop): ");
+    printf("FITTED PARAMETERS (including slop):\n");
     for (int k = 0; k < params_guess.size(); k++) {
         printf("%f ", results.bestFitParams[k]);
     }
@@ -4905,7 +4965,7 @@ void TRK::showResults(bool didScaleOp, bool didMCMC){
     std::cout << std::endl;
     
     if (didMCMC){
-        printf("Uncertainties: (- 1 2 3, + 1 2 3): \n");
+        printf("\nUNCERTAINTIES: (- 1 2 3, + 1 2 3): \n");
         for (int k = 0; k < params_guess.size(); k++) { //kth param
             for (int j = 0; j < 2; j++) { // - and + sigmas
                 for (int i = 0; i < 3; i++) { // 1, 2 and 3 sigmas
@@ -4916,7 +4976,7 @@ void TRK::showResults(bool didScaleOp, bool didMCMC){
             std::cout << std::endl;
         }
 
-        printf("Slop Uncertainties: (- 1 2 3, + 1 2 3): \n");
+        printf("\nSLOP UNCERTAINTIES: (- 1 2 3, + 1 2 3): \n");
         if (!do1DFit){
             for (int j = 0; j < 2; j++) {
                 for (int i = 0; i < 3; i++) {
@@ -4932,7 +4992,7 @@ void TRK::showResults(bool didScaleOp, bool didMCMC){
             }
             printf("\t");
         }
-        std::cout << std::endl;
+        std::cout << std::endl << std::endl;
     }
     
     return;

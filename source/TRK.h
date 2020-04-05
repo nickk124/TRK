@@ -226,7 +226,6 @@ class TRK
         int pivotR = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
         int randomSampleCount = 450;
         int maxCombos = 50000; // 50,000 seems sufficient, but 100,000 works for sure
-        int maxPivotIter = 1; // 1 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
         int pivotBurnIn = 1000;
         double pivotTol = 1e-1;
         double pruneWidth = 10.0;
@@ -238,6 +237,7 @@ class TRK
         void getPivotGuess();
         void getCombos(std::vector <std::vector <double> > total, int k, int offset);
         double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot);
+        double weightPivot2(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot);
         double pivotFunc(std::vector <double> params1, std::vector <double> params2);
         double pivotFunc2(std::vector <double> params1, std::vector <double> params2); // for two-pivot models
         std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
@@ -319,6 +319,7 @@ class TRK
         bool twoPivots = false; // two pivot points in the model?
         static double pivot;
         static double pivot2; // for two-pivot models
+        int maxPivotIter = 1; // 1 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
         double (*linearizedIntercept)(std::vector <double>);
         double (*linearizedSlope)(std::vector <double>);
         double (*linearizedIntercept2)(std::vector <double>); // for two-pivot point models, e.g. broken-linear (experimental)
@@ -341,6 +342,8 @@ class TRK
     
         // TESTING
         bool writePivots = false;
+        bool covid19 = false;   // for covid19 fits
+        static double covid_y12;
 };
 
 //global functions
