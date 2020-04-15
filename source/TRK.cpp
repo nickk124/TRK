@@ -4,6 +4,7 @@
 double TRK::pivot = 0.0;
 double TRK::pivot2 = 1.0;
 double TRK::covid_y12 = 2.55;
+bool TRK::covid_fitInLogSpace = false;
 
 // PRIORS
 
@@ -1837,7 +1838,16 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>, 
             for (int i = 0; i < result.size(); i++) {
                 std::cout << result[i] << " ";
             }
-            std::cout << "fitness = " << evalWPriors(f, result, s) << "\n";
+            
+            double fitness = evalWPriors(f, result, s);
+            std::cout << "fitness = " << fitness << "\n";
+            
+        }
+        
+        if (whichExtrema == S or whichExtrema == none){
+            double fitness = evalWPriors(f, result, s);
+            results.chisquared = fitness;
+//            printf("\n\nfinal fitness = %f\n\n", fitness);
         }
 		
 		
@@ -3869,31 +3879,7 @@ void TRK::guessMCMCDeltas(){
 std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, std::vector <double> sigmas_guess) {
     
     useLogPosterior = true;
-	
-	//initialization of adaptive delta
-//	std::vector <double> delta;
 
-//	//optimize deltas
-//
-//	if (!goodDeltasFound) {
-//		delta = optimizeMetHastDeltas(burncount, sigmas_guess);
-//
-//        allParamsFinalDeltas = delta;
-//
-//        printf("final delta:");
-//
-//        for (int j = 0; j < M + 2; j++) {
-//            printf("%f ", delta[j]);
-//        }
-//        std::cout << std::endl;
-//
-//        goodDeltasFound = true;
-//	}
-//	else if (goodDeltasFound) {
-//		delta = allParamsFinalDeltas;
-//	}
-    
-//  Adaptive MCMC:
     unsigned long n = bigM;
     
     std::vector <std::vector <double > > cov_i(n, std::vector <double> (n, 0.0));
@@ -3920,64 +3906,51 @@ std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, 
     double lamb = std::pow(2.38, 2.0) / n;
     double gam_i1 = 1.0;
     int i = 0;
-    
-//    if (pivotPointActive){
-//        X_i = pivotPointParamsGuess;
-//    }
-    
-//    if (posterior(allparams_0, allparams_0) == 0){
-//        printf("Alert: zero posterior for initial guess of MCMC!\n");
-//    }
 
 	while (delta_count < R + burncount) {
 		//create trial:
 		//sample X_i
-        
-        bool loopCheck = true;
-        
-        while (loopCheck){
-            for (int j = 0; j < bigM; j++) {
-                //X_trial.push_back(delta[j] * rnorm(0.0, 1.0) + X_i[j]);
-                X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
-            }
-            
-            log_a = metHastRatio(X_trial, X_i);
-            
-            rand_unif_log = std::log(runiform(0.0, 1.0));
-            
-            if (rand_unif_log <= log_a) { // accept
-                X_i1 = X_trial;
-                loopCheck = false;
-                delta_count += 1;
-                result.push_back(X_i1);
-                accept_count += 1;
-            }
-            else { // reject
-                delta_count += 1;
-                result.push_back(X_i);
-            }
+        for (int j = 0; j < bigM; j++) {
+            X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
         }
+
+        log_a = metHastRatio(X_trial, X_i);
+
+        rand_unif_log = std::log(runiform(0.0, 1.0));
+
+        if (rand_unif_log <= log_a) { // accept
+            X_i1 = X_trial;
+            delta_count += 1;
+            result.push_back(X_i1);
+            accept_count += 1;
+        }
+        else { // reject
+            delta_count += 1;
+            result.push_back(X_i);
+        }
+
+        //update proposal dist params
         
-        //update proposal dist params (not until Markov Chain moves on, given loopCheck boolean above)
-        
+        X_i1 = X_trial;
+
         gam_i1 = 1.0/((double)(i + 1));
-        
+
         for (int j = 0; j < n; j++){
             mu_i1[j] = mu_i[j] + gam_i1*(X_i1[j] - mu_i[j]);
         }
-        
+
         for (int l = 0; l < n; l++){
             for (int m = 0; m < n; m++){
                 cov_i1[l][m] = cov_i[l][m] + gam_i1*((X_i1[l] - mu_i[l])*(X_i1[m] - mu_i[m])-cov_i[l][m]);
             }
         }
-        
+
         mu_i = mu_i1;
         cov_i = cov_i1;
         X_i = X_i1;
-        
+
         i += 1;
-        
+
 //                for (int j = 0; j < n; j++){
 //                    printf("%f ", std::sqrt(cov_i[j][j]));
 //                }
@@ -4994,6 +4967,8 @@ void TRK::showResults(bool didScaleOp, bool didMCMC){
         }
         std::cout << std::endl << std::endl;
     }
+    
+    printf("\nFITNESS\n\nchisquared = %f\n\n", results.chisquared);
     
     return;
 }

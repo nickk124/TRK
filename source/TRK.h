@@ -41,18 +41,19 @@ public:
 struct Results
 {
 	public:
-		std::vector <double> bestFitParams;
 		double slop_x;
 		double slop_y;
 		double optimumScale, minimumScale, maximumScale;
         double pivot;
         double pivot2;
-		std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
+        double chisquared; // not exactly chi-squared; really -2ln L 
+        std::vector <double> bestFitParams;
 		std::vector < std::vector <double> > slopX_123Sigmas;
 		std::vector < std::vector <double> > slopY_123Sigmas;
+        std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
 		std::vector < std::vector < std::vector <double> > > paramDistributionHistograms; // vector: {bins, edges}
     
-        // asymmetric stuff:
+        // asymmetric uncertainties:
         double slop_x_minus;
         double slop_y_minus;
         std::vector < std::vector <double> > slopX_minus_123Sigmas;
@@ -252,7 +253,6 @@ class TRK
     
     
         // GENERAL SETTINGS
-        bool showSimplexSteps = false;
         bool verboseAsymmetric = false; // show info/steps about asymmetric uncertainty fitting
         int maxThreads = 8;
         bool do1DFit = false; // does not need to be changed by the user, do 1D fits simply using the correct TRK constructor. Only used for testing
@@ -331,6 +331,7 @@ class TRK
 		bool cpp17MultiThread = false; // should only have one of these multithread
 		bool cpp11MultiThread = true;
 		bool openMPMultiThread = false;
+        bool showSimplexSteps = false;
     
         // OUTPUT SETTINGS
         bool printResults = true;
@@ -344,6 +345,7 @@ class TRK
         bool writePivots = false;
         bool covid19 = false;   // for covid19 fits
         static double covid_y12;
+        static bool covid_fitInLogSpace;
 };
 
 //global functions
