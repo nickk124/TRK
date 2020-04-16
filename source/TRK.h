@@ -20,7 +20,7 @@ enum whichScaleExtrema{ S, slopx, slopy, none };
 
 enum priorTypes { CUSTOM, GAUSSIAN, CONSTRAINED, MIXED};
 
-enum tuningAlgo {SIMPLEX, AM};
+enum samplingMethod {ARWMH, AIES};   // Adaptive Random Walk Metropolis Hastings, and Affine Invariant Ensemble Sampler
 
 class Priors
 {
@@ -166,6 +166,7 @@ class TRK
         double regularChiSquaredWSlop(std::vector <double> allparams, double s);
         double modifiedChiSquared(std::vector <double> allparams, double s);
         double normal(double x, double mu, double sig);
+        double stretch_pdf(double z, double a);
         double cmNorm(double z); //cumulative unit normal
         double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s);
         double likelihood(std::vector <double> allparams);
@@ -199,7 +200,7 @@ class TRK
         double best_ratio = 0.325;
         double simplexSuperShrink = 1e-3;
         std::vector <double> allParamsFinalDeltas;
-        tuningAlgo thisTuningAlgo = AM;
+        samplingMethod thisSamplingMethod = AIES;
     
         void calculateUncertainties();
         void guessMCMCDeltas();
@@ -207,9 +208,10 @@ class TRK
         double metHastRatio(std::vector <double> X_trial, std::vector <double> X_i);
         double rnorm(double mu, double sig);
         double runiform(double a, double b);
+        double rstretch(double a);
         std::vector <double> pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex);
         std::vector <double> optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess);
-        std::vector <std::vector <double >> methastPosterior(int R, int burncount, std::vector <double> sigmas_guess);
+        std::vector <std::vector <double >> samplePosterior(int R, int burncount, std::vector <double> sigmas_guess);
         std::vector <std::vector <double >> checkSlopSignMCMC(std::vector <std::vector <double >> result_final);
         std::vector <std::vector <std::vector <double> > > lowerBar(std::vector <std::vector <double> > allparam_samples);
     
@@ -346,6 +348,7 @@ class TRK
         bool covid19 = false;   // for covid19 fits
         static double covid_y12;
         static bool covid_fitInLogSpace;
+        static double covid_s;
 };
 
 //global functions

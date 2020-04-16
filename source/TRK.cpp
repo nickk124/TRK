@@ -5,6 +5,7 @@ double TRK::pivot = 0.0;
 double TRK::pivot2 = 1.0;
 double TRK::covid_y12 = 2.55;
 bool TRK::covid_fitInLogSpace = false;
+double TRK::covid_s = 1.0;
 
 // PRIORS
 
@@ -1905,6 +1906,10 @@ double TRK::normal(double x, double mu, double sig) {
 	return (std::exp((-0.5) * (std::pow((x - mu), 2.0) / (2.0 * std::pow(sig, 2.0)))) / std::sqrt(2.0*PI*std::pow(sig, 2.0)));
 }
 
+double TRK::stretch_pdf(double z, double a) {
+    return z >= 1/a && z <= a ? 1.0/std::sqrt(z) : 0.0;
+}
+
 double TRK::singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s) {
 	double m_tn = dyc(x_tn, params);
 	double y_tn = yc(x_tn, params);
@@ -3392,473 +3397,8 @@ double TRK::metHastRatio(std::vector <double> X_trial, std::vector <double> X_i)
             // this returns the log likelihood given useLogPosterior = true; the computation is done WITHIN the function.
     }
     
-//    bool switchcheck = false;
-    
-//    if (isinf(a)){
-////        printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-//        switchcheck = true;
-////    } else if (a == 0){
-//////        printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-////        switchcheck = true;
-//    } else if (isnan(a)){
-////        printf("Alert: NaN MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-//        switchcheck = true;
-//    }
-//
-////    useLogPosterior = true;
-//    a = posterior(X_trial, X_trial) / posterior(X_i, X_trial);
-////    useLogPosterior = false;
-//
-//    if (isinf(a)){
-//            printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-//            switchcheck = true;
-//    } else if (a == 0){
-//        printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-//        switchcheck = true;
-//    } else if (isnan(a)){
-//        printf("Alert: NaN MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-//        switchcheck = true;
-//    }
-    
-//    if (switchcheck and !currentlyOptimizingProposal){
-//        useLogPosterior = true;
-//        a = posterior(X_trial, X_trial) / posterior(X_i, X_trial);
-//        useLogPosterior = false;
-//
-//        if (isinf(a)){
-//                printf("Alert: infinite MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-//                switchcheck = true;
-//        } else if (a == 0){
-//            printf("Alert: zero MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-//            switchcheck = true;
-//        } else if (isnan(a)){
-//            printf("Alert: NaN MetHast ratio in MCMC!");// Switching to log posteriors...\n");
-//            switchcheck = true;
-//        }
-//    }
-    
     return log_a;
     // returns log post / log post if useLogPosterior == true
-}
-
-std::vector <double> TRK::optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess) {
-    
-    // DEPRECATED!!!
-    
-	double tol = 0.175;
-    double optRatio = best_ratio;
-    bool tolCheck = false;
-    
-//    currentlyOptimizingProposal = true;
-
-	unsigned long n = delta_guess.size(); //number of model parameters plus two slop parameters
-    std::vector <double> best_delta;
-    
-    printf("Optimizing MCMC Proposal Distribution...\n");
-    
-    switch (thisTuningAlgo){
-        case SIMPLEX: {
-
-            double rho = 5.0; //reflection
-            double chi = 5.0; //expansion
-            double gamma = 0.3; //contraction
-            double sigma = 0.3; //shrinkage
-
-            // simplex initialization
-
-            std::vector <double> init_point = delta_guess;
-            
-            printf("initial delta:");
-            
-            for (int j = 0; j < M + 2 ; j++) {
-                printf("%f ", delta_guess[j]);
-            }
-            std::cout << std::endl;
-
-            std::vector <std::vector <double> > vertices(n + 1, init_point);
-
-            int i = 0;
-            for (int j = 1; j < n + 1; j++) { //for each simplex node
-
-                vertices[j][i] = delta_guess[i] +  delta_guess[i]; //add initial "step size"
-                i += 1;
-            }
-
-            std::vector <double> result;
-            while (true) {
-                while (true) {
-                    // order
-                    printf("order\n");
-
-                    std::vector <int> orderedindices;
-                    std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
-                    
-                    int zerocount = 0;
-                    for (int i = 0; i < n + 1; i++) {
-                        double eval = innerMetHastSimplex(burncount, vertices[i], optRatio);
-                        unorderedEvals.push_back(eval);
-                        if (std::abs(eval - optRatio) < 0.1){ //acceptance ratio is ~0
-                            zerocount++;
-                        }
-                        if (unorderedEvals[i] < tol) {
-                            return vertices[i];
-                        }
-                    }
-                    orderedindices = getSortedIndices(unorderedEvals);
-
-                    std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
-                    for (int i = 1; i < n + 1; i++) {
-                        orderedvertices.push_back(vertices[orderedindices[i]]);
-                    }
-
-                    vertices = orderedvertices;
-                    
-                    if (zerocount == n + 1){ //all vertices in ~0 territory
-                        for (int i = 0; i < n + 1; i++) {
-                            for (int j = 0; j < n; j++) {
-                                vertices[i][j] *= simplexSuperShrink;
-                            }
-                        }
-                        printf("simplex super-shrunk \n");
-                    }
-
-                    // reflect
-                    printf("reflect\n");
-                    
-                    std::vector <double> refpoint;
-                    std::vector <std::vector <double> > nvertices;
-                    for (int i = 0; i < n; i++) {
-                        nvertices.push_back(vertices[i]);
-                    }
-
-                    std::vector <double> centroid = findCentroid(nvertices);
-
-                    for (int i = 0; i < n; i++) {
-                        refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
-                    }
-
-                    refpoint = pegToNonZeroDelta(refpoint, vertices[n]);
-
-                    double fr = innerMetHastSimplex(burncount, refpoint, optRatio);
-                    if (fr < tol) {
-                        return refpoint;
-                    }
-                    double f1 = innerMetHastSimplex(burncount, vertices[0], optRatio);
-                    if (f1 < tol) {
-                        return vertices[0];
-                    }
-                    double fn = innerMetHastSimplex(burncount, vertices[n - 1], optRatio);
-                    if (fn < tol) {
-                        return vertices[n - 1];
-                    }
-
-                    if (f1 <= fr && fr < fn) {
-                        result = refpoint;
-                        break;
-                    }
-
-                    //expand
-                    if (fr < f1) {
-                        printf("expand\n");
-                        
-                        std::vector <double> exppoint;
-
-                        for (int i = 0; i < n; i++) {
-                            exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
-                        }
-
-                        exppoint = pegToNonZeroDelta(exppoint, vertices[n]);
-
-                        double fe = innerMetHastSimplex(burncount, exppoint, optRatio);
-                        if (fe < tol) {
-                            return exppoint;
-                        }
-
-
-                        if (fe < fr) {
-                            result = exppoint;
-                            break;
-                        }
-                        else if (fe >= fr) {
-                            result = refpoint;
-                            break;
-                        }
-                    }
-
-                    //contract
-                    
-                    printf("contract\n");
-
-                    if (fr >= fn) {
-                        //outside
-                        double fnp1 = innerMetHastSimplex(burncount, vertices[n], optRatio);
-                        if (fnp1 < tol) {
-                            return vertices[n];
-                        }
-
-                        if (fn <= fr && fr < fnp1) {
-                            std::vector <double> cpoint;
-
-                            for (int i = 0; i < n; i++) {
-                                cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
-                            }
-
-                            cpoint = pegToNonZeroDelta(cpoint, vertices[n]);
-
-                            double fc = innerMetHastSimplex(burncount, cpoint, optRatio);
-                            if (fc < tol) {
-                                return cpoint;
-                            }
-
-                            if (fc <= fr) {
-                                result = cpoint;
-                                break;
-                            }
-                            else {
-                                //shrink
-                                printf("shrink\n");
-
-                                std::vector < std::vector <double> > v = { vertices[0] };
-
-                                for (int i = 1; i < n + 1; i++) {
-                                    std::vector <double> vi;
-                                    vi.clear();
-                                    for (int j = 0; j < n; j++) {
-                                        vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-                                    }
-                                    v.push_back(vi);
-                                }
-
-                                vertices = v;
-                            }
-                        }
-                        else if (fr >= fnp1) {
-                            std::vector <double> ccpoint;
-
-                            for (int i = 0; i < n; i++) {
-                                ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
-                            }
-
-                            ccpoint = pegToNonZeroDelta(ccpoint, vertices[n]);
-
-                            double fcc = innerMetHastSimplex(burncount, ccpoint, optRatio);
-                            if (fcc < tol) {
-                                return ccpoint;
-                            }
-
-                            if (fcc <= fnp1) {
-                                result = ccpoint;
-                                break;
-                            }
-                            else {
-                                //shrink
-                                printf("shrink\n");
-
-                                std::vector < std::vector <double> > v = { vertices[0] };
-
-                                for (int i = 1; i < n + 1; i++) {
-                                    std::vector <double> vi;
-                                    vi.clear();
-                                    for (int j = 0; j < n; j++) {
-                                        vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-                                    }
-                                    v.push_back(vi);
-                                }
-
-                                vertices = v;
-                            }
-
-
-                        }
-
-                    }
-
-                    //shrink
-                    printf("shrink\n");
-
-                    std::vector < std::vector <double> > v = { vertices[0] };
-
-                    for (int i = 1; i < n + 1; i++) {
-                        std::vector <double> vi;
-                        vi.clear();
-                        for (int j = 0; j < n; j++) {
-                            vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
-                        }
-                        v.push_back(vi);
-                    }
-
-                    vertices = v;
-                }
-
-                std::vector <std::vector <double> > bettervertices;
-                for (int i = 0; i < n; i++) {
-                    bettervertices.push_back(vertices[i]);
-                }
-
-                //check that new node does not have negative slops (fixes it if it does)
-
-                bettervertices.push_back(result);
-
-                vertices = bettervertices;
-
-                /*
-
-                std::cout << "chi-square parameters at s = " << s << " ";
-                for (int i = 0; i < result.size(); i++) {
-                    std::cout << result[i] << " ";
-                }
-                std::cout << "fitness = " << evalWPriors(f, vertices[i]) << "\n";
-                */
-
-                //test for termination
-
-                if (innerMetHastSimplex(burncount, vertices[n], optRatio) < tol) {
-                    break;
-                }
-
-            }
-
-            best_delta = vertices[n];
-            break;
-        }
-        case AM: {
-            
-            double AMtol = 1e-3;
-            
-            std::vector <std::vector <double > > cov_i(n, std::vector <double> (n, 0.0));
-            for (int j = 0; j < n; j++){
-                cov_i[j][j] = std::pow(delta_guess[j], 2.0);
-            }
-            std::vector <std::vector <double > > cov_i1(n, std::vector <double> (n, 0.0));
-            
-            
-            std::vector <double> mu_i = allparams_guess;
-            std::vector <double> mu_i1(n, 0.0);
-            std::vector <double> X_i = allparams_guess;
-            std::vector <double> X_i1;
-            std::vector <double> X_trial(n, 0.0);
-            double rand_unif;
-            double lamb = std::pow(2.38, 2.0) / n;
-            double gam_i1 = 1.0;
-            
-            int i = 0;
-            
-            if (pivotPointActive){
-                X_i = pivotPointParamsGuess;
-            }
-            
-            if (posterior(X_i, X_i) == 0){
-                printf("Initial guess for pivot-point MCMC sampling gives posterior = 0 !\n");
-            } else if (isinf(posterior(X_i, X_i))){
-                printf("Initial guess for pivot-point MCMC sampling gives posterior = inf! \n");
-            }
-            
-//            int k = 1;
-//            while (isinf(posterior(X_i, {}))){
-//                printf("Initial guess for pivot-point MCMC sampling gives posterior = inf! Perturbing X_i until escape...\n");
-//
-//                for (int j = 0; j < M + 2; j++) {
-//                    //X_trial.push_back(delta[j] * rnorm(0.0, 1.0) + X_i[j]);
-//                    X_i[j] = rnorm(X_i[j], std::sqrt(k * lamb * cov_i[j][j]));
-//                }
-//                k += 1;
-//
-//            }
-
-            while (!tolCheck){// + burncount) {
-                //create trial
-                
-                //sample X_i
-            
-                bool loopCheck = true;
-                
-                
-                while (loopCheck){
-                    for (int j = 0; j < M + 2; j++) {
-                        //X_trial.push_back(delta[j] * rnorm(0.0, 1.0) + X_i[j]);
-                        X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
-                    }
-                    
-                    a = metHastRatio(X_trial, X_i);
-                    
-                    rand_unif = runiform(0.0, 1.0);
-                    
-                    if (a >= 1) {
-                        X_i1 = X_trial;
-                        loopCheck = false;
-                        //delta_count += 1;
-                        //result.push_back(allparams_0);
-                        //accept_count += 1;
-                    }
-                    else if (rand_unif <= a) {
-                        X_i1 = X_trial;
-                        loopCheck = false;
-                        //delta_count += 1;
-                        //result.push_back(allparams_0);
-                        //accept_count += 1;
-                    }
-                    else {
-                        //delta_count += 1;
-                        //result.push_back(allparams_0);
-                    }
-                }
-                
-                //update proposal dist params
-                
-                tolCheck = true;
-                
-                gam_i1 = 1.0/((double)(i + 1));
-                
-                for (int j = 0; j < n; j++){
-                    mu_i1[j] = mu_i[j] + gam_i1*(X_i1[j] - mu_i[j]);
-                    
-                    if (std::abs(mu_i1[j] - mu_i[j]) > AMtol){
-                        tolCheck = false;
-                    }
-                }
-                
-                for (int l = 0; l < n; l++){
-                    for (int m = 0; m < n; m++){
-                        cov_i1[l][m] = cov_i[l][m] + gam_i1*((X_i1[l] - mu_i[l])*(X_i1[m] - mu_i[m])-cov_i[l][m]);
-                        
-                        if (std::abs(cov_i1[l][m] - cov_i[l][m]) > AMtol){
-                            tolCheck = false;
-                        }
-                    }
-                }
-                
-                mu_i = mu_i1;
-                cov_i = cov_i1;
-                X_i = X_i1;
-                
-//                for (int j = 0; j < n; j++){
-//                    printf("%f ", std::sqrt(cov_i[j][j]));
-//                }
-//                std::cout << std::endl;
-                
-                i += 1;
-                std::cout << i << std::endl;
-                
-                if (i > 1000){
-                    break;
-                }
-                
-            }
-            best_delta.clear();
-            
-            for (int j = 0; j < n; j++){
-                best_delta.push_back(std::sqrt(cov_i[j][j]));
-            }
-            
-            break;
-        }
-        default:
-            break;
-    }
-
-//    currentlyOptimizingProposal = false;
-    
-	return best_delta;
 }
 
 void TRK::guessMCMCDeltas(){
@@ -3876,108 +3416,188 @@ void TRK::guessMCMCDeltas(){
     return;
 }
 
-std::vector <std::vector <double >> TRK::methastPosterior(int R, int burncount, std::vector <double> sigmas_guess) {
+std::vector <std::vector <double >> TRK::samplePosterior(int R, int burncount, std::vector <double> sigmas_guess) {
     
     useLogPosterior = true;
 
     unsigned long n = bigM;
+    std::vector < std::vector <double > > result, result_final;
     
-    std::vector <std::vector <double > > cov_i(n, std::vector <double> (n, 0.0));
-    for (int j = 0; j < n; j++){
-        cov_i[j][j] = std::pow(sigmas_guess[j], 2.0);
-    }
-    std::vector <std::vector <double > > cov_i1(n, std::vector <double> (n, 0.0));
-    
-
-	std::vector < std::vector <double > > result, result_final;
-	std::vector <double> allparams_trial, allparams_0; //allparams_0 is the previous step
-    double log_a, rand_unif_log, accept_frac = 0.0;
-
-	int accept_count = 0;
-	int delta_count = 0;
-    int tenth = (int) R/10;
-    int prog = 0;
-    
-    std::vector <double> mu_i = allparams_guess;
-    std::vector <double> mu_i1(n, 0.0);
-    std::vector <double> X_i = allparams_guess;
-    std::vector <double> X_i1;
-    std::vector <double> X_trial(n, 0.0);
-    double lamb = std::pow(2.38, 2.0) / n;
-    double gam_i1 = 1.0;
-    int i = 0;
-
-	while (delta_count < R + burncount) {
-		//create trial:
-		//sample X_i
-        for (int j = 0; j < bigM; j++) {
-            X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
-        }
-
-        log_a = metHastRatio(X_trial, X_i);
-
-        rand_unif_log = std::log(runiform(0.0, 1.0));
-
-        if (rand_unif_log <= log_a) { // accept
-            X_i1 = X_trial;
-            delta_count += 1;
-            result.push_back(X_i1);
-            accept_count += 1;
-        }
-        else { // reject
-            delta_count += 1;
-            result.push_back(X_i);
-        }
-
-        //update proposal dist params
-        
-        X_i1 = X_trial;
-
-        gam_i1 = 1.0/((double)(i + 1));
-
-        for (int j = 0; j < n; j++){
-            mu_i1[j] = mu_i[j] + gam_i1*(X_i1[j] - mu_i[j]);
-        }
-
-        for (int l = 0; l < n; l++){
-            for (int m = 0; m < n; m++){
-                cov_i1[l][m] = cov_i[l][m] + gam_i1*((X_i1[l] - mu_i[l])*(X_i1[m] - mu_i[m])-cov_i[l][m]);
+    switch (thisSamplingMethod) {
+        case AIES: {
+            double a = 2.0; //stretch variable pdf parameter
+            // INDEXING:
+            // iterations: t
+            // walkers: j, k
+            // coordinates/parameters: i
+            
+            int L = 2 * (int) bigM;   // number of walkers
+            
+            // initialize walkers
+            std::vector <std::vector <double> > all_walkers(L, std::vector <double> (bigM, 0.0));
+            
+            for (int j = 0; j < L; j++){
+                for (int i = 0; i < bigM; i++){
+                    all_walkers[j][i] = rnorm(allparams_guess[i], allparams_guess[i]/10.0);
+                }
             }
-        }
-
-        mu_i = mu_i1;
-        cov_i = cov_i1;
-        X_i = X_i1;
-
-        i += 1;
-
-//                for (int j = 0; j < n; j++){
-//                    printf("%f ", std::sqrt(cov_i[j][j]));
-//                }
-//                std::cout << std::endl;
-
-		accept_frac = (double) accept_count / (double)delta_count;
-        
-        if (delta_count % tenth == 0){
+            
+            double Z, log_a, rand_unif_log;
+            int j;
+            std::vector <double> X, Y, X_trial;
+            // sample
+            int sample_count = 0;
+            int accept_count = 0;
+            double accept_frac = 0.0;
+            int tenth = (int) R/10;
+            int prog = 0;
+            
+            while (sample_count < R + burncount) {
+                for (int k = 0; k < L; k++){
+                    // for each kth walker X,
+                    X = all_walkers[k];
+                    // choose some other jth walker Y:
+                    j = k;
+                    while (j == k){
+                        j = rand() % L;
+                    }
+                    Y = all_walkers[j];
+                    
+                    // make proposal vector
+                    X_trial.clear();
+                    Z = rstretch(a);
+                    for (int i = 0; i < bigM; i++){
+                        X_trial.push_back(Z * X[i] + (1.0 - Z) * Y[i]);
+                    }
+                    
+                    // accept?
+                    rand_unif_log = std::log(runiform(0.0, 1.0));
+                    log_a = metHastRatio(X_trial, X);
+                    
+                    if (rand_unif_log <= log_a + (bigM - 1) * std::log(Z)) { // accept
+                        all_walkers[k] = X_trial;
+                        result.push_back(X_trial);
+                        accept_count++;
+                    }
+                    else { // reject
+                        result.push_back(X_trial);
+                    }
+                    sample_count += 1;
+                }
+                if (sample_count % tenth == 0){
+                        accept_frac = (double) accept_count / (double) sample_count;
+                        if (verboseMCMC){
+                            printf("Posterior sampling %i%% complete, acceptance fraction currently %f...\n", prog, accept_frac);
+                        }
+                        prog += 10;
+                    }
+                }
+            
             if (verboseMCMC){
-                printf("Posterior sampling %i%% complete, acceptance fraction currently %f...\n", prog, accept_frac);
+                printf("Final AIES acceptance ratio: %f \n", accept_frac);
             }
-            prog += 10;
+            
+            break;
         }
-	}
+        case ARWMH: {
+            std::vector <std::vector <double > > cov_i(n, std::vector <double> (n, 0.0));
+            for (int j = 0; j < n; j++){
+                cov_i[j][j] = std::pow(sigmas_guess[j], 2.0);
+            }
+            std::vector <std::vector <double > > cov_i1(n, std::vector <double> (n, 0.0));
+            
+            std::vector <double> allparams_trial, allparams_0; //allparams_0 is the previous step
+            double log_a, rand_unif_log, accept_frac = 0.0;
 
-	//cut off burn-in
+            int accept_count = 0;
+            int delta_count = 0;
+            int tenth = (int) R/10;
+            int prog = 0;
+            
+            std::vector <double> mu_i = allparams_guess;
+            std::vector <double> mu_i1(n, 0.0);
+            std::vector <double> X_i = allparams_guess;
+            std::vector <double> X_i1;
+            std::vector <double> X_trial(n, 0.0);
+            double lamb = std::pow(2.38, 2.0) / n;
+            double gam_i1 = 1.0;
+            int i = 0;
 
-	for (int i = 0; i < R; i++) {
-		result_final.push_back(result[i + burncount]);
-	}
-    
-    if (verboseMCMC){
-        printf("final MCMC step-sizes/proposal dist. deviations:");
-        for (int j = 0; j < bigM; j++) {
-            printf("%f ", cov_i[j][j]);
+            while (delta_count < R + burncount) {
+                bool loopCheck = true;
+                //create trial:
+                //sample X_i
+                while (loopCheck) {
+                    for (int j = 0; j < bigM; j++) {
+                        X_trial[j] = rnorm(mu_i[j], std::sqrt(lamb * cov_i[j][j]));
+                    }
+
+                    log_a = metHastRatio(X_trial, X_i);
+
+                    rand_unif_log = std::log(runiform(0.0, 1.0));
+
+                    if (rand_unif_log <= log_a) { // accept
+                        X_i1 = X_trial;
+                        loopCheck = false;
+                        delta_count += 1;
+                        result.push_back(X_i1);
+                        accept_count += 1;
+                    }
+                    else { // reject
+                        delta_count += 1;
+                        result.push_back(X_i);
+                    }
+                }
+
+                //update proposal dist params
+                
+        //        X_i1 = X_trial;
+
+                gam_i1 = 1.0/((double)(i + 1));
+
+                for (int j = 0; j < n; j++){
+                    mu_i1[j] = mu_i[j] + gam_i1*(X_i1[j] - mu_i[j]);
+                }
+
+                for (int l = 0; l < n; l++){
+                    for (int m = 0; m < n; m++){
+                        cov_i1[l][m] = cov_i[l][m] + gam_i1*((X_i1[l] - mu_i[l])*(X_i1[m] - mu_i[m])-cov_i[l][m]);
+                    }
+                }
+
+                mu_i = mu_i1;
+                cov_i = cov_i1;
+                X_i = X_i1;
+
+                i += 1;
+
+                accept_frac = (double) accept_count / (double)delta_count;
+                
+                if (delta_count % tenth == 0){
+                    if (verboseMCMC){
+                        printf("Posterior sampling %i%% complete, acceptance fraction currently %f...\n", prog, accept_frac);
+                    }
+                    prog += 10;
+                }
+            }
+            
+            if (verboseMCMC){
+                printf("final Adaptive Metropolis Hastings step-sizes/proposal dist. deviations:");
+                for (int j = 0; j < bigM; j++) {
+                    printf("%f ", cov_i[j][j]);
+                }
+                printf("\t final Adaptive Metropolis Hastings acceptance ratio: %f \n", accept_frac);
+            }
+            break;
         }
-        printf("\t final full MCMC acceptance ratio: %f \n", accept_frac);
+        default: {
+            break;
+        }
+    }
+    //cut off burn-in
+
+    for (int i = 0; i < R; i++) {
+        result_final.push_back(result[i + burncount]);
     }
 
 	result_final = checkSlopSignMCMC(result_final);
@@ -4008,6 +3628,21 @@ double TRK::runiform(double a, double b) {
 	std::uniform_real_distribution <double> dist(a, b);
 	rand = dist(generator);
 	return rand;
+}
+
+double TRK::rstretch(double a){ // distribution to sample "stretching variable" for AIES
+    // using rejection sampling
+    double M = 5;
+    
+    double x = rnorm(1.0, 1.0);   // proposal dist q(x), with Mq(x) >= p(x)
+    double u = runiform(0.0, 1.0);
+
+    while (u > (stretch_pdf(x, a) / (M * normal(x, 1.0, 1.0)))){
+        x = rnorm(1.0, 1.0);
+        u = runiform(0.0, 1.0);
+    }
+    
+    return x;
 }
 
 double noPrior(double param) {
@@ -4203,7 +3838,7 @@ void TRK::calculateUncertainties() {
         std::cout << "Sampling Posterior...\n";
     }
 
-	std::vector <std::vector <double >> allparam_samples = methastPosterior(R, burncount, allparams_sigmas_guess);
+	std::vector <std::vector <double >> allparam_samples = samplePosterior(R, burncount, allparams_sigmas_guess);
 
 	if (outputDistributionToFile) {
 
@@ -4472,7 +4107,7 @@ void TRK::findPivots() {
                 printf("Sampling for pivot points...\n");
             }
 
-			allparam_samples = methastPosterior(pivotR, pivotBurnIn, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
+			allparam_samples = samplePosterior(pivotR, pivotBurnIn, allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
             
             pivotPointParamsGuess = allparams_guess;
             
