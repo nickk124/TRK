@@ -27,8 +27,6 @@ testdata/topsecretdata.csv
 
 # for my own testing
 TRKtesting.cpp
-source/exampleModels.cpp
-source/exampleModels.h
 pch.cpp
 pch.h
 diagnostics

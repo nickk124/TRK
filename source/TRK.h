@@ -228,7 +228,7 @@ class TRK
         bool averageIntercepts = false;
         int pivotR = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
         int randomSampleCount = 450;
-        int maxCombos = 50000; // 50,000 seems sufficient, but 100,000 works for sure
+        int maxCombos = 10000; // 50,000 seems sufficient, but 100,000 works for sure
         int pivotBurnIn = 1000;
         double pivotTol = 1e-1;
         double pruneWidth = 10.0;
@@ -313,15 +313,15 @@ class TRK
 
 
 		// MCMC/uncertainty calculation and RNG
-		int R = 100000; // MCMC sample size (excluding burn-in)
-		int burncount = 10000; // MCMC "burn in" count
+		int R = 50000; // MCMC sample size (excluding burn-in)
+		int burncount = 5000; // MCMC "burn in" count
     
 
 		// pivot points / linearized model parameter correlation removal
         bool twoPivots = false; // two pivot points in the model?
         static double pivot;
         static double pivot2; // for two-pivot models
-        int maxPivotIter = 1; // 1 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
+        int maxPivotIter = 5; // 5 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
         double (*linearizedIntercept)(std::vector <double>);
         double (*linearizedSlope)(std::vector <double>);
         double (*linearizedIntercept2)(std::vector <double>); // for two-pivot point models, e.g. broken-linear (experimental)
@@ -347,8 +347,9 @@ class TRK
         bool writePivots = false;
         bool covid19 = false;   // for covid19 fits
         static double covid_y12;
-        static bool covid_fitInLogSpace;
+        static bool covid_logModel;
         static double covid_s;
+        static std::vector <double> covid_fixed_params;
 };
 
 //global functions

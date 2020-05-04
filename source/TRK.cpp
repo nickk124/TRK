@@ -4,8 +4,9 @@
 double TRK::pivot = 0.0;
 double TRK::pivot2 = 1.0;
 double TRK::covid_y12 = 2.55;
-bool TRK::covid_fitInLogSpace = false;
+bool TRK::covid_logModel = false;
 double TRK::covid_s = 1.0;
+std::vector <double> TRK::covid_fixed_params = {};
 
 // PRIORS
 
@@ -1670,7 +1671,7 @@ std::vector <double> TRK::downhillSimplex(double(TRK::*f)(std::vector <double>, 
 	int i = 0;
 	for (int j = 1; j < n + 1; j++) { //for each simplex node
 
-		vertices[j][i] = allparams_guess[i] + simplex_size*allparams_guess[i]; //add initial "step size"
+        vertices[j][i] = allparams_guess[i] != 0 ? allparams_guess[i] + simplex_size*allparams_guess[i] : 0.1; //add initial "step size"
 		i += 1;
 	}
 
@@ -3438,7 +3439,7 @@ std::vector <std::vector <double >> TRK::samplePosterior(int R, int burncount, s
             
             for (int j = 0; j < L; j++){
                 for (int i = 0; i < bigM; i++){
-                    all_walkers[j][i] = rnorm(allparams_guess[i], allparams_guess[i]/10.0);
+                    all_walkers[j][i] = rnorm(allparams_guess[i], allparams_guess[i] != 0 ? allparams_guess[i]/10.0 : 0.1);
                 }
             }
             
@@ -3481,6 +3482,11 @@ std::vector <std::vector <double >> TRK::samplePosterior(int R, int burncount, s
                     }
                     else { // reject
                         result.push_back(X_trial);
+                       
+//                        for (int k = 0; k < bigM; k++) {
+//                            printf("%f ", X_trial[k]);
+//                        }
+//                        std::cout << std::endl;
                     }
                     sample_count += 1;
                 }
@@ -4538,7 +4544,7 @@ void TRK::showResults(bool didScaleOp, bool didMCMC){
     if (findPivotPoints){
         printf("PIVOT POINTS:\nPivot Point 1 = %f\n", results.pivot);
         if (twoPivots){
-            printf("PIVOT POINTS:\n\nPivot Point 2 = %f\n\n", results.pivot2);
+            printf("Pivot Point 2 = %f\n\n", results.pivot2);
         }
         printf("\n");
     }
