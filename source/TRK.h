@@ -211,6 +211,8 @@ class TRK
         double rstretch(double a);
         std::vector <double> pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex);
         std::vector <double> optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess);
+        std::vector <double> updateAIESWalker(std::vector <double> X, std::vector <std::vector <double> > YY);
+        std::vector <double> parallelUpdateAIESWalkers(std::vector <std::vector <double> > XX, std::vector <std::vector <double> > YY, int k);
         std::vector <std::vector <double >> samplePosterior(int R, int burncount, std::vector <double> sigmas_guess);
         std::vector <std::vector <double >> checkSlopSignMCMC(std::vector <std::vector <double >> result_final);
         std::vector <std::vector <std::vector <double> > > lowerBar(std::vector <std::vector <double> > allparam_samples);

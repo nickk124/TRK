@@ -2473,18 +2473,18 @@ double TRK::getMedian(int trueCount, std::vector<double> w, std::vector<double> 
 		if (sumCounter == 0)
 		{
 			median = y[0];
-			std::cout << median << std::endl;
+//			std::cout << median << std::endl;
 		}
 		else
 		{
 			median = y[sumCounter - 1] + (.5*totalSum - (runningSum - (w[sumCounter - 1] * .5 + w[sumCounter] * .5))) / (w[sumCounter - 1] * .5 + w[sumCounter] * .5)*(y[sumCounter] - y[sumCounter - 1]);
-			std::cout << median << std::endl;
+//			std::cout << median << std::endl;
 		}
 	}
 	else
 	{
 		median = y[0];
-		std::cout << median << std::endl;
+//		std::cout << median << std::endl;
 	}
 	return median;
 }
@@ -3417,6 +3417,39 @@ void TRK::guessMCMCDeltas(){
     return;
 }
 
+std::vector <double> TRK::updateAIESWalker(std::vector <double> X, std::vector <std::vector <double> > YY){ // X is the walker to be updated with index k, YY is the set of walkers that the complementary walker for X is randomly chosen from, i.e. X should not be in YY
+    double a = 2.0; //stretch variable pdf parameter
+    std::vector <double> X_trial, Y, res;
+    
+    // choose some other jth walker Y:
+    int j = rand() % (int)YY.size();
+    Y = YY[j];
+    
+    // make proposal vector
+    double Z = rstretch(a);
+    for (int i = 0; i < bigM; i++){
+        X_trial.push_back(Z * X[i] + (1.0 - Z) * Y[i]);
+    }
+    
+    // accept?
+    double rand_unif_log = std::log(runiform(0.0, 1.0));
+    double log_a = metHastRatio(X_trial, X);
+    
+    if (rand_unif_log <= log_a + (bigM - 1) * std::log(Z)) { // accept
+        res = X_trial;
+    }
+    
+    else {
+        res = {concat(X_trial, {NAN})}; //returns vector one size too big if not accepted
+    }
+    
+    return res;
+}
+
+std::vector <double> TRK::parallelUpdateAIESWalkers(std::vector <std::vector <double> > XX, std::vector <std::vector <double> > YY, int k){ // XX is set of walkers that contains the kth walker that you want to evolve, YY is set of complementary walkers
+    return updateAIESWalker(XX[k], YY);
+}
+
 std::vector <std::vector <double >> TRK::samplePosterior(int R, int burncount, std::vector <double> sigmas_guess) {
     
     useLogPosterior = true;
@@ -3426,7 +3459,6 @@ std::vector <std::vector <double >> TRK::samplePosterior(int R, int burncount, s
     
     switch (thisSamplingMethod) {
         case AIES: {
-            double a = 2.0; //stretch variable pdf parameter
             // INDEXING:
             // iterations: t
             // walkers: j, k
@@ -3436,6 +3468,7 @@ std::vector <std::vector <double >> TRK::samplePosterior(int R, int burncount, s
             
             // initialize walkers
             std::vector <std::vector <double> > all_walkers(L, std::vector <double> (bigM, 0.0));
+            std::vector <std::vector <double> > YY;
             
             for (int j = 0; j < L; j++){
                 for (int i = 0; i < bigM; i++){
@@ -3443,8 +3476,6 @@ std::vector <std::vector <double >> TRK::samplePosterior(int R, int burncount, s
                 }
             }
             
-            double Z, log_a, rand_unif_log;
-            int j;
             std::vector <double> X, Y, X_trial;
             // sample
             int sample_count = 0;
@@ -3454,41 +3485,99 @@ std::vector <std::vector <double >> TRK::samplePosterior(int R, int burncount, s
             int prog = 0;
             
             while (sample_count < R + burncount) {
-                for (int k = 0; k < L; k++){
-                    // for each kth walker X,
-                    X = all_walkers[k];
-                    // choose some other jth walker Y:
-                    j = k;
-                    while (j == k){
-                        j = rand() % L;
-                    }
-                    Y = all_walkers[j];
+                // PARALLELIZED: split up set of walkers in half, and update each half simultaneously
+                if (cpp17MultiThread) {
                     
-                    // make proposal vector
-                    X_trial.clear();
-                    Z = rstretch(a);
-                    for (int i = 0; i < bigM; i++){
-                        X_trial.push_back(Z * X[i] + (1.0 - Z) * Y[i]);
-                    }
+                } else if (cpp11MultiThread && !cpp17MultiThread){
+                    std::vector <std::vector <double> > XX, YY;
+                    std::size_t const half_size = L / 2;
+                    std::vector <std::vector <double> >  lo(all_walkers.begin(), all_walkers.begin() + half_size);
+                    std::vector <std::vector <double> >  hi(all_walkers.begin() + half_size, all_walkers.end());
                     
-                    // accept?
-                    rand_unif_log = std::log(runiform(0.0, 1.0));
-                    log_a = metHastRatio(X_trial, X);
-                    
-                    if (rand_unif_log <= log_a + (bigM - 1) * std::log(Z)) { // accept
-                        all_walkers[k] = X_trial;
-                        result.push_back(X_trial);
-                        accept_count++;
+                    std::vector <std::vector <std::vector <double> > > halves = {lo, hi};
+                    for (int q = 0; q < 2; q++){ // split walkers into two sets S^q: S^0 is first half of all, S^1 is second half of all.
+                        // split all walkers in half:
+                        XX = halves[q];
+                        YY = halves[(q + 1) % 2];
+                        
+                        int counter = 0, completedThreads = 0, liveThreads = 0;
+                        std::vector<double> res;
+                        std::vector< std::future < std::vector < double > > > futureVec;
+                        futureVec.resize((int) bigM);
+
+                        for (int i = 0; i < (int) bigM; i++)
+                        {
+                            futureVec[i] = std::async(std::launch::async, &TRK::parallelUpdateAIESWalkers, this, XX, YY, i); //pointer to fn run through MT, arguments to fn
+                            counter++;
+                            liveThreads++;
+
+                            if (liveThreads >= maxThreads)
+                            {
+                                for (int i = completedThreads; i < counter; i++)
+                                {
+                                    res = futureVec[i].get();
+                                    
+                                    if (res.size() > bigM) { // rejected
+                                        res.pop_back();
+                                        result.push_back(res);
+                                    }
+                                    else { // accepted
+                                        all_walkers[i] = res;
+                                        result.push_back(res);
+                                        accept_count++;
+                                       
+                                    }
+                                    sample_count += 1;
+                                }
+                                completedThreads += liveThreads;
+                                liveThreads = 0;
+                            }
+                        }
+                        for (int i = completedThreads; i < bigM; i++)
+                        {
+                            res = futureVec[i].get();
+                            
+                            if (res.size() > bigM) { // rejected
+                                res.pop_back();
+                                result.push_back(res);
+                            }
+                            else { // accepted
+                                all_walkers[i] = res;
+                                result.push_back(res);
+                                accept_count++;
+                               
+                            }
+                            sample_count += 1;
+                        }
                     }
-                    else { // reject
-                        result.push_back(X_trial);
-                       
-//                        for (int k = 0; k < bigM; k++) {
-//                            printf("%f ", X_trial[k]);
-//                        }
-//                        std::cout << std::endl;
+
+//                } else { // open mp parallelization
+//
+//                }
+                } else {
+                // NON_PARALLELIZED: update each walker one-at-a-time
+                    for (int k = 0; k < L; k++){
+                        // for each kth walker X,
+                        X = all_walkers[k];
+                        
+                        // all walkers excluding X:
+                        YY = all_walkers;
+                        YY.erase(YY.begin() + k);
+                        
+                        std::vector <double> res = updateAIESWalker(X, YY);
+                        
+                        if (res.size() > bigM) { // rejected
+                            res.pop_back();
+                            result.push_back(res);
+                        }
+                        else { // accepted
+                            all_walkers[k] = res;
+                            result.push_back(res);
+                            accept_count++;
+                           
+                        }
+                        sample_count += 1;
                     }
-                    sample_count += 1;
                 }
                 if (sample_count % tenth == 0){
                         accept_frac = (double) accept_count / (double) sample_count;
