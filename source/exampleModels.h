@@ -105,3 +105,11 @@ double covid19_PW_Slope2(std::vector <double> params);
 // oscillating model to account for weekend variability
 double covid19_BL_oscil(double t, std::vector <double> params);
 double covid19_BL_oscil_fixed(double t, std::vector <double> params);
+double covid19_BL_oscil_fixed_s(double t, std::vector <double> params);
+double covid19_BL_oscil_split(double t, std::vector <double> params);
+double covid19_BL_oscil_split_fixed(double t, std::vector <double> params);
+double covid19_BL_oscil_split_all_fixed(double t, std::vector <double> params);
+
+double covid19_polynomial(double t, double t0, std::vector <double> p);
+double covid19_BL_oscil_poly(double t, std::vector <double> params);
+double covid19_BL_oscil_poly_fixed(double t, std::vector <double> params);

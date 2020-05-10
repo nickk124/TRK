@@ -6,6 +6,8 @@ double TRK::pivot2 = 1.0;
 double TRK::covid_y12 = 2.55;
 bool TRK::covid_logModel = false;
 double TRK::covid_s = 1.0;
+double TRK::covid_t_split = 45.5;
+double TRK::covid_tmed = 1.0;
 std::vector <double> TRK::covid_fixed_params = {};
 
 // PRIORS
@@ -2427,7 +2429,7 @@ double TRK::stDevUnweighted(std::vector <double> x) {
 	return std::sqrt(sum / (x.size() - 1.0));
 }
 
-double TRK::getMedian(std::vector<double> y)
+double getMedian(std::vector<double> y)
 {
 	int high = (int)(floor(y.size() / 2));
 	int low = high - 1;
@@ -2454,7 +2456,7 @@ double TRK::getMedian(std::vector<double> y)
 
 }
 
-double TRK::getMedian(int trueCount, std::vector<double> w, std::vector<double> y)
+double getMedian(int trueCount, std::vector<double> w, std::vector<double> y)
 {
 	size_t sumCounter = 0;
 	double median = 0, totalSum = 0, runningSum = 0;
@@ -3486,9 +3488,9 @@ std::vector <std::vector <double >> TRK::samplePosterior(int R, int burncount, s
             
             while (sample_count < R + burncount) {
                 // PARALLELIZED: split up set of walkers in half, and update each half simultaneously
-                if (cpp17MultiThread) {
+                if (parallelizeAIES && cpp17MultiThread) {
                     
-                } else if (cpp11MultiThread && !cpp17MultiThread){
+                } else if (parallelizeAIES && cpp11MultiThread && !cpp17MultiThread){
                     std::vector <std::vector <double> > XX, YY;
                     std::size_t const half_size = L / 2;
                     std::vector <std::vector <double> >  lo(all_walkers.begin(), all_walkers.begin() + half_size);

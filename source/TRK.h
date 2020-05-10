@@ -174,8 +174,6 @@ class TRK
         double priors(std::vector <double> allparams);
         double posterior(std::vector <double> allparams, std::vector <double> allparams_trial);
         double stDevUnweighted(std::vector <double> x);
-        double getMedian(std::vector<double> y);
-        double getMedian(int trueCount, std::vector<double> w, std::vector<double> y);
         double getAverage(std::vector <double> x, std::vector <double> w);
         double getAverage(std::vector <double> x);
         double min(double a, double b);
@@ -197,6 +195,7 @@ class TRK
         // MCMC/uncertainty calculation and RNG
         bool useLogPosterior = false;
         bool currentlyOptimizingProposal = false;
+        bool parallelizeAIES = false;
         double best_ratio = 0.325;
         double simplexSuperShrink = 1e-3;
         std::vector <double> allParamsFinalDeltas;
@@ -351,6 +350,8 @@ class TRK
         static double covid_y12;
         static bool covid_logModel;
         static double covid_s;
+        static double covid_t_split;
+        static double covid_tmed;
         static std::vector <double> covid_fixed_params;
 };
 
@@ -395,10 +396,13 @@ BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
 	return begin;
 };
 
+// non-object tools
 double noPrior(double param);
 
 std::vector <double> minMax(std::vector <double> vec);
 std::vector <int> argMinMax(std::vector <double> x);
+double getMedian(std::vector<double> y);
+double getMedian(int trueCount, std::vector<double> w, std::vector<double> y);
 
 double twoPointNR(double(*y)(double, std::vector <double>), double(*dy)(double, std::vector <double>), double(*ddy)(double, std::vector <double>), std::vector <double> params, double xguess, double xguessp1);
 
