@@ -8,7 +8,7 @@ double linear(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
-	return a0 + a1 * (x - TRK::pivot);
+	return a0 + a1 * (x - TRK::pivots[0]);
 }
 
 double dLinear(double x, std::vector <double> params) {
@@ -86,21 +86,21 @@ double powerlaw(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
-	return a0 * std::pow((x / std::pow(10.0, TRK::pivot)), a1);
+	return a0 * std::pow((x / std::pow(10.0, TRK::pivots[0])), a1);
 }
 
 double dPowerlaw(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
-	return std::pow(10.0, -1.0*TRK::pivot) * a0 * a1 * std::pow(std::pow(10.0, -TRK::pivot) * x, a1 - 1.0);
+	return std::pow(10.0, -1.0*TRK::pivots[0]) * a0 * a1 * std::pow(std::pow(10.0, -TRK::pivots[0]) * x, a1 - 1.0);
 }
 
 double ddPowerlaw(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
-	return std::pow(10.0, -2.0*TRK::pivot) * a0 * (a1 - 1.0) * a1 * std::pow(std::pow(10.0, -TRK::pivot) * x, a1 - 2.0);
+	return std::pow(10.0, -2.0*TRK::pivots[0]) * a0 * (a1 - 1.0) * a1 * std::pow(std::pow(10.0, -TRK::pivots[0]) * x, a1 - 2.0);
 }
 
 
@@ -118,21 +118,21 @@ double exponential(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
-	return a0 * std::pow(10, a1*(x - TRK::pivot));
+	return a0 * std::pow(10, a1*(x - TRK::pivots[0]));
 }
 
 double dExponential(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
-	return std::pow(10, a1*(x - TRK::pivot)) * a0 * a1 * std::log(10.0);
+	return std::pow(10, a1*(x - TRK::pivots[0])) * a0 * a1 * std::log(10.0);
 }
 
 double ddExponential(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
 
-	return std::pow(10, a1*(x - TRK::pivot)) * a0 * std::pow(a1, 2.0) * std::pow(std::log(10.0) , 2.0);
+	return std::pow(10, a1*(x - TRK::pivots[0])) * a0 * std::pow(a1, 2.0) * std::pow(std::log(10.0) , 2.0);
 }
 
 double exponentialIntercept(std::vector <double> params){
@@ -149,7 +149,7 @@ double logarithmic(double x, std::vector <double> params) {
 	double a0 = params[0];
     double a1 = params[0];
 
-	return a0 + a1 * std::log10(x/TRK::pivot);
+	return a0 + a1 * std::log10(x/TRK::pivots[0]);
 }
 
 double dLogarithmic(double x, std::vector <double> params) {
@@ -181,7 +181,7 @@ double c1c2(double c2, std::vector <double> params) {
     double bc1 = params[0];
     double mc1 = params[1];
 
-    return bc1 + mc1*(c2 - TRK::pivot);
+    return bc1 + mc1*(c2 - TRK::pivots[0]);
 }
 
 double dc1c2(double c2, std::vector <double> params) {
@@ -203,7 +203,7 @@ double bhc2(double c2, std::vector <double> params) {
     double b2BH = params[2];
     double theta2BH = params[3];
 
-    return -std::log(std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2)));
+    return -std::log(std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivots[0])) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivots[1])));
 }
 
 double dbhc2(double c2, std::vector <double> params) {
@@ -213,8 +213,8 @@ double dbhc2(double c2, std::vector <double> params) {
     double b2BH = params[2];
     double theta2BH = params[3];
 
-    double top = -std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2))*std::tan(theta2BH);
-    double bottom = std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2));
+    double top = -std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivots[0]))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivots[1]))*std::tan(theta2BH);
+    double bottom = std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivots[0])) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivots[1]));
 
     return -top/bottom;
 }
@@ -226,11 +226,11 @@ double ddbhc2(double c2, std::vector <double> params) {
     double b2BH = params[2];
     double theta2BH = params[3];
 
-    double top1 = std::pow(-std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2))*std::tan(theta2BH), 2.0);
-    double bottom1 = std::pow(std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2)), 2.0);
+    double top1 = std::pow(-std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivots[0]))*std::tan(theta1BH) - std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivots[1]))*std::tan(theta2BH), 2.0);
+    double bottom1 = std::pow(std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivots[0])) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivots[1])), 2.0);
 
-    double top2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot))*std::pow(std::tan(theta1BH), 2.0) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2))*std::pow(std::tan(theta2BH), 2.0);
-    double bottom2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivot)) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivot2));
+    double top2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivots[0]))*std::pow(std::tan(theta1BH), 2.0) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivots[1]))*std::pow(std::tan(theta2BH), 2.0);
+    double bottom2 = std::exp(-b1BH - std::tan(theta1BH)*(c2 - TRK::pivots[0])) + std::exp(-b2BH - std::tan(theta2BH)*(c2 - TRK::pivots[1]));
 
     return top1 / bottom1 - top2 / bottom2;
 }
@@ -260,7 +260,7 @@ double rvc2(double c2, std::vector <double> params) {
     double b2RV = params[2];
     double theta2RV = params[3];
 
-    return std::log(std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2)));
+    return std::log(std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivots[0])) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivots[1])));
 }
 
 double drvc2(double c2, std::vector <double> params) {
@@ -270,8 +270,8 @@ double drvc2(double c2, std::vector <double> params) {
     double b2RV = params[2];
     double theta2RV = params[3];
 
-    double top = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2))*std::tan(theta2RV);
-    double bottom = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2));
+    double top = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivots[0]))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivots[1]))*std::tan(theta2RV);
+    double bottom = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivots[0])) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivots[1]));
 
     return top / bottom;
 }
@@ -283,11 +283,11 @@ double ddrvc2(double c2, std::vector <double> params) {
     double b2RV = params[2];
     double theta2RV = params[3];
 
-    double top1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2))*std::tan(theta2RV), 2.0);
-    double bottom1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2)), 2.0);
+    double top1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivots[0]))*std::tan(theta1RV) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivots[1]))*std::tan(theta2RV), 2.0);
+    double bottom1 = std::pow(std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivots[0])) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivots[1])), 2.0);
 
-    double top2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot))*std::pow(std::tan(theta1RV), 2.0) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2))*std::pow(std::tan(theta2RV), 2.0);
-    double bottom2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivot)) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivot2));
+    double top2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivots[0]))*std::pow(std::tan(theta1RV), 2.0) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivots[1]))*std::pow(std::tan(theta2RV), 2.0);
+    double bottom2 = std::exp(b1RV + std::tan(theta1RV)*(c2 - TRK::pivots[0])) + std::exp(b2RV + std::tan(theta2RV)*(c2 - TRK::pivots[1]));
 
     return -(top1 / bottom1) + top2 / bottom2;
 }
@@ -321,8 +321,8 @@ double covid19_BL(double t, std::vector <double> params) {
     
     double s = params[4];
     
-    double y1 = a1 + b1*(t - TRK::pivot);
-    double y2 = a2 + b2*(t - TRK::pivot2);
+    double y1 = a1 + b1*(t - TRK::pivots[0]);
+    double y2 = a2 + b2*(t - TRK::pivots[1]);
 
 //    return std::pow(std::pow(y1,s) + std::pow(y2, s), 1/s);
     
@@ -350,6 +350,14 @@ double covid19_BL_Slope2(std::vector <double> params){
     return params[3];
 }
 
+double covid19_BL_Intercept3(std::vector <double> params){
+    return params[4];
+}
+
+double covid19_BL_Slope3(std::vector <double> params){
+    return params[5];
+}
+
 // fixed at s=infty
 double covid19_BL_fixed(double t, std::vector <double> params) {
     double a1 = params[0];
@@ -358,8 +366,8 @@ double covid19_BL_fixed(double t, std::vector <double> params) {
     double a2 = params[2];
     double b2 = params[3];
     
-    double y1 = a1 + b1*(t - TRK::pivot);
-    double y2 = a2 + b2*(t - TRK::pivot2);
+    double y1 = a1 + b1*(t - TRK::pivots[0]);
+    double y2 = a2 + b2*(t - TRK::pivots[1]);
 
 //    return std::pow(std::pow(y1,s) + std::pow(y2, s), 1/s);
     
@@ -384,8 +392,8 @@ double covid19_BL_line2fixed(double t, std::vector <double> params) {
     
     double s = 1.0;
     
-    double y1 = a1 + b1*(t - TRK::pivot);
-    double y2 = a2 + b2*(t - TRK::pivot2);
+    double y1 = a1 + b1*(t - TRK::pivots[0]);
+    double y2 = a2 + b2*(t - TRK::pivots[1]);
 
 //    return std::pow(std::pow(y1,s) + std::pow(y2, s), 1/s);
     
@@ -404,10 +412,10 @@ double covid19_PW(double t, std::vector <double> params) {
     double m1 = params[1];
     double m2 = params[2];
     if ( t <=12 ){
-        return b + m1 * (t - TRK::pivot);
+        return b + m1 * (t - TRK::pivots[0]);
     }
     else {
-        return b + m1 * (12 - TRK::pivot) + m2 * (t-12);
+        return b + m1 * (12 - TRK::pivots[0]) + m2 * (t-12);
     }
 }
 
@@ -437,8 +445,8 @@ double covid19_BL_oscil(double t, std::vector <double> params) {
     
     double s = params[4];
     
-    double y1 = b1 + m1*(t - TRK::pivot);
-    double y2 = b2 + m2*(t - TRK::pivot2);
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
 
     double A = params[5];
     double t0 = params[6];
@@ -473,8 +481,8 @@ double covid19_BL_oscil_fixed(double t, std::vector <double> params) {
     double b2 = params[2];
     double m2 = params[3];
     
-    double y1 = b1 + m1*(t - TRK::pivot);
-    double y2 = b2 + m2*(t - TRK::pivot2);
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
     
     double s = TRK::covid_fixed_params[0];
     double A = TRK::covid_fixed_params[1];
@@ -510,8 +518,8 @@ double covid19_BL_oscil_fixed_s(double t, std::vector <double> params) {
     double b2 = params[2];
     double m2 = params[3];
     
-    double y1 = b1 + m1*(t - TRK::pivot);
-    double y2 = b2 + m2*(t - TRK::pivot2);
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
     
     double s = TRK::covid_s;
     
@@ -551,8 +559,8 @@ double covid19_BL_oscil_split(double t, std::vector <double> params) {
     
     double s = params[4];
     
-    double y1 = b1 + m1*(t - TRK::pivot);
-    double y2 = b2 + m2*(t - TRK::pivot2);
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
 
     double A = params[5];
     double t0 = params[6];
@@ -600,8 +608,8 @@ double covid19_BL_oscil_split_all_fixed(double t, std::vector <double> params) {
     
     double s = TRK::covid_s;
     
-    double y1 = b1 + m1*(t - TRK::pivot);
-    double y2 = b2 + m2*(t - TRK::pivot2);
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
 
     double A = 0.1;
     double t0 = 3.25;
@@ -649,8 +657,8 @@ double covid19_BL_oscil_split_fixed(double t, std::vector <double> params) {
 
     double s = TRK::covid_s;
 
-    double y1 = b1 + m1*(t - TRK::pivot);
-    double y2 = b2 + m2*(t - TRK::pivot2);
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
 
     double A = params[4];
     double t0 = params[5];
@@ -709,8 +717,8 @@ double covid19_BL_oscil_poly(double t, std::vector <double> params) {
     
     double s = params[4];
     
-    double y1 = b1 + m1*(t - TRK::pivot);
-    double y2 = b2 + m2*(t - TRK::pivot2);
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
 
     std::vector <double> A_coefs, t0_coefs, c_coefs;
     int D = (int) (params.size() - 5) / 3; // polynomial order
@@ -741,6 +749,11 @@ double covid19_BL_oscil_poly(double t, std::vector <double> params) {
         ret = std::log10(line) + std::log10(f);
     }
     
+    if (std::isnan(ret)){
+        double x = 0.0;
+        x += 1.0;
+    }
+    
     return ret;
 }
 
@@ -753,8 +766,8 @@ double covid19_BL_oscil_poly_fixed(double t, std::vector <double> params) {
     
     double s = TRK::covid_s;
     
-    double y1 = b1 + m1*(t - TRK::pivot);
-    double y2 = b2 + m2*(t - TRK::pivot2);
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
 
     std::vector <double> A_coefs, t0_coefs, c_coefs;
     int D = (int) (params.size() - 4) / 3; // polynomial order
@@ -787,3 +800,108 @@ double covid19_BL_oscil_poly_fixed(double t, std::vector <double> params) {
     
     return ret;
 }
+
+double covid19_BL_oscil_poly_fixedoscil(double t, std::vector <double> params) {
+    params = concat(params, TRK::covid_fixed_params);
+    
+    double b1 = params[0];
+    double m1 = params[1];
+
+    double b2 = params[2];
+    double m2 = params[3];
+    
+    double s = params[4];
+    
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
+
+    std::vector <double> A_coefs, t0_coefs, c_coefs;
+    int D = (int) (params.size() - 5) / 3; // polynomial order
+    for (int d = 0; d < D; d++){
+        A_coefs.push_back(params[5 + d]);
+        t0_coefs.push_back(params[5 + D + d]);
+        c_coefs.push_back(params[5 + 2*D + d]);
+    }
+    
+    double A = covid19_polynomial(t, TRK::covid_tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::covid_tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::covid_tmed, c_coefs);
+    double a2 = 3.0/7.0 * (1 - c);
+    double a3 = a2 * -2.0 / 21.0;
+    
+    double line = (1/s) * std::log(std::exp(s*y1) + std::exp(s*y2));
+    
+    double h, p, g, f;
+    h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
+    p = c * std::fmod(t - t0, 7) + a2 * std::pow(std::fmod(t - t0, 7), 2.0) + a3 * std::pow(std::fmod(t - t0, 7), 3.0);
+    g = std::cos(2.0 * PI * p / 7.0);
+    f = 1.0 + A * g * h;
+    
+    
+    double ret = line*f;
+    
+    if (TRK::covid_logModel){
+        ret = std::log10(line) + std::log10(f);
+    }
+    
+//    if (std::isnan(ret)){
+//        printf("ouch\n");
+//    }
+    
+    return ret;
+}
+
+// 3 broken line model with polynomial oscillation frequency
+double covid19_3BLPO(double t, std::vector <double> params){
+    double b1 = params[0];
+    double m1 = params[1];
+
+    double b2 = params[2];
+    double m2 = params[3];
+    
+    double b3 = params[4];
+    double m3 = params[5];
+    
+    double s = params[6];
+    
+    double y1 = b1 + m1*(t - TRK::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::pivots[1]);
+    double y3 = b3 + m3*(t - TRK::pivots[2]);
+
+    std::vector <double> A_coefs, t0_coefs, c_coefs;
+    int D = (int) (params.size() - 7) / 3; // polynomial order
+    for (int d = 0; d < D; d++){
+        A_coefs.push_back(params[7 + d]);
+        t0_coefs.push_back(params[7 + D + d]);
+        c_coefs.push_back(params[7 + 2*D + d]);
+    }
+    
+    double A = covid19_polynomial(t, TRK::covid_tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::covid_tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::covid_tmed, c_coefs);
+    double a2 = 3.0/7.0 * (1 - c);
+    double a3 = a2 * -2.0 / 21.0;
+    
+    double line = (1/s) * std::log(std::exp(s*y1) + std::exp(s*y2) + std::exp(s*y3));
+    
+    double h, p, g, f;
+    h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
+    p = c * std::fmod(t - t0, 7) + a2 * std::pow(std::fmod(t - t0, 7), 2.0) + a3 * std::pow(std::fmod(t - t0, 7), 3.0);
+    g = std::cos(2.0 * PI * p / 7.0);
+    f = 1.0 + A * g * h;
+    
+    
+    double ret = line*f;
+    
+    if (TRK::covid_logModel){
+        ret = std::log10(line) + std::log10(f);
+    }
+    
+    if (std::isnan(ret)){
+        double x = 0.0;
+        x += 1.0;
+    }
+    
+    return ret;
+}
+

@@ -18,7 +18,7 @@ const std::vector <double> SIGMAS = { 0.682639, 0.954500, 0.997300 };
 
 enum whichScaleExtrema{ S, slopx, slopy, none };
 
-enum priorTypes { CUSTOM, GAUSSIAN, CONSTRAINED, MIXED};
+enum priorTypes { CUSTOM, CUSTOM_JOINT, GAUSSIAN, CONSTRAINED, MIXED};
 
 enum samplingMethod {ARWMH, AIES};   // Adaptive Random Walk Metropolis Hastings, and Affine Invariant Ensemble Sampler
 
@@ -28,14 +28,15 @@ public:
 	//constructors:
 	Priors(priorTypes priorType, std::vector < std::vector <double> > params); //Only Gaussian or only bounded/constrained
 	Priors(priorTypes priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds); //mixed
-	Priors(priorTypes priorType, std::vector <double(*)(double)> priorsPDFs); //custom
+	Priors(priorTypes priorType, std::vector <double(*)(double)> priorsPDFs); // custom
+    Priors(priorTypes priorType, double(*jointPriorsPDF)(std::vector <double>));// custom joint
 	Priors();
 
 	priorTypes priorType;
 	std::vector < std::vector <double> > gaussianParams; // a vector that contains a vector of mu and sigma for the guassian prior of each param. If no prior, then just use NANs for one or both mu and sigma
 	std::vector < std::vector <double> > paramBounds; // a vector that contains vectors of the bounds of each param. If not bounded, use NANs, and if there's only one bound, use NAN for the other "bound".
-	std::vector <double(*)(double)> priorsPDFs; //a vector that contains (pointers to) the custom prior probability distribution functions for each parameter. If no prior (uninformative) for a parameter, use the function noPrior()
-
+	std::vector <double(*)(double)> priorsPDFs; // a vector that contains (pointers to) the custom prior probability distribution functions for each parameter. If no prior (uninformative) for a parameter, use the function noPrior()
+    double (*jointPriorsPDF)(std::vector <double>); // a pointer to a function that is the joint prior probability, i.e. it takes an argument of a vector of the model params (including slop, last), and returns the joint prior.
 };
 
 struct Results
@@ -44,9 +45,8 @@ struct Results
 		double slop_x;
 		double slop_y;
 		double optimumScale, minimumScale, maximumScale;
-        double pivot;
-        double pivot2;
-        double chisquared; // not exactly chi-squared; really -2ln L 
+        double chisquared; // not exactly chi-squared; really -2ln L
+        std::vector <double> pivots;
         std::vector <double> bestFitParams;
 		std::vector < std::vector <double> > slopX_123Sigmas;
 		std::vector < std::vector <double> > slopY_123Sigmas;
@@ -218,6 +218,7 @@ class TRK
     
         
         // pivot points
+//        bool refit_newPivot = true;
         bool getCombosFromSampleDirectly = true;
         bool weightPivots = true;
         bool pivotMedian = false;
@@ -227,6 +228,7 @@ class TRK
         bool pivotHalfSampleMode= false;
         bool modeInterceptGuess = false;
         bool averageIntercepts = false;
+        int P; // number of pivot points
         int pivotR = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
         int randomSampleCount = 450;
         int maxCombos = 10000; // 50,000 seems sufficient, but 100,000 works for sure
@@ -240,12 +242,11 @@ class TRK
         void findPivots();
         void getPivotGuess();
         void getCombos(std::vector <std::vector <double> > total, int k, int offset);
-        double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot);
-        double weightPivot2(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot);
-        double pivotFunc(std::vector <double> params1, std::vector <double> params2);
-        double pivotFunc2(std::vector <double> params1, std::vector <double> params2); // for two-pivot models
-        std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
+        double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot, int p);
+        double pivotFunc(std::vector <double> params1, std::vector <double> params2, int p);
+        std::vector <double> findNTiles(int Q);
         std::vector <double> removeOutlierPivots(std::vector <double> pivots);
+        std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
 
 
         // OTHER TOOLS
@@ -302,31 +303,31 @@ class TRK
 		// results
 		Results results;
     
-    
-        // asymmetric uncertainties
-        double slop_x_minus_guess = -1.0;  // negative asymmetric slop
-        double slop_y_minus_guess = -1.0;
-        std::vector <double> sx_minus, sy_minus; // negative asymmetric error bars
+
 
     
-		// iterative tolerances
-		double simplexTol = 1e-5;
+		// fitting
+		double simplexTol = 1e-5;  // downhill simplex fitting tolerance
+        int max_simplex_iters = 10000;   // maximum number of iterations for downhill simplex
+        std::vector <double> fixed_allparams;
+        
 
 
 		// MCMC/uncertainty calculation and RNG
 		int R = 50000; // MCMC sample size (excluding burn-in)
 		int burncount = 5000; // MCMC "burn in" count
     
+        // asymmetric uncertainties
+        double slop_x_minus_guess = -1.0;  // negative asymmetric slop
+        double slop_y_minus_guess = -1.0;
+        std::vector <double> sx_minus, sy_minus; // negative asymmetric error bars
+    
 
 		// pivot points / linearized model parameter correlation removal
-        bool twoPivots = false; // two pivot points in the model?
-        static double pivot;
-        static double pivot2; // for two-pivot models
+        static std::vector <double> pivots; // pivot point(s)
         int maxPivotIter = 5; // 5 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
-        double (*linearizedIntercept)(std::vector <double>);
-        double (*linearizedSlope)(std::vector <double>);
-        double (*linearizedIntercept2)(std::vector <double>); // for two-pivot point models, e.g. broken-linear (experimental)
-        double (*linearizedSlope2)(std::vector <double>);
+        std::vector <double(*)(std::vector <double>)> pivot_intercept_functions;
+        std::vector <double(*)(std::vector <double>)> pivot_slope_functions;
     
         
 		// SETTINGS
@@ -345,7 +346,7 @@ class TRK
         bool verbosePivotPoints = false; // show pivot point finding steps
     
         // TESTING
-        bool writePivots = false;
+        bool writePivots = false; //outputs pivot point sampling results for single-pivot case
         bool covid19 = false;   // for covid19 fits
         static double covid_y12;
         static bool covid_logModel;
@@ -353,6 +354,7 @@ class TRK
         static double covid_t_split;
         static double covid_tmed;
         static std::vector <double> covid_fixed_params;
+        bool refit_newPivot = false;
 };
 
 //global functions

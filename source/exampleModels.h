@@ -87,6 +87,8 @@ double covid19_BL_Intercept1(std::vector <double> params);
 double covid19_BL_Slope1(std::vector <double> params);
 double covid19_BL_Intercept2(std::vector <double> params);
 double covid19_BL_Slope2(std::vector <double> params);
+double covid19_BL_Intercept3(std::vector <double> params);
+double covid19_BL_Slope3(std::vector <double> params);
 
 // with fixed s
 double covid19_BL_fixed(double t, std::vector <double> params);
@@ -102,6 +104,7 @@ double covid19_PW_Slope1(std::vector <double> params);
 double covid19_PW_Intercept2(std::vector <double> params);
 double covid19_PW_Slope2(std::vector <double> params);
 
+
 // oscillating model to account for weekend variability
 double covid19_BL_oscil(double t, std::vector <double> params);
 double covid19_BL_oscil_fixed(double t, std::vector <double> params);
@@ -113,3 +116,7 @@ double covid19_BL_oscil_split_all_fixed(double t, std::vector <double> params);
 double covid19_polynomial(double t, double t0, std::vector <double> p);
 double covid19_BL_oscil_poly(double t, std::vector <double> params);
 double covid19_BL_oscil_poly_fixed(double t, std::vector <double> params);
+double covid19_BL_oscil_poly_fixedoscil(double t, std::vector <double> params);
+
+// 3 Broken Line model with Polynomial Oscillation frequency
+double covid19_3BLPO(double t, std::vector <double> params);
