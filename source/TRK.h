@@ -16,11 +16,15 @@
 const double PI = 3.1415926535897932384626434;
 const std::vector <double> SIGMAS = { 0.682639, 0.954500, 0.997300 };
 
-enum whichScaleExtrema{ S, slopx, slopy, none };
+enum whichScaleExtrema{ S, slopx, slopy, NONE };
 
 enum priorTypes { CUSTOM, CUSTOM_JOINT, GAUSSIAN, CONSTRAINED, MIXED};
 
 enum samplingMethod {ARWMH, AIES};   // Adaptive Random Walk Metropolis Hastings, and Affine Invariant Ensemble Sampler
+
+enum pivotPointFindingMethod {DIST, REGRESSION};  // Distribution generation, vs. regression of confidence ellipse
+
+enum ParallelizationBackEnd {CPP11, OPENMP};
 
 class Priors
 {
@@ -41,17 +45,17 @@ public:
 
 struct Results
 {
-	public:
-		double slop_x;
-		double slop_y;
-		double optimumScale, minimumScale, maximumScale;
+    public:
+        double slop_x;
+        double slop_y;
+        double optimumScale, minimumScale, maximumScale;
         double chisquared; // not exactly chi-squared; really -2ln L
         std::vector <double> pivots;
         std::vector <double> bestFitParams;
-		std::vector < std::vector <double> > slopX_123Sigmas;
-		std::vector < std::vector <double> > slopY_123Sigmas;
+        std::vector < std::vector <double> > slopX_123Sigmas;
+        std::vector < std::vector <double> > slopY_123Sigmas;
         std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
-		std::vector < std::vector < std::vector <double> > > paramDistributionHistograms; // vector: {bins, edges}
+        std::vector < std::vector < std::vector <double> > > paramDistributionHistograms; // vector: {bins, edges}
     
         // asymmetric uncertainties:
         double slop_x_minus;
@@ -61,206 +65,370 @@ struct Results
 
 };
 
-class TRK
+class TRK // main class
 {
-    private:
-        // dataset
-        unsigned long bigM; //bigM is total number of model AND slop params
-        double datawidth, x_min, x_max;
-        std::vector <double> SigXVec, SigYVec;
-    
-        void getDataWidth();
-        void checkZeroErrorBars();
-    
-    
-        // downhill simplex (likelihood maximization)
-        double simplex_size = 0.1;
-    
-        double evalWPriors(double(TRK::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
-        std::vector <double> avoidNegativeSlop(std::vector <double> vertex, unsigned long n);
-        std::vector <double> pegToZeroSlop(std::vector <double> vertex);
-        std::vector <double> downhillSimplex(double(TRK::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s);
-        std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
-    
-    
-        // asymmetric uncertainties
-        bool hasAsymEB = false;
-        bool hasAsymSlop = false;
-    
-        void checkAsym();
-        double modifiedChiSquaredAsym(std::vector <double> allparams, double s);
-        double likelihoodAsym(std::vector <double> allparams);
-        double singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
-        double pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
-        double dunDxAsym(double mtn, std::vector <double> Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind, double s);
-        double zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_shifted, double yn_shifted, std::vector <double> shifts, double x_tn, double y_tn, double m_tn);
-        double findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
-        std::vector <double> getAsymShifts(std::vector <double> allparams, int n);
-        std::vector <double> getAsymSigs2(std::vector <double> allparams, int n);
-        std::vector <double> tangentParallelAsym(std::vector<double> allparams, int n, double s);
-        std::vector <double> tangentParallelLikelihoodAsym(std::vector<double> allparams, int n);
-    
-    
-        // fitting scales
-        double s, s_sx, s_sy;
-        double a, b;
-        whichScaleExtrema whichExtrema = none;
-        whichScaleExtrema whichExtremaX = none;
-        whichScaleExtrema whichExtremaY = none;
+    public:
+        // NESTED CLASSES
+        class Asymmetric    // Asymmetric Uncertainties
+        {
+            friend TRK;
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                Asymmetric(TRK &trk);
+                ~Asymmetric();
+            
+                // dataset
+                std::vector <double> sx_minus, sy_minus; // negative asymmetric error bars
+                
+                // guesses
+                double slop_x_minus_guess = -1.0;  // negative asymmetric slop
+                double slop_y_minus_guess = -1.0;
+            
+            
+            private:
+                // settings
+                bool hasAsymEB = false;
+                bool hasAsymSlop = false;
+                bool verbose = false; // show info/steps about asymmetric uncertainty fitting
+            
+                // likelihood/posterior/tangent points
+                double singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
+                double pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
+                double dunDxAsym(double mtn, std::vector <double> Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind, double s);
+                double zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_shifted, double yn_shifted, std::vector <double> shifts, double x_tn, double y_tn, double m_tn);
+                double findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
+                std::vector <double> getAsymShifts(std::vector <double> allparams, int n);
+                std::vector <double> getAsymSigs2(std::vector <double> allparams, int n);
+                std::vector <double> tangentParallelAsym(std::vector<double> allparams, int n, double s);
+                std::vector <double> tangentParallelLikelihoodAsym(std::vector<double> allparams, int n);
+            
+                // tools
+                void checkAsym();
+        };
 
-    
-        // iterative tolerances
-        double pegToZeroTol = 0.004;
-    
-    
-        // tangent points, parameters, and guesses
-        double slop_x_guess, slop_y_guess, slop_x_sigma_guess, slop_y_sigma_guess, slop_x_minus_sigma_guess, slop_y_minus_sigma_guess;
-        std::vector <double> x_t_slopx, x_t_slopy, x_t_a, x_t_b, x_t_s;
-        std::vector <double> params_slopx, params_slopy, params_a, params_b, params_s, allparams_s, iterative_allparams_guess;
-        std::vector <double> params_guess, params_sigmas_guess;
-        std::vector <double> allparams_guess, allparams_sigmas_guess;
+        class ScaleOptimization
+        {
+            friend TRK;
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                ScaleOptimization(TRK &trk);
+                ~ScaleOptimization();
+            
+                // fitting scales
+                double s, a, b;
+            
+            private:
+                // fitting scales
+                whichScaleExtrema whichExtrema = NONE;
+                whichScaleExtrema whichExtremaX = NONE;
+                whichScaleExtrema whichExtremaY = NONE;
+            
+                // iterative tolerances
+                double pegToZeroTol = 0.004;
+            
+                // guesses
+                bool firstGuess = true;
+                double slopYGuess;
+                double slopYScaleGuess = 1.0;
+                void getBetterSlopYGuess(double slop_y, double s);
+            
+                // optimization
+                std::vector <double (ScaleOptimization::*)()> optimizeList = {&ScaleOptimization::optimize_s_SlopX, &ScaleOptimization::optimize_s_SlopY};
+                
+                void optimizeScale();
+                double innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
+                double innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
+                double optimize_s_SlopX();
+                double optimize_s_SlopY();
+            
+                // TRK correlation coefficient
+                double innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> allparams_guess, double s0);
+                double iterateR2_OptimumScale(double s0);
+                double optimize_s0_R2();
+                double optimize_s_prime_R2(double s0);
+                double innerR2_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
+                double R2TRK_prime_as();
+                double R2TRK_prime_sb();
+                double R2TRK_prime_as0(double s0, std::vector <double> x_t_s0, std::vector <double> params_s0);
+                double R2TRK_prime_s0b(double s0, std::vector <double> x_t_s0, std::vector <double> params_s0);
+        };
 
-    
-        // scale optimization
-        bool firstGuess = true;
-        double slopYGuess;
-        double slopYScaleGuess = 1.0;
-        std::vector <double (TRK::*)()> optimizeList = {&TRK::optimize_s_SlopX, &TRK::optimize_s_SlopY};
-    
-        void getBetterSlopYGuess(double slop_y, double s);
-        void optimizeScale();
-        void getBetterGuess();
-        double innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
-        double innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
-        double innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> allparams_guess, double s0);
-        double iterateR2_OptimumScale(double s0);
-        double optimize_s_SlopX();
-        double optimize_s_SlopY();
-        double optimize_s0_R2();
-        double optimize_s_prime_R2(double s0);
-        double innerR2_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
-        double R2TRK_prime_as();
-        double R2TRK_prime_sb();
-        double R2TRK_prime_as0(double s0, std::vector <double> x_t_s0, std::vector <double> params_s0);
-        double R2TRK_prime_s0b(double s0, std::vector <double> x_t_s0, std::vector <double> params_s0);
-    
-    
-        // tangent point finding
-        double root_bound = 10;
-    
-        double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec, double s);
-        double twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1);
-        double newtonRaphson(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess);
-        std::vector <double> approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1);
-        std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
-        std::vector <double> tangentCubicSolver(double A, double B, double C, double D);
-        std::vector <double> tangentParallel(std::vector<double> params, double slop_x, double slop_y, int n, double s);
+        class TangentPointMethods
+        {
+            friend TRK;
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                TangentPointMethods(TRK &trk);
+                ~TangentPointMethods();
+            
+            private:
+                // settings
+                double root_bound = 10;
+                
+                // general
+                double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec, double s);
+                double twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1);
+                double newtonRaphson(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess);
+                std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
+                std::vector <double> approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1);
+                std::vector <double> tangentCubicSolver(double A, double B, double C, double D);
+                std::vector <double> tangentParallel(std::vector<double> params, double slop_x, double slop_y, int n, double s);
+                std::vector <double> tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n);
+        };
 
-    
-        //statistics
-        bool hasPriors;
-        Priors priorsObject;
+        class Statistics
+        {
+            friend TRK;
+            TRK &trk; // parent class
         
-        bool isEqual(double x, double y, double maxRelativeError, double maxAbsoluteError);
-        double regularChiSquared(std::vector <double> params);
-        double regularChiSquaredWSlop(std::vector <double> allparams, double s);
-        double modifiedChiSquared(std::vector <double> allparams, double s);
-        double normal(double x, double mu, double sig);
-        double stretch_pdf(double z, double a);
-        double cmNorm(double z); //cumulative unit normal
-        double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s);
-        double likelihood(std::vector <double> allparams);
-        double likelihood1D(std::vector <double> allparams);
-        double priors(std::vector <double> allparams);
-        double posterior(std::vector <double> allparams, std::vector <double> allparams_trial);
-        double stDevUnweighted(std::vector <double> x);
-        double getAverage(std::vector <double> x, std::vector <double> w);
-        double getAverage(std::vector <double> x);
-        double min(double a, double b);
-        double max(double a, double b);
-        double getMode(int trueCount, std::vector<double> w, std::vector<double> y);
-        std::vector <std::vector <double> > getHistogram(std::vector <double> data);
-        std::vector <std::vector <double> > getHistogram(std::vector <double> data, std::vector <double> weights);
-        std::vector <double> tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n);
-    
+            public:
+                // constructors/destructor
+                Statistics(TRK &trk);
+                ~Statistics();
+            
+            private:
+                // function pointers
+                double (Statistics::*selectedChiSq)(std::vector <double>, double) = &Statistics::modifiedChiSquared;
+                double (Statistics::*selectedLikelihood)(std::vector <double>) = &Statistics::likelihood;
+            
+                typedef double (TRK::Statistics::* statsfunc)(std::vector<double>);
+            
+                // priors
+                bool hasPriors;
+                Priors priorsObject;
+                double priors(std::vector <double> allparams);
+            
+                // regression
+                std::vector <double> simpleLinearRegression(std::vector <double> x, std::vector <double> y);
+            
+                // goodness of fit metrics
+                double regularChiSquared(std::vector <double> params);
+                double regularChiSquaredWSlop(std::vector <double> allparams, double s);
+                double modifiedChiSquared(std::vector <double> allparams, double s);
+            
+                // probability distributions
+                double normal(double x, double mu, double sig);
+                double cmNorm(double z); //cumulative unit normal
+                double stretch_pdf(double z, double a);
+                
+                // likelihoods and posteriors
+                double likelihood1D(std::vector <double> allparams);
+                double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s);
+                double likelihood(std::vector <double> allparams);
+            
+                // same but asymmetric uncertainties
+                double modifiedChiSquaredAsym(std::vector <double> allparams, double s);
+                double likelihoodAsym(std::vector <double> allparams);
+            
+                // statistics (in the literal sense)
+                double stDevUnweighted(std::vector <double> x);
+                double getAverage(std::vector <double> x, std::vector <double> w);
+                double getAverage(std::vector <double> x);
+                double getPeakCoord(std::vector <double> x, std::vector <double> w);
+                double min(double a, double b);
+                double max(double a, double b);
+                double getMode(int trueCount, std::vector<double> w, std::vector<double> y);
+            
+                // histograms
+                std::vector <std::vector <double> > getHistogram(std::vector <double> data);
+                std::vector <std::vector <double> > getHistogram(std::vector <double> data, std::vector <double> weights);
+        };
         
-        //function pointers
-        double (*yc)(double, std::vector <double>);
-        double (*dyc)(double, std::vector <double>);
-        double (*ddyc)(double, std::vector <double>);
-        double (TRK::*selectedChiSq)(std::vector <double>, double) = &TRK::modifiedChiSquared;
-        double (TRK::*selectedLikelihood)(std::vector <double>) = &TRK::likelihood;
-    
-    
-        // MCMC/uncertainty calculation and RNG
-        bool useLogPosterior = false;
-        bool currentlyOptimizingProposal = false;
-        bool parallelizeAIES = false;
-        double best_ratio = 0.325;
-        double simplexSuperShrink = 1e-3;
-        std::vector <double> allParamsFinalDeltas;
-        samplingMethod thisSamplingMethod = AIES;
-    
-        void calculateUncertainties();
-        void guessMCMCDeltas();
-        double innerMetHastSimplex(int burncount, std::vector <double> delta, double best_ratio);
-        double metHastRatio(std::vector <double> X_trial, std::vector <double> X_i);
-        double rnorm(double mu, double sig);
-        double runiform(double a, double b);
-        double rstretch(double a);
-        std::vector <double> pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex);
-        std::vector <double> optimizeMetHastDeltas(int burncount, std::vector <double> delta_guess);
-        std::vector <double> updateAIESWalker(std::vector <double> X, std::vector <std::vector <double> > YY);
-        std::vector <double> parallelUpdateAIESWalkers(std::vector <std::vector <double> > XX, std::vector <std::vector <double> > YY, int k);
-        std::vector <std::vector <double >> samplePosterior(int R, int burncount, std::vector <double> sigmas_guess);
-        std::vector <std::vector <double >> checkSlopSignMCMC(std::vector <std::vector <double >> result_final);
-        std::vector <std::vector <std::vector <double> > > lowerBar(std::vector <std::vector <double> > allparam_samples);
-    
-        
-        // pivot points
-//        bool refit_newPivot = true;
-        bool getCombosFromSampleDirectly = true;
-        bool weightPivots = true;
-        bool pivotMedian = false;
-        bool pivotMean = false;
-        bool pruneOutlierPivots = true;
-        bool pivotPointActive = false;
-        bool pivotHalfSampleMode= false;
-        bool modeInterceptGuess = false;
-        bool averageIntercepts = false;
-        int P; // number of pivot points
-        int pivotR = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
-        int randomSampleCount = 450;
-        int maxCombos = 10000; // 50,000 seems sufficient, but 100,000 works for sure
-        int pivotBurnIn = 1000;
-        double pivotTol = 1e-1;
-        double pruneWidth = 10.0;
-        std::vector <double> pivotPointParamsGuess;
-        std::vector < std::vector <double> > NDcombination;
-        std::vector < std::vector <std::vector <double > > > NDcombos;
+        class Fitting
+        {
+            friend TRK; // need TRK instances to be able to access private members of this
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                Fitting(TRK &trk);
+                ~Fitting();
+            
+                // settings
+                double simplexTol = 1e-5;  // downhill simplex fitting tolerance
+                int max_simplex_iters = 10000;   // maximum number of iterations for downhill simplex
+                bool showSimplexSteps = false;
+            
+            
+            private:
+                // downhill simplex method
+                void getBetterGuess();
+                double simplex_size = 0.1;
+                double evalWPriors(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
+                std::vector <double> avoidNegativeSlop(std::vector <double> vertex, unsigned long n);
+                std::vector <double> pegToZeroSlop(std::vector <double> vertex);
+                std::vector <double> downhillSimplex(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s);
+                std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
+        };
 
-        void findPivots();
-        void getPivotGuess();
-        void getCombos(std::vector <std::vector <double> > total, int k, int offset);
-        double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot, int p);
-        double pivotFunc(std::vector <double> params1, std::vector <double> params2, int p);
-        std::vector <double> findNTiles(int Q);
-        std::vector <double> removeOutlierPivots(std::vector <double> pivots);
-        std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
+        class MCMC
+        {
+            friend TRK;
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                MCMC(TRK &trk);
+                ~MCMC();
+            
+                // settings
+                int R = 50000; // MCMC sample size (excluding burn-in)
+                int burncount = 5000; // MCMC "burn in" count
+                bool verbose = false; // print MCMC steps
+            
+            private:
+                // settings
+                samplingMethod thisSamplingMethod = AIES;
+                bool useLogPosterior = false;
+                bool currentlyOptimizingProposal = false;
+                bool parallelizeAIES = false;
+                double best_ratio = 0.325;
+                double simplexSuperShrink = 1e-3;
+                
+                // uncertainty estimation
+                void calculateUncertainties();
+                std::vector <double> allParamsFinalDeltas;
+                std::vector <std::vector <std::vector <double> > > lowerBar(std::vector <std::vector <double> > allparam_samples);
+                
+                // sampling (general)
+                double metHastRatio(std::vector <double> X_trial, std::vector <double> X_i);
+                std::vector <std::vector <double >> samplePosterior(int R, int burncount, std::vector <double> sigmas_guess);
+                
+                // Affine Invariant Ensemble Sampler (AIES)
+                std::vector <double> updateAIESWalker(std::vector <double> X, std::vector <std::vector <double> > YY);
+                std::vector <double> parallelUpdateAIESWalkers(std::vector <std::vector <double> > XX, std::vector <std::vector <double> > YY, int k);
+                
+                // Adaptive Random Walk Metropolis Hastings (ARWMH) sampler
+                void guessARWMHDeltas();
+                std::vector <double> params_sigmas_guess, allparams_sigmas_guess;
+                double slop_x_sigma_guess, slop_y_sigma_guess, slop_x_minus_sigma_guess, slop_y_minus_sigma_guess;
+            
+                // RNG
+                double rnorm(double mu, double sig);
+                double runiform(double a, double b);
+                double rstretch(double a);
 
+                // tools
+                std::vector <double> pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex);
+                std::vector <std::vector <double >> checkSlopSignMCMC(std::vector <std::vector <double >> result_final);
+        };
 
-        // OTHER TOOLS
-        double getPeakCoord(std::vector <double> x, std::vector <double> w);
-        std::vector < std::vector <double> > transpose(std::vector < std::vector <double> > array);
-        void showResults(bool didScaleOp, bool didMCMC);
-        void checkVerbose();
-    
-    
-        // GENERAL SETTINGS
-        bool verboseAsymmetric = false; // show info/steps about asymmetric uncertainty fitting
-        int maxThreads = 8;
-        bool do1DFit = false; // does not need to be changed by the user, do 1D fits simply using the correct TRK constructor. Only used for testing
-    
+        class CorrelationRemoval
+        {
+            friend TRK;
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                CorrelationRemoval(TRK &trk);
+                ~CorrelationRemoval();
+            
+                // general
+                static std::vector <double> pivots; // pivot point(s) themselves; to be fixed pre-fitting if desired
+                std::vector <double(*)(std::vector <double>)> pivot_intercept_functions; // vector of functions that return intercept parameters(s) of corresponding pivot points
+                std::vector <double(*)(std::vector <double>)> pivot_slope_functions; // same, but for slope parameter(s)
+                
+                // settings
+                int maxPivotIter = 5; // Maximum number of iterations for the pivot point finder. 5 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
+                bool findPivotPoints = false;
+                bool verbose = false; // show pivot point finding steps
+            
+                // testing/experimental
+                bool writePivots = false; //outputs pivot point sampling results for single-pivot case
+                bool get_pivot_guess = false;
+            
+            private:
+                // settings
+                pivotPointFindingMethod thisPivotMethod = REGRESSION;
+                bool refit_newPivot = false;
+                bool getCombosFromSampleDirectly = true;
+                bool weightPivots = true;
+                bool pivotMedian = false;
+                bool pivotMean = false;
+                bool pivotHalfSampleMode= false;
+                bool pruneOutlierPivots = true;
+                bool pivotPointActive = false;
+                bool modeInterceptGuess = false;
+                int P; // number of pivot points
+                int pivotR = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
+                int randomSampleCount = 450;
+                int maxCombos = 10000; // 50,000 seems sufficient, but 100,000 works for sure
+                int pivotBurnIn = 1000;
+                double pivotTol = 1e-6;
+                double pruneWidth = 10.0;
+            
+                // combinations
+                std::vector < std::vector <double> > NDcombination;
+                std::vector < std::vector <std::vector <double > > > NDcombos;
+                void getCombos(std::vector <std::vector <double> > total, int k, int offset);
+                std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
+
+                // guesses
+                std::vector <double> pivotPointParamsGuess;
+                void getPivotGuess();
+            
+                // general
+                void findPivots();
+                double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot, int p);
+                double pivotFunc(std::vector <double> params1, std::vector <double> params2, int p);
+            
+                // tools
+                std::vector <double> findNTiles(int Q);
+                std::vector <double> removeOutlierPivots(std::vector <double> pivots);
+        };
+
+        class Settings
+        {
+            friend TRK;
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                Settings(TRK &trk);
+                ~Settings();
+            
+                // general settings
+                ParallelizationBackEnd ParallelizationBackEnd = CPP11;
+                int maxThreads = 8; // maximum threads for parallel processing
+            
+                // output settings
+                bool printResults = true;
+                bool outputDistributionToFile = false; // outputs MCMC-sampled parameter distribution to a text file (must specify path below)
+                std::string outputPath;
+                bool verbose = false; // turns on maximum verbosity for all portions of code (see e.g. MCMC.verbose and CorrelationRemoval.verbose for more specific settings)
+            
+            
+            private:
+                // general
+                bool do1DFit = false; // does not need to be changed by the user, do 1D fits simply using the correct TRK constructor. Only used for testing
+        };
+
+        class COVID19 // for covid19 fits
+        {
+            friend TRK;
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                COVID19(TRK &trk);
+                ~COVID19();
+            
+                // general
+                bool covid19fit = false;
+                static double covid_y12;
+                static bool covid_logModel;
+                static double covid_s;
+                static double covid_t_split;
+                static double covid_tmed;
+                static std::vector <double> covid_fixed_params;
+                static std::vector <double> covid_fixed_pivots;
+        };
     
 	public:
 		// CONSTRUCTORS
@@ -284,77 +452,68 @@ class TRK
         TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
     
 
-		// default constructor:
+		// default constructor and destructor;
 		TRK();
-
+        ~TRK();
+    
     
 		// dataset
         unsigned long N, M; // number of data points and number of model parameters, respectively (not including slop)
 		std::vector <double> x, y, sx, sy, w; //datapoints; errorbars
-
     
+        // modeling
+        std::vector <double> fixed_allparams;
+
 		// core algorithms
 		void performTRKFit(); //finds optimum scale AND calculates uncertainties
 		void performTRKFit(double scale); //perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this) and calculates uncertainties
 		void performSimpleTRKFit(); //finds optimum scale and and performs TRK fit but without finding uncertainties
         void performSimpleTRKFit(double scale); //given some scale, performs TRK fit without finding uncertainties.
 
-    
 		// results
 		Results results;
-    
-
-
-    
-		// fitting
-		double simplexTol = 1e-5;  // downhill simplex fitting tolerance
-        int max_simplex_iters = 10000;   // maximum number of iterations for downhill simplex
-        std::vector <double> fixed_allparams;
         
+        // instances of nested classes
+        Fitting fitting;
+        Asymmetric asymmetric;
+        ScaleOptimization scaleOptimization;
+        TangentPointMethods tangentPointMethods;
+        Statistics statistics;
+        MCMC mcmc;
+        CorrelationRemoval correlationRemoval;
+        Settings settings;
+        COVID19 covid19;
 
-
-		// MCMC/uncertainty calculation and RNG
-		int R = 50000; // MCMC sample size (excluding burn-in)
-		int burncount = 5000; // MCMC "burn in" count
     
-        // asymmetric uncertainties
-        double slop_x_minus_guess = -1.0;  // negative asymmetric slop
-        double slop_y_minus_guess = -1.0;
-        std::vector <double> sx_minus, sy_minus; // negative asymmetric error bars
+    private:
     
-
-		// pivot points / linearized model parameter correlation removal
-        static std::vector <double> pivots; // pivot point(s)
-        int maxPivotIter = 5; // 5 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
-        std::vector <double(*)(std::vector <double>)> pivot_intercept_functions;
-        std::vector <double(*)(std::vector <double>)> pivot_slope_functions;
+        // dataset
+        unsigned long bigM; //bigM is total number of model AND slop params
+        double datawidth, x_min, x_max;
+        std::vector <double> SigXVec, SigYVec;
+    
+        void getDataWidth();
+        void checkZeroErrorBars();
+    
+    
+        // guesses
+        double slop_x_guess, slop_y_guess;;
+        std::vector <double> x_t_slopx, x_t_slopy, x_t_a, x_t_b, x_t_s;
+        std::vector <double> params_slopx, params_slopy, params_a, params_b, params_s, allparams_s, iterative_allparams_guess;
+        std::vector <double> params_guess;
+        std::vector <double> allparams_guess;
     
         
-		// SETTINGS
-        bool findPivotPoints = false;
-		bool cpp17MultiThread = false; // should only have one of these multithread
-		bool cpp11MultiThread = true;
-		bool openMPMultiThread = false;
-        bool showSimplexSteps = false;
+        //function pointers
+        double (*yc)(double, std::vector <double>);
+        double (*dyc)(double, std::vector <double>);
+        double (*ddyc)(double, std::vector <double>);
     
-        // OUTPUT SETTINGS
-        bool printResults = true;
-        bool outputDistributionToFile = false; // outputs MCMC-sampled parameter distribution to a text file (must specify path below)
-        std::string outputPath;
-        bool verbose = false; // sets the below three to true automatically
-        bool verboseMCMC = false; // show MCMC steps
-        bool verbosePivotPoints = false; // show pivot point finding steps
-    
-        // TESTING
-        bool writePivots = false; //outputs pivot point sampling results for single-pivot case
-        bool covid19 = false;   // for covid19 fits
-        static double covid_y12;
-        static bool covid_logModel;
-        static double covid_s;
-        static double covid_t_split;
-        static double covid_tmed;
-        static std::vector <double> covid_fixed_params;
-        bool refit_newPivot = false;
+
+        // OTHER TOOLS
+        void showResults(bool didScaleOp, bool didMCMC);
+        void checkVerbose();
+        bool isEqual(double x, double y, double maxRelativeError, double maxAbsoluteError);
 };
 
 //global functions
@@ -398,16 +557,20 @@ BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
 	return begin;
 };
 
-// non-object tools
+// non-object tools:
+
+// mcmc
 double noPrior(double param);
 
+// statistics
 std::vector <double> minMax(std::vector <double> vec);
 std::vector <int> argMinMax(std::vector <double> x);
+std::vector <int> getSortedIndices(std::vector <double> x);
 double getMedian(std::vector<double> y);
 double getMedian(int trueCount, std::vector<double> w, std::vector<double> y);
 
+// numerical methods
 double twoPointNR(double(*y)(double, std::vector <double>), double(*dy)(double, std::vector <double>), double(*ddy)(double, std::vector <double>), std::vector <double> params, double xguess, double xguessp1);
-
 std::vector <double> cubicSolver(double A, double B, double C, double D);
 
 //for testing only
