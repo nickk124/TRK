@@ -121,6 +121,9 @@ class TRK // main class
                 // fitting scales
                 double s, a, b;
             
+                // settings
+                bool verbose = false;
+            
             private:
                 // fitting scales
                 whichScaleExtrema whichExtrema = NONE;
@@ -207,6 +210,10 @@ class TRK // main class
                 // regression
                 std::vector <double> simpleLinearRegression(std::vector <double> x, std::vector <double> y);
             
+                // correlation
+                double pearsonCorrelation(std::vector <double> x, std::vector <double> y);
+            
+            
                 // goodness of fit metrics
                 double regularChiSquared(std::vector <double> params);
                 double regularChiSquaredWSlop(std::vector <double> allparams, double s);
@@ -215,7 +222,7 @@ class TRK // main class
                 // probability distributions
                 double normal(double x, double mu, double sig);
                 double cmNorm(double z); //cumulative unit normal
-                double stretch_pdf(double z, double a);
+                double stretch_pdf(double z);
                 
                 // likelihoods and posteriors
                 double likelihood1D(std::vector <double> allparams);
@@ -301,6 +308,10 @@ class TRK // main class
                 std::vector <std::vector <double >> samplePosterior(int R, int burncount, std::vector <double> sigmas_guess);
                 
                 // Affine Invariant Ensemble Sampler (AIES)
+                bool printAIESWalkerEvolution = false;
+                int amt_walkers = 2; // number of walkers is amt_walkers * (number of parameters sampled)
+                double AIES_a = 2.0;
+                double AIES_initial_scaling = 1.0 / 10.0;
                 std::vector <double> updateAIESWalker(std::vector <double> X, std::vector <std::vector <double> > YY);
                 std::vector <double> parallelUpdateAIESWalkers(std::vector <std::vector <double> > XX, std::vector <std::vector <double> > YY, int k);
                 
@@ -335,7 +346,7 @@ class TRK // main class
                 std::vector <double(*)(std::vector <double>)> pivot_slope_functions; // same, but for slope parameter(s)
                 
                 // settings
-                int maxPivotIter = 5; // Maximum number of iterations for the pivot point finder. 5 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
+                int maxPivotIter = 100; // Maximum number of iterations for the pivot point finder. 5 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
                 bool findPivotPoints = false;
                 bool verbose = false; // show pivot point finding steps
             
@@ -346,7 +357,7 @@ class TRK // main class
             private:
                 // settings
                 pivotPointFindingMethod thisPivotMethod = REGRESSION;
-                bool refit_newPivot = false;
+                bool refit_newPivot = true;
                 bool getCombosFromSampleDirectly = true;
                 bool weightPivots = true;
                 bool pivotMedian = false;
@@ -354,12 +365,13 @@ class TRK // main class
                 bool pivotHalfSampleMode= false;
                 bool pruneOutlierPivots = true;
                 bool pivotPointActive = false;
-                bool modeInterceptGuess = false;
+            
                 int P; // number of pivot points
-                int pivotR = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
+                int sample_R = 20000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
                 int randomSampleCount = 450;
                 int maxCombos = 10000; // 50,000 seems sufficient, but 100,000 works for sure
-                int pivotBurnIn = 1000;
+                int sample_burnIn = 10000;
+            
                 double pivotTol = 1e-6;
                 double pruneWidth = 10.0;
             
@@ -375,6 +387,8 @@ class TRK // main class
             
                 // general
                 void findPivots();
+            
+                // find pivots by generating a distribution
                 double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot, int p);
                 double pivotFunc(std::vector <double> params1, std::vector <double> params2, int p);
             
@@ -421,13 +435,13 @@ class TRK // main class
             
                 // general
                 bool covid19fit = false;
-                static double covid_y12;
-                static bool covid_logModel;
-                static double covid_s;
-                static double covid_t_split;
-                static double covid_tmed;
-                static std::vector <double> covid_fixed_params;
-                static std::vector <double> covid_fixed_pivots;
+                static double y12;
+                static bool logModel;
+                static double s;
+                static double t_split;
+                static double tmed;
+                static std::vector <double> fixed_params;
+                static std::vector <double> fixed_pivots;
         };
     
 	public:

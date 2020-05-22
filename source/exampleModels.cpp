@@ -326,7 +326,7 @@ double covid19_BL(double t, std::vector <double> params) {
 
 //    return std::pow(std::pow(y1,s) + std::pow(y2, s), 1/s);
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         return std::log10((1/s) * std::log(std::exp(s*y1) + std::exp(s*y2)));
     }
     else {
@@ -371,9 +371,9 @@ double covid19_BL_fixed(double t, std::vector <double> params) {
 
 //    return std::pow(std::pow(y1,s) + std::pow(y2, s), 1/s);
     
-    double s = TRK::COVID19::covid_s;
+    double s = TRK::COVID19::s;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         return std::log10((1/s) * std::log(std::exp(s*y1) + std::exp(s*y2)));
     }
     else {
@@ -397,7 +397,7 @@ double covid19_BL_line2fixed(double t, std::vector <double> params) {
 
 //    return std::pow(std::pow(y1,s) + std::pow(y2, s), 1/s);
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         return std::log10((1/s) * std::log(std::exp(s*y1) + std::exp(s*y2)));
     }
     else {
@@ -428,7 +428,7 @@ double covid19_PW_Slope1(std::vector <double> params){
 }
 
 double covid19_PW_Intercept2(std::vector <double> params){
-    return TRK::COVID19::covid_y12;
+    return TRK::COVID19::y12;
 }
 
 double covid19_PW_Slope2(std::vector <double> params){
@@ -467,7 +467,7 @@ double covid19_BL_oscil(double t, std::vector <double> params) {
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     
@@ -484,10 +484,10 @@ double covid19_BL_oscil_fixed(double t, std::vector <double> params) {
     double y1 = b1 + m1*(t - TRK::CorrelationRemoval::pivots[0]);
     double y2 = b2 + m2*(t - TRK::CorrelationRemoval::pivots[1]);
     
-    double s = TRK::COVID19::covid_fixed_params[0];
-    double A = TRK::COVID19::covid_fixed_params[1];
-    double t0 = TRK::COVID19::covid_fixed_params[2];
-    double c = TRK::COVID19::covid_fixed_params[3];
+    double s = TRK::COVID19::fixed_params[0];
+    double A = TRK::COVID19::fixed_params[1];
+    double t0 = TRK::COVID19::fixed_params[2];
+    double c = TRK::COVID19::fixed_params[3];
     double a2 = 3.0/7.0 * (1 - c);
     double a3 = a2 * -2.0 / 21.0;
     
@@ -500,7 +500,7 @@ double covid19_BL_oscil_fixed(double t, std::vector <double> params) {
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     
@@ -521,7 +521,7 @@ double covid19_BL_oscil_fixed_s(double t, std::vector <double> params) {
     double y1 = b1 + m1*(t - TRK::CorrelationRemoval::pivots[0]);
     double y2 = b2 + m2*(t - TRK::CorrelationRemoval::pivots[1]);
     
-    double s = TRK::COVID19::covid_s;
+    double s = TRK::COVID19::s;
     
     double A = params[4];
     double t0 = params[5];
@@ -539,7 +539,7 @@ double covid19_BL_oscil_fixed_s(double t, std::vector <double> params) {
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     
@@ -577,7 +577,7 @@ double covid19_BL_oscil_split(double t, std::vector <double> params) {
     double line = (1/s) * std::log(std::exp(s*y1) + std::exp(s*y2));
     
     double h, p, g, f;
-    if (t <= TRK::COVID19::covid_t_split){
+    if (t <= TRK::COVID19::t_split){
         h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
         p = c * std::fmod(t - t0, 7) + a2 * std::pow(std::fmod(t - t0, 7), 2.0) + a3 * std::pow(std::fmod(t - t0, 7), 3.0);
         g = std::cos(2.0 * PI * p / 7.0);
@@ -592,7 +592,7 @@ double covid19_BL_oscil_split(double t, std::vector <double> params) {
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     
@@ -606,7 +606,7 @@ double covid19_BL_oscil_split_all_fixed(double t, std::vector <double> params) {
     double b2 = params[2];
     double m2 = params[3];
     
-    double s = TRK::COVID19::covid_s;
+    double s = TRK::COVID19::s;
     
     double y1 = b1 + m1*(t - TRK::CorrelationRemoval::pivots[0]);
     double y2 = b2 + m2*(t - TRK::CorrelationRemoval::pivots[1]);
@@ -626,7 +626,7 @@ double covid19_BL_oscil_split_all_fixed(double t, std::vector <double> params) {
     double line = (1/s) * std::log(std::exp(s*y1) + std::exp(s*y2));
     
     double h, p, g, f;
-    if (t <= TRK::COVID19::covid_t_split){
+    if (t <= TRK::COVID19::t_split){
         h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
         p = c * std::fmod(t - t0, 7) + a2 * std::pow(std::fmod(t - t0, 7), 2.0) + a3 * std::pow(std::fmod(t - t0, 7), 3.0);
         g = std::cos(2.0 * PI * p / 7.0);
@@ -641,7 +641,7 @@ double covid19_BL_oscil_split_all_fixed(double t, std::vector <double> params) {
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     
@@ -655,7 +655,7 @@ double covid19_BL_oscil_split_fixed(double t, std::vector <double> params) {
     double b2 = params[2];
     double m2 = params[3];
 
-    double s = TRK::COVID19::covid_s;
+    double s = TRK::COVID19::s;
 
     double y1 = b1 + m1*(t - TRK::CorrelationRemoval::pivots[0]);
     double y2 = b2 + m2*(t - TRK::CorrelationRemoval::pivots[1]);
@@ -675,7 +675,7 @@ double covid19_BL_oscil_split_fixed(double t, std::vector <double> params) {
     double line = (1/s) * std::log(std::exp(s*y1) + std::exp(s*y2));
 
     double h, p, g, f;
-    if (t <= TRK::COVID19::covid_t_split){
+    if (t <= TRK::COVID19::t_split){
         h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
         p = c * std::fmod(t - t0, 7) + a2 * std::pow(std::fmod(t - t0, 7), 2.0) + a3 * std::pow(std::fmod(t - t0, 7), 3.0);
         g = std::cos(2.0 * PI * p / 7.0);
@@ -690,7 +690,7 @@ double covid19_BL_oscil_split_fixed(double t, std::vector <double> params) {
 
     double ret = line*f;
 
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
 
@@ -728,9 +728,9 @@ double covid19_BL_oscil_poly(double t, std::vector <double> params) {
         c_coefs.push_back(params[5 + 2*D + d]);
     }
     
-    double A = covid19_polynomial(t, TRK::COVID19::covid_tmed, A_coefs);
-    double t0 = covid19_polynomial(t, TRK::COVID19::covid_tmed, t0_coefs);
-    double c = covid19_polynomial(t, TRK::COVID19::covid_tmed, c_coefs);
+    double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::COVID19::tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::COVID19::tmed, c_coefs);
     double a2 = 3.0/7.0 * (1 - c);
     double a3 = a2 * -2.0 / 21.0;
     
@@ -745,7 +745,7 @@ double covid19_BL_oscil_poly(double t, std::vector <double> params) {
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     
@@ -764,7 +764,7 @@ double covid19_BL_oscil_poly_fixed(double t, std::vector <double> params) {
     double b2 = params[2];
     double m2 = params[3];
     
-    double s = TRK::COVID19::covid_s;
+    double s = TRK::COVID19::s;
     
     double y1 = b1 + m1*(t - TRK::CorrelationRemoval::pivots[0]);
     double y2 = b2 + m2*(t - TRK::CorrelationRemoval::pivots[1]);
@@ -777,9 +777,9 @@ double covid19_BL_oscil_poly_fixed(double t, std::vector <double> params) {
         c_coefs.push_back(params[4 + 2*D + d]);
     }
     
-    double A = covid19_polynomial(t, TRK::COVID19::covid_tmed, A_coefs);
-    double t0 = covid19_polynomial(t, TRK::COVID19::covid_tmed, t0_coefs);
-    double c = covid19_polynomial(t, TRK::COVID19::covid_tmed, c_coefs);
+    double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::COVID19::tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::COVID19::tmed, c_coefs);
     double a2 = 3.0/7.0 * (1 - c);
     double a3 = a2 * -2.0 / 21.0;
     
@@ -794,7 +794,7 @@ double covid19_BL_oscil_poly_fixed(double t, std::vector <double> params) {
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     
@@ -802,7 +802,7 @@ double covid19_BL_oscil_poly_fixed(double t, std::vector <double> params) {
 }
 
 double covid19_BL_oscil_poly_fixedoscil(double t, std::vector <double> params) {
-    params = concat(params, TRK::COVID19::covid_fixed_params);
+    params = concat(params, TRK::COVID19::fixed_params);
     
     double b1 = params[0];
     double m1 = params[1];
@@ -823,9 +823,9 @@ double covid19_BL_oscil_poly_fixedoscil(double t, std::vector <double> params) {
         c_coefs.push_back(params[5 + 2*D + d]);
     }
     
-    double A = covid19_polynomial(t, TRK::COVID19::covid_tmed, A_coefs);
-    double t0 = covid19_polynomial(t, TRK::COVID19::covid_tmed, t0_coefs);
-    double c = covid19_polynomial(t, TRK::COVID19::covid_tmed, c_coefs);
+    double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::COVID19::tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::COVID19::tmed, c_coefs);
     double a2 = 3.0/7.0 * (1 - c);
     double a3 = a2 * -2.0 / 21.0;
     
@@ -840,7 +840,7 @@ double covid19_BL_oscil_poly_fixedoscil(double t, std::vector <double> params) {
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     
@@ -877,9 +877,9 @@ double covid19_3BLPO(double t, std::vector <double> params){
         c_coefs.push_back(params[8 + 2*D + d]);
     }
     
-    double A = covid19_polynomial(t, TRK::COVID19::covid_tmed, A_coefs);
-    double t0 = covid19_polynomial(t, TRK::COVID19::covid_tmed, t0_coefs);
-    double c = covid19_polynomial(t, TRK::COVID19::covid_tmed, c_coefs);
+    double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::COVID19::tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::COVID19::tmed, c_coefs);
     double a2 = 3.0/7.0 * (1 - c);
     double a3 = a2 * -2.0 / 21.0;
     
@@ -894,7 +894,7 @@ double covid19_3BLPO(double t, std::vector <double> params){
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     
@@ -908,11 +908,11 @@ double covid19_3BLPO(double t, std::vector <double> params){
 
 double covid19_3BLPO_fixed(double t, std::vector <double> params){
 //    std::vector<double> _2BLparams = slice(params, 0, 6);
-//    std::vector <double> smoothingparams = TRK::COVID19::covid_fixed_params;
+//    std::vector <double> smoothingparams = TRK::COVID19::fixed_params;
 //    std::vector <double> polyparams = slice(params, 6, 18);
 //    params = concat(_2BLparams, concat(smoothingparams, polyparams));
     
-    params = concat(params, TRK::COVID19::covid_fixed_params);
+    params = concat(params, TRK::COVID19::fixed_params);
     
     double b1 = params[0];
     double m1 = params[1];
@@ -938,9 +938,9 @@ double covid19_3BLPO_fixed(double t, std::vector <double> params){
         c_coefs.push_back(params[8 + 2*D + d]);
     }
     
-    double A = covid19_polynomial(t, TRK::COVID19::covid_tmed, A_coefs);
-    double t0 = covid19_polynomial(t, TRK::COVID19::covid_tmed, t0_coefs);
-    double c = covid19_polynomial(t, TRK::COVID19::covid_tmed, c_coefs);
+    double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::COVID19::tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::COVID19::tmed, c_coefs);
     double a2 = 3.0/7.0 * (1 - c);
     double a3 = a2 * -2.0 / 21.0;
     
@@ -955,7 +955,7 @@ double covid19_3BLPO_fixed(double t, std::vector <double> params){
     
     double ret = line*f;
     
-    if (TRK::COVID19::covid_logModel){
+    if (TRK::COVID19::logModel){
         ret = std::log10(line) + std::log10(f);
     }
     

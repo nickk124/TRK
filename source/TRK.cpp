@@ -2,13 +2,13 @@
 
 
 std::vector <double> TRK::CorrelationRemoval::pivots = {};
-double TRK::COVID19::covid_y12 = 2.55;
-bool TRK::COVID19::covid_logModel = false;
-double TRK::COVID19::covid_s = 1.0;
-double TRK::COVID19::covid_t_split = 45.5;
-double TRK::COVID19::covid_tmed = 1.0;
-std::vector <double> TRK::COVID19::covid_fixed_params = {};
-std::vector <double> TRK::COVID19::covid_fixed_pivots = {};
+double TRK::COVID19::y12 = 2.55;
+bool TRK::COVID19::logModel = false;
+double TRK::COVID19::s = 1.0;
+double TRK::COVID19::t_split = 45.5;
+double TRK::COVID19::tmed = 1.0;
+std::vector <double> TRK::COVID19::fixed_params = {};
+std::vector <double> TRK::COVID19::fixed_pivots = {};
 
 // PRIORS
 
@@ -933,10 +933,6 @@ std::vector <double> TRK::Asymmetric::getAsymShifts(std::vector <double> allpara
         
         double pwr = eta <= 1 ? 0.7413 : -0.1268;
         deltayn = i * deltastr * std::sin(PI/2.0 * etap/xip) * std::pow(eta, pwr);
-        
-//        if (EBs[3] == slops[3] && EBs[1] > slops[1] && EBs[1] < EBs[3]){ //footnote case
-//            deltayn *= -1;
-//        }
     }
     
     // X SHIFT
@@ -989,10 +985,6 @@ std::vector <double> TRK::Asymmetric::getAsymShifts(std::vector <double> allpara
         
         double pwr = eta <= 1 ? 0.7413 : -0.1268;
         deltaxn = i * deltastr * std::sin(PI/2.0 * etap/xip) * std::pow(eta, pwr);
-        
-//        if (EBs[2] == slops[2] && EBs[0] > slops[0] && EBs[0] < EBs[2]){ //footnote case
-//            deltaxn *= -1;
-//        }
     }
     
     
@@ -1836,8 +1828,9 @@ double TRK::Statistics::normal(double x, double mu, double sig) {
 	return (std::exp((-0.5) * (std::pow((x - mu), 2.0) / (2.0 * std::pow(sig, 2.0)))) / std::sqrt(2.0*PI*std::pow(sig, 2.0)));
 }
 
-double TRK::Statistics::stretch_pdf(double z, double a) {
-    return z >= 1/a && z <= a ? 1.0/std::sqrt(z) : 0.0;
+double TRK::Statistics::stretch_pdf(double z) {
+    double a = trk.mcmc.AIES_a;
+    return (z >= 1/a && z <= a) ? 1.0/std::sqrt(z) : 0.0;
 }
 
 double TRK::Statistics::singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s) {
@@ -2435,14 +2428,16 @@ void TRK::ScaleOptimization::getBetterSlopYGuess(double slop_y, double s) {
 double TRK::ScaleOptimization::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
     trk.allparams_s = trk.fitting.downhillSimplex(trk.statistics.selectedChiSq, allparams_guess, ss[0]);
 
-    if (trk.asymmetric.hasAsymSlop){
-        printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(slop x optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
-    } else {
-        printf("s=%.3e \t slop_x=%.3e \t slop_y=%.3e \t(slop x optimization) model params: ", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
-        for (int j = 0; j < trk.M; j++){
-            printf("%.3e\t", trk.allparams_s[j]);
+    if (verbose){
+        if (trk.asymmetric.hasAsymSlop){
+            printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(slop x optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
+        } else {
+            printf("s=%.3e \t slop_x=%.3e \t slop_y=%.3e \t(slop x optimization) model params: ", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
+            for (int j = 0; j < trk.M; j++){
+                printf("%.3e\t", trk.allparams_s[j]);
+            }
+            printf("\n");
         }
-        printf("\n");
     }
     
 
@@ -2460,15 +2455,17 @@ double TRK::ScaleOptimization::innerSlopY_Simplex(std::vector <double> ss, std::
 
 	
     trk.allparams_s = trk.fitting.downhillSimplex(trk.statistics.selectedChiSq, allparams_guess, ss[0]);
-        
-    if (trk.asymmetric.hasAsymSlop){
-        printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(slop y optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
-    } else {
-        printf("s=%.3e \t slop_x=%.3e \t slop_y=%.3e \t(slop y optimization) model params: ", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
-        for (int j = 0; j < trk.M; j++){
-            printf("%.3e\t", trk.allparams_s[j]);
+    
+    if (verbose){
+        if (trk.asymmetric.hasAsymSlop){
+            printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(slop y optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
+        } else {
+            printf("s=%.3e \t slop_x=%.3e \t slop_y=%.3e \t(slop y optimization) model params: ", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
+            for (int j = 0; j < trk.M; j++){
+                printf("%.3e\t", trk.allparams_s[j]);
+            }
+            printf("\n");
         }
-        printf("\n");
     }
 
 	return trk.allparams_s[trk.M + 1];
@@ -2481,10 +2478,12 @@ double TRK::ScaleOptimization::innerR2_Simplex(std::vector <double> ss, std::vec
     trk.allparams_s = trk.fitting.downhillSimplex(trk.statistics.selectedChiSq, allparams_guess, ss[0]);
 	whichExtrema = NONE;
 
-	if (trk.asymmetric.hasAsymSlop){
-        printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(initial R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
-    } else {
-        printf("%.3e \t %.3e \t %.3e \t(initial R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
+    if (verbose){
+        if (trk.asymmetric.hasAsymSlop){
+            printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(initial R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
+        } else {
+            printf("%.3e \t %.3e \t %.3e \t(initial R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
+        }
     }
 
 	double R2as = R2TRK_prime_as();
@@ -2500,10 +2499,12 @@ double TRK::ScaleOptimization::innerR2_iter_Simplex(std::vector <double> ss, std
     trk.allparams_s = trk.fitting.downhillSimplex(trk.statistics.selectedChiSq, allparams_guess, ss[0]);
 	whichExtrema = NONE;
 
-	if (trk.asymmetric.hasAsymSlop){
-        printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(additional R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
-    } else {
-        printf("%.3e \t %.3e \t %.3e \t(additional R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
+    if (verbose){
+        if (trk.asymmetric.hasAsymSlop){
+            printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(additional R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
+        } else {
+            printf("%.3e \t %.3e \t %.3e \t(additional R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
+        }
     }
 
 	double R2as = R2TRK_prime_as0(s0, trk.x_t_s, trk.params_s);
@@ -3005,7 +3006,7 @@ void TRK::ScaleOptimization::optimizeScale() {
 
 	//determine best s1 (new s) to satistfy R2TRKp(a,s) = R2TRKp(s,b)
 
-	std::cout << "finding optimum scale..." << std::endl;
+	std::cout << "Finding optimum scale..." << std::endl << std::endl;
 
 	double s0 = optimize_s0_R2();
 
@@ -3052,7 +3053,12 @@ std::vector <std::vector <double >> TRK::MCMC::checkSlopSignMCMC(std::vector <st
 		for (int j = 0; j < trk.M; j++) {
 			inner.push_back(result_final[i][j]);
 		}
-		inner.push_back(std::abs(result_final[i][trk.M]));
+        
+        inner.push_back(std::abs(result_final[i][trk.M]));
+        
+        if (!trk.settings.do1DFit){
+            inner.push_back(std::abs(result_final[i][trk.M+1]));
+        }
 		inner.push_back(std::abs(result_final[i][trk.M+1]));
 
 		result_final_fixed.push_back(inner);
@@ -3158,7 +3164,7 @@ std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burnco
             // walkers: j, k
             // coordinates/parameters: i
             
-            int L = 2 * (int) trk.bigM;   // number of walkers
+            int L = amt_walkers * (int) trk.bigM;   // number of walkers
             
             // initialize walkers
             std::vector <std::vector <double> > all_walkers(L, std::vector <double> (trk.bigM, 0.0));
@@ -3166,7 +3172,7 @@ std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burnco
             
             for (int j = 0; j < L; j++){
                 for (int i = 0; i < trk.bigM; i++){
-                    all_walkers[j][i] = rnorm(trk.allparams_guess[i], trk.allparams_guess[i] != 0 ? trk.allparams_guess[i]/10.0 : 0.1);
+                    all_walkers[j][i] = rnorm(trk.allparams_guess[i], trk.allparams_guess[i] != 0 ? trk.allparams_guess[i]*AIES_initial_scaling : 0.1);
                 }
             }
             
@@ -3178,12 +3184,12 @@ std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burnco
             int tenth = (int) R/10;
             int prog = 0;
             
-            while (sample_count < R + burncount) {
-                // PARALLELIZED: split up set of walkers in half, and update each half simultaneously
-                if (trk.mcmc.parallelizeAIES) {
-                    switch (trk.settings.ParallelizationBackEnd) {
-                        case CPP11:
-                        {
+            
+            if (trk.mcmc.parallelizeAIES) {
+                switch (trk.settings.ParallelizationBackEnd) {
+                    case CPP11:
+                    {
+                        while (sample_count < R + burncount){
                             std::vector <std::vector <double> > XX, YY;
                             std::size_t const half_size = L / 2;
                             std::vector <std::vector <double> >  lo(all_walkers.begin(), all_walkers.begin() + half_size);
@@ -3245,19 +3251,30 @@ std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burnco
                                     sample_count += 1;
                                 }
                             }
-                            break;
+                            
+                            // acceptance fraction progress bar
+                            if (sample_count % tenth == 0){
+                                accept_frac = (double) accept_count / (double) sample_count;
+                                if (trk.mcmc.verbose){
+                                    printf("Posterior sampling %i%% complete, acceptance fraction currently %0.3f...\n", prog, accept_frac);
+                                }
+                                prog += 10;
+                            }
                         }
-                        case OPENMP:
-                        {
-                            break;
-                        }
-                        default:
-                        {
-                            break;
-                        }
+                        break;
                     }
-                } else {
-                // NON_PARALLELIZED: update each walker one-at-a-time
+                    case OPENMP:
+                    {
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
+                }
+            } else {
+                while (sample_count < R + burncount){
+                    // NON_PARALLELIZED: update each walker one-at-a-time
                     for (int k = 0; k < L; k++){
                         // for each kth walker X,
                         X = all_walkers[k];
@@ -3268,11 +3285,11 @@ std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burnco
                         
                         std::vector <double> res = updateAIESWalker(X, YY);
                         
-                        if (res.size() > trk.bigM) { // rejected
+                        if (res.size() > trk.bigM) { // rejected; add initial point to sample
                             res.pop_back();
-                            result.push_back(res);
+                            result.push_back(X);
                         }
-                        else { // accepted
+                        else { // accepted; add new point to sample
                             all_walkers[k] = res;
                             result.push_back(res);
                             accept_count++;
@@ -3280,20 +3297,30 @@ std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burnco
                         }
                         sample_count += 1;
                     }
-                }
-                
-                // acceptance fraction progress bar
-                if (sample_count % tenth == 0){
-                    accept_frac = (double) accept_count / (double) sample_count;
-                    if (trk.mcmc.verbose){
-                        printf("Posterior sampling %i%% complete, acceptance fraction currently %f...\n", prog, accept_frac);
+                    
+                    if (printAIESWalkerEvolution){
+                        for (int k = 0; k < L; k++){
+                            printf("%0.3f ", all_walkers[k][0]);
+                        }
+                        printf("\n");
                     }
-                    prog += 10;
+                    
+                    // acceptance fraction progress bar
+                    if (sample_count % tenth == 0){
+                        accept_frac = (double) accept_count / (double) sample_count;
+                        if (trk.mcmc.verbose){
+                            printf("Posterior sampling %i%% complete, acceptance fraction currently %0.3f...\n", prog, accept_frac);
+                        }
+                        prog += 10;
+//                        if (prog >= 70) {
+//                            std::cout << std::endl;
+//                        }
+                    }
                 }
             }
             
             if (trk.mcmc.verbose){
-                printf("Final AIES acceptance ratio: %f \n", accept_frac);
+                printf("Final AIES acceptance ratio: %0.3f \n", accept_frac);
             }
             
             break;
@@ -3386,7 +3413,7 @@ std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burnco
                 for (int j = 0; j < trk.bigM; j++) {
                     printf("%.3e ", cov_i[j][j]);
                 }
-                printf("\t final Adaptive Metropolis Hastings acceptance ratio: %f \n", accept_frac);
+                printf("\t final Adaptive Metropolis Hastings acceptance ratio: %0.3f \n", accept_frac);
             }
             break;
         }
@@ -3438,7 +3465,7 @@ double TRK::MCMC::rstretch(double a){ // distribution to sample "stretching vari
     double x = rnorm(1.0, 1.0);   // proposal dist q(x), with Mq(x) >= p(x)
     double u = runiform(0.0, 1.0);
 
-    while (u > (trk.statistics.stretch_pdf(x, a) / (M * trk.statistics.normal(x, 1.0, 1.0)))){
+    while (u > (trk.statistics.stretch_pdf(x) / (M * trk.statistics.normal(x, 1.0, 1.0)))){
         x = rnorm(1.0, 1.0);
         u = runiform(0.0, 1.0);
     }
@@ -3819,44 +3846,59 @@ void TRK::CorrelationRemoval::getPivotGuess(){
     if (findPivotPoints){
         P = (int) pivot_intercept_functions.size();
         
-        if (get_pivot_guess){
-            pivots.clear();
-            
-            // sort data, in case x isn't sorted by default
-            std::vector <int> orderedindices = getSortedIndices(trk.x);
-            std::vector <double> x_s, w_s;
-            for (int l = 0; l < trk.N; l++){
-                x_s.push_back(trk.x[orderedindices[l]]);
-                w_s.push_back(trk.w[orderedindices[l]]);
-            }
-            
-            std::vector <double> divisions = findNTiles(P - 1);
-            divisions = concat(concat({x_s[0]}, divisions), {x_s[trk.N-1]}); // include first and last datapoints with divisions
-            
-            std::vector <double> division_x, division_w;
-            double pivot;
-            for (int p = 0; p < P; p++){
-                for (int i = 0; i < trk.N; i++){
-                    if (x_s[i] >= divisions[p] && x_s[i] < divisions[p+1]){
-                        division_x.push_back(x_s[i]);
-                        division_w.push_back(w_s[i]);
-                    }
+        if (pivots.size() == 0){
+            if (get_pivot_guess){
+                pivots.clear();
+                
+                // sort data, in case x isn't sorted by default
+                std::vector <int> orderedindices = getSortedIndices(trk.x);
+                std::vector <double> x_s, w_s;
+                for (int l = 0; l < trk.N; l++){
+                    x_s.push_back(trk.x[orderedindices[l]]);
+                    w_s.push_back(trk.w[orderedindices[l]]);
                 }
-                pivot = trk.statistics.getAverage(division_x, division_w);
-                pivots.push_back(pivot);
+                
+                std::vector <double> divisions = findNTiles(P - 1);
+                divisions = concat(concat({x_s[0]}, divisions), {x_s[trk.N-1]}); // include first and last datapoints with divisions
+                
+                std::vector <double> division_x, division_w;
+                double pivot;
+                for (int p = 0; p < P; p++){
+                    for (int i = 0; i < trk.N; i++){
+                        if (x_s[i] >= divisions[p] && x_s[i] < divisions[p+1]){
+                            division_x.push_back(x_s[i]);
+                            division_w.push_back(w_s[i]);
+                        }
+                    }
+                    pivot = trk.statistics.getAverage(division_x, division_w);
+                    pivots.push_back(pivot);
+                }
+            } else {
+                pivots.clear();
+                for (int p = 0; p < P; p++){
+                    pivots.push_back(0.0);
+                }
             }
         }
-        else {
-            pivots.clear();
-            for (int p = 0; p < P; p++){
-                pivots.push_back(0.0);
-            }
-        }
+        
     }
     return;
 }
 
+double TRK::Statistics::pearsonCorrelation(std::vector<double> x, std::vector<double> y){
+    double uppersum = 0.0, lowersum1 = 0.0, lowersum2 = 0.0, x_bar = getAverage(x), y_bar = getAverage(y);
+    
+    for (int i = 0; i < (int) x.size(); i++){
+        uppersum += (x[i] - x_bar) * (y[i] - y_bar);
+        lowersum1 += std::pow((x[i] - x_bar), 2.0);
+        lowersum2 += std::pow((y[i] - y_bar), 2.0);
+    }
+    
+    return uppersum / (std::sqrt(lowersum1) * std::sqrt(lowersum2));
+}
+
 std::vector <double> TRK::Statistics::simpleLinearRegression(std::vector <double> x, std::vector <double> y){ // least-squares solution for b, m of model y = mx + b
+    
     double b, m, xbar, ybar, upper_sum = 0.0, lower_sum = 0.0;
     xbar = getAverage(x); ybar = getAverage(y);
     
@@ -3872,6 +3914,8 @@ std::vector <double> TRK::Statistics::simpleLinearRegression(std::vector <double
 
 void TRK::CorrelationRemoval::findPivots() {
 	if (findPivotPoints) {
+        printf("Finding pivot point(s)...\n\n");
+        
 		std::vector <std::vector < std::vector <double > > > drawnCombos;
         std::vector <std::vector <double> > allparam_samples, allPivots, oldPivots;
         std::vector <std::vector <double> > pivot_samples(P, std::vector<double>());
@@ -3894,31 +3938,28 @@ void TRK::CorrelationRemoval::findPivots() {
             
             // 0. possibly refit for better guess for MCMC to avoid zero likelihood
             if (refit_newPivot){
-                if (modeInterceptGuess)
-                {
-                    allparams_better = trk.fitting.downhillSimplex(trk.statistics.selectedChiSq, trk.allparams_guess, trk.scaleOptimization.s);
-                    
-                    if (trk.correlationRemoval.verbose){
-                        printf("re-fit for new pivot point(s); old / new params:\n");
-                    
-                        for (int j = 0; j < (int)allparams_better.size(); j++){
-                            printf("%.3e %.3e\n", trk.allparams_guess[j], allparams_better[j]);
-                        }
-                    }
-                    trk.allparams_guess = allparams_better;
+                allparams_better = trk.fitting.downhillSimplex(trk.statistics.selectedChiSq, trk.allparams_guess, trk.scaleOptimization.s);
+                
+                if (trk.correlationRemoval.verbose){
+//                    printf("re-fit for new pivot point(s); old / new params:\n");
+//
+//                    for (int j = 0; j < (int)allparams_better.size(); j++){
+//                        printf("%.3e %.3e\n", trk.allparams_guess[j], allparams_better[j]);
+//                    }
                 }
+                trk.allparams_guess = allparams_better;
             }
             
-            std::vector < std::vector <double> > param_samples(pivotR, std::vector<double>());
+            std::vector < std::vector <double> > param_samples(sample_R, std::vector<double>());
             
             
             // 1. sample parameter space
             
-            if (trk.correlationRemoval.verbose){
+            if (trk.correlationRemoval.verbose && trk.mcmc.verbose){
                 printf("\nSampling for pivot points...\n");
             }
 
-            allparam_samples = trk.mcmc.samplePosterior(pivotR, pivotBurnIn, trk.mcmc.allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
+            allparam_samples = trk.mcmc.samplePosterior(sample_R, sample_burnIn, trk.mcmc.allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
             
             pivotPointParamsGuess = trk.allparams_guess;
             
@@ -3935,14 +3976,6 @@ void TRK::CorrelationRemoval::findPivots() {
                     // 2. draw slope-intercept combos from parameter space
                     if (!getCombosFromSampleDirectly) { //this option takes the ~10,000 MH samples, selects ~200 of them, then generates combos out of this subset
                         printf("getCombosFromSampleDirectly=false not currently configured for multiple pivot points.\n");
-        //				random_unique(param_samples.begin(), param_samples.end(), randomSampleCount);
-        //
-        //				param_samples = slice(param_samples, 0, randomSampleCount);
-        //
-        //                NDcombos.clear();
-        //				getCombos(param_samples, 2, 0); //generates all 2-combos of the parameter space data points
-        //
-        //				drawnCombos = NDcombos;
                     }
                     else { //this option takes the ~10,000 MH samples, then generates combos directly out of this set.
                         drawnCombos = directCombos(param_samples, maxCombos);
@@ -4015,6 +4048,27 @@ void TRK::CorrelationRemoval::findPivots() {
                             finalPivots[p] = trk.statistics.getPeakCoord(pivot_samples[p], pivotWeights[p]);
                         }
                     }
+                    
+                    if (writePivots){
+                        std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo_public/diagnostics/") + std::string("TRKpivots") + (getCombosFromSampleDirectly ? "1" : "0") + (weightPivots ? "1_" : "0_") + std::to_string(iter) + std::string("_") + std::to_string(finalPivots[0]) + std::string(".txt");
+
+                        std::ofstream myfile(filename, std::ofstream::trunc);
+                        if (myfile.is_open())
+                        {
+                            for (int i = 0; i < pivot_samples[0].size(); i++) {
+                                for (int p = 0; p < P; p++){
+                                    myfile << pivot_samples[p][i] << " " << pivotWeights[p][i] << " ";
+                                }
+                                myfile << "\n";
+                            }
+
+                            //myfile << "final pivot: " << finalPivot << "\n\n\n\n\n";
+
+                            myfile.close();
+                        }
+                        else std::cout << "Unable to open file";
+                    }
+                    
                     break;
                 }
                 case REGRESSION:
@@ -4035,7 +4089,38 @@ void TRK::CorrelationRemoval::findPivots() {
                         fit_result = trk.statistics.simpleLinearRegression(m_samples, b_samples);
                         ellipse_slope = fit_result[1];
                         
+                        double rxy = trk.statistics.pearsonCorrelation(m_samples, b_samples);
+                        printf("Pearson R2 %i = %0.3f\t", p, rxy);
+                        
+                        printf("ellipse slope %i = %0.3f\t\t", p, ellipse_slope);
+                        
                         finalPivots[p] = pivots[p] - ellipse_slope;
+                        
+                        if (writePivots){
+                            // write b vs m distribution to file
+                            std::string fileName = trk.settings.outputPath + std::string("/TRKMCMC_PIVOT") + std::to_string(p) + std::string("_") + std::to_string(iter) + std::string("_") + std::to_string(trk.allparams_guess[0]) + std::string("_") + std::to_string(sample_R) + std::string(".txt");
+
+                            std::ofstream myfile;
+                            myfile.open(fileName, std::ofstream::trunc);
+                            
+                            int m = 0;
+                            if (trk.asymmetric.hasAsymSlop){
+                                m = 2;
+                            }
+                            
+                            if (myfile.is_open())
+                            {
+                                // filename    a     b     optimum scale    total computation time (s)
+                                for (int i = 0; i < b_samples.size(); i++) {
+                                    myfile << m_samples[i] << " " << b_samples[i] << std::endl;
+                                }
+
+                                myfile.close();
+                            }
+                            else std::cout << "Unable to open file";
+                        }
+                        
+                        
                     }
                     break;
                 }
@@ -4044,31 +4129,12 @@ void TRK::CorrelationRemoval::findPivots() {
                     break;
                 }
             }
-
-            if (writePivots) {
-                std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo_public/diagnostics/") + std::string("TRKpivots") + (getCombosFromSampleDirectly ? "1" : "0") + (weightPivots ? "1_" : "0_") + std::to_string(iter) + std::string("_") + std::to_string(finalPivots[0]) + std::string(".txt");
-
-				std::ofstream myfile(filename, std::ofstream::trunc);
-				if (myfile.is_open())
-				{
-					for (int i = 0; i < pivot_samples[0].size(); i++) {
-                        for (int p = 0; p < P; p++){
-                            myfile << pivot_samples[p][i] << " " << pivotWeights[p][i] << " ";
-                        }
-                        myfile << "\n";
-					}
-
-					//myfile << "final pivot: " << finalPivot << "\n\n\n\n\n";
-
-					myfile.close();
-				}
-				else std::cout << "Unable to open file";
-			}
-
+            
             if (trk.correlationRemoval.verbose){
                 for (int p = 0; p < P; p++){
-                    printf("new pivot %i, old pivot %i= %.3e \t, %.3e \n", p + 1, p + 1, finalPivots[p], pivots[p]);
+                    printf("new, old pivot %i = %0.3f, %0.3f\t", p + 1, finalPivots[p], pivots[p]);
                 }
+                std::cout << std::endl;
             }
                 
             allPivots.push_back(finalPivots); // each element of this is one iteration of the whole pivot point-finding loop
@@ -4127,6 +4193,7 @@ void TRK::checkVerbose(){
         mcmc.verbose = true;
         correlationRemoval.verbose = true;
         asymmetric.verbose = true;
+        scaleOptimization.verbose = true;
     }
     return;
 }
@@ -4517,7 +4584,7 @@ double secElapsed(clock_t t_i) {
 	clock_t t_f = clock() - t_i;
 	double sec_elapsed = ((float)t_f) / CLOCKS_PER_SEC;
 
-	printf("%f seconds elapsed \n", sec_elapsed);
+	printf("%0.3f seconds elapsed \n", sec_elapsed);
 	return sec_elapsed;
 }
 
