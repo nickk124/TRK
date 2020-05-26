@@ -22,7 +22,7 @@ enum priorTypes { CUSTOM, CUSTOM_JOINT, GAUSSIAN, CONSTRAINED, MIXED};
 
 enum samplingMethod {ARWMH, AIES};   // Adaptive Random Walk Metropolis Hastings, and Affine Invariant Ensemble Sampler
 
-enum pivotPointFindingMethod {DIST, REGRESSION};  // Distribution generation, vs. regression of confidence ellipse
+enum pivotPointFindingMethod {DIST, REGRESSION, PEARSON};  // Distribution generation, vs. regression of confidence ellipse, vs. minimizing pearson correlation of said ellipse
 
 enum ParallelizationBackEnd {CPP11, OPENMP};
 
@@ -137,6 +137,8 @@ class TRK // main class
                 bool firstGuess = true;
                 double slopYGuess;
                 double slopYScaleGuess = 1.0;
+                std::vector <double> iterative_allparams_guess;
+            
                 void getBetterSlopYGuess(double slop_y, double s);
             
                 // optimization
@@ -246,33 +248,6 @@ class TRK // main class
                 std::vector <std::vector <double> > getHistogram(std::vector <double> data);
                 std::vector <std::vector <double> > getHistogram(std::vector <double> data, std::vector <double> weights);
         };
-        
-        class Fitting
-        {
-            friend TRK; // need TRK instances to be able to access private members of this
-            TRK &trk; // parent class
-            
-            public:
-                // constructors/destructor
-                Fitting(TRK &trk);
-                ~Fitting();
-            
-                // settings
-                double simplexTol = 1e-5;  // downhill simplex fitting tolerance
-                int max_simplex_iters = 10000;   // maximum number of iterations for downhill simplex
-                bool showSimplexSteps = false;
-            
-            
-            private:
-                // downhill simplex method
-                void getBetterGuess();
-                double simplex_size = 0.1;
-                double evalWPriors(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
-                std::vector <double> avoidNegativeSlop(std::vector <double> vertex, unsigned long n);
-                std::vector <double> pegToZeroSlop(std::vector <double> vertex);
-                std::vector <double> downhillSimplex(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s);
-                std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
-        };
 
         class MCMC
         {
@@ -353,11 +328,16 @@ class TRK // main class
                 // testing/experimental
                 bool writePivots = false; //outputs pivot point sampling results for single-pivot case
                 bool get_pivot_guess = false;
+                bool verbose_refit = false;
+                bool verbose_pearson = false;
             
             private:
                 // settings
-                pivotPointFindingMethod thisPivotMethod = REGRESSION;
+                pivotPointFindingMethod thisPivotMethod = PEARSON;
+            
                 bool refit_newPivot = true;
+                bool refit_with_simplex = true;
+            
                 bool getCombosFromSampleDirectly = true;
                 bool weightPivots = true;
                 bool pivotMedian = false;
@@ -367,12 +347,12 @@ class TRK // main class
                 bool pivotPointActive = false;
             
                 int P; // number of pivot points
-                int sample_R = 20000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
+                int sample_R = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
                 int randomSampleCount = 450;
                 int maxCombos = 10000; // 50,000 seems sufficient, but 100,000 works for sure
-                int sample_burnIn = 10000;
+                int sample_burnIn = 5000;
             
-                double pivotTol = 1e-6;
+                double tol = 1e-3;
                 double pruneWidth = 10.0;
             
                 // combinations
@@ -382,19 +362,68 @@ class TRK // main class
                 std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
 
                 // guesses
-                std::vector <double> pivotPointParamsGuess;
+                std::vector <int> intercept_indices; // indices of intercepts and slopes in vector of parameters describing model
+                std::vector <int> slope_indices;
                 void getPivotGuess();
+                void findLinearParamIndices();
+                void refitWithNewPivots(std::vector <double> new_pivots);
+                std::vector <double> refitAnalytic(std::vector <double> new_pivots);
             
                 // general
                 void findPivots();
             
+            
                 // find pivots by generating a distribution
+                void optimizePivotsWithDistribution();
                 double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot, int p);
                 double pivotFunc(std::vector <double> params1, std::vector <double> params2, int p);
+            
+                // find pivots by using the slope of the correlation ellipse between intercepts and slopes
+                void optimizePivotsWithRegression();
+            
+                // find pivots using the correlation of intercepts and slopes and the golden section search (GSS) method
+                std::vector <double> max_pivots_brackets, min_pivots_brackets;
+            
+                void findPivotBrackets();
+                void optimizePivotsWithPearson();
+                void writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int iter, int p);
+                bool checkPearsonOptimizationTolerance(std::vector <double> previous_pivots);
+                double getAbsPearsonCorrFromNewPivot(double new_pivot, int p, int iter);
             
                 // tools
                 std::vector <double> findNTiles(int Q);
                 std::vector <double> removeOutlierPivots(std::vector <double> pivots);
+        };
+    
+        class Fitting
+        {
+            friend TRK; // need TRK instances to be able to access private members of this
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                Fitting(TRK &trk);
+                ~Fitting();
+            
+                // settings
+                double simplexTol = 1e-5;  // downhill simplex fitting tolerance
+                int max_simplex_iters = 10000;   // maximum number of iterations for downhill simplex
+                bool showSimplexSteps = false;
+            
+            
+            private:
+                // golden section search method for finding the minimum of some 1-D function
+                double gssTol = 1e-6;
+                double goldenSectionSearch(double(TRK::CorrelationRemoval::*f)(double), double a, double b);
+            
+                // downhill simplex method for finding the minimum of some N-D function
+                void getBetterGuess();
+                double simplex_size = 0.1;
+                double evalWPriors(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
+                std::vector <double> avoidNegativeSlop(std::vector <double> vertex, unsigned long n);
+                std::vector <double> pegToZeroSlop(std::vector <double> vertex);
+                std::vector <double> downhillSimplex(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s);
+                std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
         };
 
         class Settings

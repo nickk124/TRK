@@ -1,3 +1,9 @@
+/*
+ Trotter Reichart Konz (TRK) Official Codebase
+ Author: Nick C. Konz
+ See license at https://github.com/nickk124/TRK
+ */
+
 #include "TRK.h"
 
 
@@ -1460,6 +1466,48 @@ double TRK::TangentPointMethods::twoPointNR(std::vector <double> params, double 
 	return xkp1;
 }
 
+double TRK::Fitting::goldenSectionSearch(double(TRK::CorrelationRemoval::*f)(double), double a, double b){
+    // Finds the minimum of some 1D function *f, given brackets a < b
+    double h = b - a;
+    if ( h <= gssTol) {return (b + a)/2.0;};
+    
+    double c, d, yc, yd;
+    double const invphi = (std::sqrt(5.0) - 1.0) / 2.0;     // 1 / phi
+    double const invphi2 = (3.0 - std::sqrt(5.0)) / 2.0;    // 1 / phi^2
+    
+    c = a + invphi2 * h;
+    d = a + invphi * h;
+    yc = (trk.correlationRemoval.*f)(c);
+    yd = (trk.correlationRemoval.*f)(d);
+    
+    // Required steps to achieve tolerance
+    int K = (int) std::ceil(std::log(gssTol / h) / std::log(invphi));
+    
+    for (int k = 0; k < K; k++){
+        if (yc < yd) {
+            b = d;
+            d = c;
+            yd = yc;
+            h = invphi * h;
+            c = a + invphi2 * h;
+            yc = (trk.correlationRemoval.*f)(c);
+        } else {
+            a = c;
+            c = d;
+            yc = yd;
+            h = invphi * h;
+            d = a + invphi * h;
+            yd = (trk.correlationRemoval.*f)(d);
+        }
+    }
+    
+    if (yc < yd){
+        return (a + d) / 2.0;
+    } else {
+        return (c + b) / 2.0;
+    }
+}
+
 std::vector <double> TRK::Fitting::pegToZeroSlop(std::vector <double> vertex){
     double pegToZeroTol = trk.scaleOptimization.pegToZeroTol;
     if (trk.settings.do1DFit){
@@ -1548,7 +1596,7 @@ double TRK::Fitting::evalWPriors(double(TRK::Statistics::*f)(std::vector <double
 		}
 	}
     
-    double ret = (&trk.statistics->*f)(vertex, s);
+    double ret = (trk.statistics.*f)(vertex, s);
 //
     if (std::isnan(ret)){
         return DBL_MAX;
@@ -2515,7 +2563,7 @@ double TRK::ScaleOptimization::innerR2_iter_Simplex(std::vector <double> ss, std
 
 double TRK::ScaleOptimization::optimize_s_SlopX() {
 
-	trk.iterative_allparams_guess = trk.allparams_guess;
+	iterative_allparams_guess = trk.allparams_guess;
 
 	// before doing any standard simplex movement, here it checks whether the simplex is within the zero "plateau", and if so, it moves it to the boundary.
 	// for slop x: move to right until it hits the boundary
@@ -2526,7 +2574,7 @@ double TRK::ScaleOptimization::optimize_s_SlopX() {
     double a = 0.0;
     double b = 1.0;
 	double trial_s = 1.0;
-	double slop_trial_s = innerSlopX_Simplex({ trial_s }, trk.iterative_allparams_guess);
+	double slop_trial_s = innerSlopX_Simplex({ trial_s }, iterative_allparams_guess);
 
 	double inc = trial_s * 0.5;
 
@@ -2538,7 +2586,7 @@ double TRK::ScaleOptimization::optimize_s_SlopX() {
 		while (true) {
 			trial_a -= inc;
 
-			double slop_trial_a = innerSlopX_Simplex({ trial_a }, trk.iterative_allparams_guess);
+			double slop_trial_a = innerSlopX_Simplex({ trial_a }, iterative_allparams_guess);
 
 			if (slop_trial_a == 0) {
 				a = trial_a;
@@ -2559,7 +2607,7 @@ double TRK::ScaleOptimization::optimize_s_SlopX() {
 		while (true) {
 			trial_b += inc;
 
-			double slop_trial_b = innerSlopX_Simplex({ trial_b }, trk.iterative_allparams_guess);
+			double slop_trial_b = innerSlopX_Simplex({ trial_b }, iterative_allparams_guess);
 
 			if (slop_trial_b > 0) {
 				b = trial_b;
@@ -2581,7 +2629,7 @@ double TRK::ScaleOptimization::optimize_s_SlopX() {
 		c = (a + b) / 2;
 
 		whichExtremaX = slopx;
-		slop_c = innerSlopX_Simplex({ c }, trk.iterative_allparams_guess);
+		slop_c = innerSlopX_Simplex({ c }, iterative_allparams_guess);
 		whichExtremaX = NONE;
 
 		if (slop_c <= tol_bisect && slop_c > 0) { //convergence criterion
@@ -2605,7 +2653,7 @@ double TRK::ScaleOptimization::optimize_s_SlopX() {
 
 double TRK::ScaleOptimization::optimize_s_SlopY() {
 
-	trk.iterative_allparams_guess = trk.allparams_guess;
+	iterative_allparams_guess = trk.allparams_guess;
 
 	// before doing any standard simplex movement, here it checks whether the simplex is within the zero "plateau", and if so, it moves it to the boundary.
 	// for slop x: move to right until it hits the boundary
@@ -2615,7 +2663,7 @@ double TRK::ScaleOptimization::optimize_s_SlopY() {
     double a = 0.0;
     double b = 1.0;
 	double trial_s = slopYScaleGuess;
-	double slop_trial_s = innerSlopY_Simplex({ trial_s }, trk.iterative_allparams_guess);
+	double slop_trial_s = innerSlopY_Simplex({ trial_s }, iterative_allparams_guess);
 
 	double inc = trial_s * 0.5;
     
@@ -2633,7 +2681,7 @@ double TRK::ScaleOptimization::optimize_s_SlopY() {
             }
 			trial_b += inc;
 
-			double slop_trial_b = innerSlopY_Simplex({ trial_b }, trk.iterative_allparams_guess);
+			double slop_trial_b = innerSlopY_Simplex({ trial_b }, iterative_allparams_guess);
 
 			if (slop_trial_b == 0) {
 				b = trial_b;
@@ -2653,7 +2701,7 @@ double TRK::ScaleOptimization::optimize_s_SlopY() {
 		while (true) {
 			trial_a -= inc;
 
-			double slop_trial_a = innerSlopY_Simplex({ trial_a }, trk.iterative_allparams_guess);
+			double slop_trial_a = innerSlopY_Simplex({ trial_a }, iterative_allparams_guess);
 
 			if (slop_trial_a > 0) {
 				a = trial_a;
@@ -2676,7 +2724,7 @@ double TRK::ScaleOptimization::optimize_s_SlopY() {
 		c = (a + b) / 2;
 
 		whichExtremaY = slopy;
-		slop_c = innerSlopY_Simplex({ c }, trk.iterative_allparams_guess);
+		slop_c = innerSlopY_Simplex({ c }, iterative_allparams_guess);
 		whichExtremaY = NONE;
 
 		if ((slop_c <= tol_bisect && slop_c > 0)) { //convergence criterion
@@ -2782,7 +2830,7 @@ double TRK::ScaleOptimization::R2TRK_prime_s0b(double s0, std::vector <double> x
 
 double TRK::ScaleOptimization::optimize_s0_R2() {
 
-	trk.iterative_allparams_guess = trk.allparams_guess;
+	iterative_allparams_guess = trk.allparams_guess;
 
 	//bracket finding
 
@@ -2793,7 +2841,7 @@ double TRK::ScaleOptimization::optimize_s0_R2() {
 	left = a;
 	right = b;
 
-	f_left = innerR2_Simplex({ a }, trk.iterative_allparams_guess);
+	f_left = innerR2_Simplex({ a }, iterative_allparams_guess);
 
 	double c, f_c;
 	double tol_bisect = 1e-4;
@@ -2803,7 +2851,7 @@ double TRK::ScaleOptimization::optimize_s0_R2() {
 		c = (left + right) / 2;
 
 		whichExtrema = S;
-		f_c = innerR2_Simplex({ c }, trk.iterative_allparams_guess);
+		f_c = innerR2_Simplex({ c }, iterative_allparams_guess);
 		whichExtrema = NONE;
 
 		//printf("%.3e %.3e \n", f_c, c);
@@ -2831,13 +2879,13 @@ double TRK::ScaleOptimization::optimize_s0_R2() {
 
 double TRK::ScaleOptimization::optimize_s_prime_R2(double s0) {
 
-	trk.iterative_allparams_guess = trk.allparams_guess;
+	iterative_allparams_guess = trk.allparams_guess;
 
 	//bracket finding
 
 	double left, right, f_left;
 
-	f_left = innerR2_iter_Simplex({ a }, trk.iterative_allparams_guess, s0);
+	f_left = innerR2_iter_Simplex({ a }, iterative_allparams_guess, s0);
 
 	//bisection, now that we have brackets [left,right]
 
@@ -2853,7 +2901,7 @@ double TRK::ScaleOptimization::optimize_s_prime_R2(double s0) {
 		c = (left + right) / 2;
 
 		whichExtrema = S;
-		f_c = innerR2_iter_Simplex({ c }, trk.iterative_allparams_guess, s0);
+		f_c = innerR2_iter_Simplex({ c }, iterative_allparams_guess, s0);
 		whichExtrema = NONE;
 
 		if (std::abs(f_c) <= tol_bisect) { //convergence criterion
@@ -3106,11 +3154,11 @@ double TRK::MCMC::metHastRatio(std::vector <double> X_trial, std::vector <double
     double log_a;
 
     if (trk.statistics.hasPriors) {
-        log_a = (&trk.statistics->*trk.statistics.selectedLikelihood)(X_trial) - (&trk.statistics->*trk.statistics.selectedLikelihood)(X_i) + std::log(trk.statistics.priors(X_trial)) - std::log(trk.statistics.priors(X_i));
+        log_a = (trk.statistics.*trk.statistics.selectedLikelihood)(X_trial) - (trk.statistics.*trk.statistics.selectedLikelihood)(X_i) + std::log(trk.statistics.priors(X_trial)) - std::log(trk.statistics.priors(X_i));
             // these likelihoods return log likelihood given useLogPosterior = true; the computation is done WITHIN the function.
     }
     else {
-        log_a = (&trk.statistics->*trk.statistics.selectedLikelihood)(X_trial) - (&trk.statistics->*trk.statistics.selectedLikelihood)(X_i);
+        log_a = (trk.statistics.*trk.statistics.selectedLikelihood)(X_trial) - (trk.statistics.*trk.statistics.selectedLikelihood)(X_i);
             // this returns the log likelihood given useLogPosterior = true; the computation is done WITHIN the function.
     }
     
@@ -3685,7 +3733,7 @@ void TRK::MCMC::calculateUncertainties() {
 			// filename    a     b     optimum scale    total computation time (s)
 			for (int i = 0; i < allparam_samples.size(); i++) {
 				for (int j = 0; j < trk.bigM + m; j++) {
-					myfile << allparam_samples[i][j] << " ";
+                    (j < trk.bigM + m - 1) ? myfile << allparam_samples[i][j] << " " : myfile << allparam_samples[i][j];
 				}
 				myfile << std::endl;
 			}
@@ -3748,12 +3796,12 @@ double TRK::CorrelationRemoval::pivotFunc(std::vector <double> params1, std::vec
 	return (a02 - a01) / (a11 - a12);
 }
 
-double TRK::CorrelationRemoval::weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot, int p) {
-	std::vector <double> squares(oldPivots.size(), 0.0);
+double TRK::CorrelationRemoval::weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> old_pivots_sample, double newPivot, int p) {
+	std::vector <double> squares(old_pivots_sample.size(), 0.0);
 	double w;
 
-	for (int i = 0; i < oldPivots.size(); i++) {
-		squares[i] = std::pow(newPivot - oldPivots[i], 2.0);
+	for (int i = 0; i < old_pivots_sample.size(); i++) {
+		squares[i] = std::pow(newPivot - old_pivots_sample[i], 2.0);
 	}
 
 	double avg = trk.statistics.getAverage(squares);
@@ -3842,9 +3890,36 @@ std::vector <double> TRK::CorrelationRemoval::findNTiles(int Q){ // Q divisions;
     return divisions;
 }
 
+void TRK::CorrelationRemoval::findLinearParamIndices() // finds the indices of intercepts and slopes in vector of parameters describing model
+{
+    double intercept_check, slope_check;
+    std::vector <double> intercepts, slopes, placeholder;
+    std::vector <int> intercept_inds, slope_inds;
+    for (int i = 0; i < (int) trk.allparams_guess.size(); i++){
+        placeholder.push_back((double) i);
+    }
+    for (int p = 0; p < P; p++){
+        intercepts.push_back(pivot_intercept_functions[p](placeholder));
+        slopes.push_back(pivot_intercept_functions[p](placeholder));
+    }
+    for (int p = 0; p < P; p++){
+        intercept_check = intercepts[p];
+        slope_check = slopes[p];
+        for (int i = 0; i < (int) placeholder.size(); i++){
+            if (intercept_check == placeholder[i]) {intercept_inds.push_back(i);};
+            if (slope_check == placeholder[i]) {slope_inds.push_back(i);};
+        }
+    }
+    intercept_indices = intercept_inds;
+    slope_indices = slope_inds;
+    return;
+}
+
 void TRK::CorrelationRemoval::getPivotGuess(){
     if (findPivotPoints){
         P = (int) pivot_intercept_functions.size();
+        
+        findLinearParamIndices();
         
         if (pivots.size() == 0){
             if (get_pivot_guess){
@@ -3912,246 +3987,530 @@ std::vector <double> TRK::Statistics::simpleLinearRegression(std::vector <double
     return {b, m};
 }
 
+std::vector <double> TRK::CorrelationRemoval::refitAnalytic(std::vector <double> new_pivots){ // refit with new pivot point; only intercepts changed
+    std::vector <double> allparams_better = trk.allparams_guess, allparams_old = trk.allparams_guess;
+
+    double intercept_new, intercept_old, slope;
+
+    for (int p = 0; p < P; p++){
+        intercept_old = pivot_intercept_functions[p](allparams_old);
+        slope = pivot_slope_functions[p](allparams_old);
+
+        intercept_new = intercept_old + slope * (new_pivots[p] - pivots[p]);
+        
+        allparams_better[intercept_indices[p]] = intercept_new;
+    }
+
+    return allparams_better;
+}
+
+void TRK::CorrelationRemoval::refitWithNewPivots(std::vector <double> new_pivots){
+    std::vector <double> allparams_better = refitAnalytic(new_pivots); // determine the best fit
+    
+    if (refit_with_simplex){
+        allparams_better = trk.fitting.downhillSimplex(trk.statistics.selectedChiSq, allparams_better, trk.scaleOptimization.s);
+    }
+    
+    if (trk.correlationRemoval.verbose_refit){
+        printf("re-fit for new pivot point(s); old / new params:\n");
+
+        for (int j = 0; j < (int)allparams_better.size(); j++){
+            printf("%.3e %.3e\n", trk.allparams_guess[j], allparams_better[j]);
+        }
+    }
+    
+    trk.allparams_guess = allparams_better;
+    return;
+}
+
+void TRK::CorrelationRemoval::writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int iter, int p)
+{
+    if (writePivots){
+        // write b vs m distribution to file
+        std::string fileName = trk.settings.outputPath + std::string("/TRKMCMC_PIVOT") + std::to_string(p) + std::string("_") + std::to_string(iter) + std::string("_") + std::to_string(trk.allparams_guess[0]) + std::string("_") + std::to_string(sample_R) + std::string(".txt");
+
+        std::ofstream myfile;
+        myfile.open(fileName, std::ofstream::trunc);
+        
+        int m = 0;
+        if (trk.asymmetric.hasAsymSlop){
+            m = 2;
+        }
+        
+        if (myfile.is_open())
+        {
+            // filename    a     b     optimum scale    total computation time (s)
+            for (int i = 0; i < b_samples.size(); i++) {
+                myfile << m_samples[i] << " " << b_samples[i] << std::endl;
+            }
+
+            myfile.close();
+        }
+        else std::cout << "Unable to open file";
+    }
+                                                               
+    return;
+}
+
+double TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot(double new_pivot, int p, int iter){
+    std::vector < std::vector <double> > param_samples(sample_R, std::vector<double>());
+    std::vector <double> b_samples, m_samples, original_pivots = pivots;
+    double rxy, abs_rxy; // correlation between slope and intercept
+    
+    // set pivot to new value, and sample parameter space with it
+    pivots[p] = new_pivot;
+    
+    // find better starting place for sampling
+    if (refit_newPivot){refitWithNewPivots(pivots);};
+    
+    if (trk.correlationRemoval.verbose && trk.mcmc.verbose){
+        printf("\nSampling for pivot points...\n");
+    }
+    std::vector < std::vector <double> > allparam_samples = trk.mcmc.samplePosterior(sample_R, sample_burnIn, trk.mcmc.allparams_sigmas_guess);
+    for (int j = 0; j < allparam_samples.size(); j++) {
+        param_samples[j] = slice(allparam_samples[j], 0, (int)trk.M);
+    }
+    for (int j = 0; j < param_samples.size(); j++) {
+        b_samples.push_back(pivot_intercept_functions[p](param_samples[j]));
+        m_samples.push_back(pivot_slope_functions[p](param_samples[j]));
+    }
+    
+    // compute pearson correlation
+    rxy = trk.statistics.pearsonCorrelation(b_samples, m_samples);
+    
+    abs_rxy = std::isnan(rxy) ? 1.0 : std::abs(rxy); // returns maximally correlated if NaN
+    
+    if (verbose_pearson){
+        printf("Abs. Pearson Correlation = %0.3f \t for pivot %i = %0.3f", abs_rxy , p + 1, new_pivot);
+
+        p + 1 < P ? printf("\t") : printf("\n");
+    }
+    
+    writePearsonOptimizationSampling(b_samples, m_samples, iter, p);
+    
+    pivots = original_pivots; //reset pivots to previous values
+    
+    return abs_rxy; // returns maximally correlated if NaN
+}
+
+bool TRK::CorrelationRemoval::checkPearsonOptimizationTolerance(std::vector <double> previous_pivots){
+    if (verbose){ // ending iteration printing
+        std::cout << std::endl;
+    }
+    
+    int check = 0;
+    for (int p = 0; p < P; p++){
+        if (std::abs(pivots[p] - previous_pivots[p]) <= tol){check++;}
+    }
+    
+    return check == P;
+}
+
+void TRK::CorrelationRemoval::optimizePivotsWithDistribution(){
+    std::vector <std::vector < std::vector <double > > > drawnCombos;
+    std::vector <std::vector <double> > old_pivots_sample, allparam_samples, pivot_samples(P, std::vector<double>()), pivotWeights(P, std::vector<double>());
+    std::vector <double> onePivots, oneWeights, finalPivots, allparams_better, oldPivots = pivots;
+    
+    for (int p = 0; p < P; p++){
+        old_pivots_sample.push_back(std::vector <double>((int)(randomSampleCount*(randomSampleCount - 1)) / 2, pivots[p]));
+    }
+    
+    for (int p = 1; p < P + 1; p++){
+        finalPivots.push_back((double) p);
+    }
+    
+    int iter = 0;
+
+    while (true)
+    {
+        if (iter > 0){
+            pivotPointActive = true;
+        }
+        
+        std::vector < std::vector <double> > param_samples(sample_R, std::vector<double>());
+        
+        
+        // 1. sample parameter space
+        
+        if (trk.correlationRemoval.verbose && trk.mcmc.verbose){
+            printf("\nSampling for pivot points...\n");
+        }
+
+        allparam_samples = trk.mcmc.samplePosterior(sample_R, sample_burnIn, trk.mcmc.allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
+    
+        pivot_samples = std::vector <std::vector <double> >(P, std::vector<double>());
+        pivotWeights = std::vector <std::vector <double> >(P, std::vector<double>());
+        
+        for (int j = 0; j < allparam_samples.size(); j++) {
+            param_samples[j] = slice(allparam_samples[j], 0, (int)trk.M);
+        }
+        
+        // 2. draw slope-intercept combos from parameter space
+        if (!getCombosFromSampleDirectly) { //this option takes the ~10,000 MH samples, selects ~200 of them, then generates combos out of this subset
+            printf("getCombosFromSampleDirectly=false not currently configured for multiple pivot points.\n");
+        }
+        else { //this option takes the ~10,000 MH samples, then generates combos directly out of this set.
+            drawnCombos = directCombos(param_samples, maxCombos);
+        }
+        
+        // 3. compute new pivot points for each of these combos
+        double onePivot;
+        for (int j = 0; j < drawnCombos.size(); j++) {
+            onePivots.clear(); // size P
+            bool has_NaN = false;
+            for (int p = 0; p < P; p++){
+                onePivot = pivots[p] + pivotFunc(drawnCombos[j][0], drawnCombos[j][1], p);
+                has_NaN = std::isnan(onePivot);
+                onePivots.push_back(onePivot);
+            }
+            if (!has_NaN) {
+                for (int p = 0; p < P; p++){
+                    pivot_samples[p].push_back(onePivots[p]);
+                }
+            }
+        }
+        
+        if (pruneOutlierPivots){
+            for (int p = 0; p < P; p++){
+                pivot_samples[p] = removeOutlierPivots(pivot_samples[p]);
+            }
+        }
+        
+        if (trk.correlationRemoval.verbose){
+            printf("Weighting pivot points...\n");
+        }
+        
+        
+        // 4. weight these new pivot points
+        std::vector <std::vector <double> >all_finalPivots(P, std::vector<double>());
+        std::vector <std::vector <double> >finalWeights(P, std::vector<double>());
+                                    
+        oneWeights.clear();
+        double oneWeight;
+        if (weightPivots) {
+            for (int p = 0; p < P; p++){
+                for (int i = 0; i < pivot_samples[0].size(); i++) {
+                    oneWeight = weightPivot(drawnCombos[i][0], drawnCombos[i][1], old_pivots_sample[p], pivot_samples[p][i], p);
+                    if (!std::isnan(oneWeight)){
+                        all_finalPivots[p].push_back(pivot_samples[p][i]);
+                        finalWeights[p].push_back(oneWeight);
+                    }
+                }
+            }
+        } else {
+            for (int p = 0; p < P; p++){
+                finalWeights[p] = std::vector<double>((int) pivot_samples[p].size(), 1.0);
+            }
+            all_finalPivots = pivot_samples;
+        }
+        
+        pivot_samples = all_finalPivots;
+        pivotWeights = finalWeights;
+        
+        // 5. find best new pivot point using some measure of central tendency
+        
+        for (int p = 0; p < P; p++){
+            if (pivotMedian){
+                finalPivots[p] = getMedian((int) pivot_samples[p].size(), pivotWeights[p], pivot_samples[p]);
+            } else if (pivotMean){
+                finalPivots[p] = trk.statistics.getAverage(pivot_samples[p], pivotWeights[p]);
+            } else if (pivotHalfSampleMode){
+                finalPivots[p] = trk.statistics.getMode((int) pivot_samples[p].size(), pivotWeights[p], pivot_samples[p]);
+            } else { //mode
+                finalPivots[p] = trk.statistics.getPeakCoord(pivot_samples[p], pivotWeights[p]);
+            }
+        }
+        
+        if (writePivots){
+            std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo_public/diagnostics/") + std::string("TRKpivots") + (getCombosFromSampleDirectly ? "1" : "0") + (weightPivots ? "1_" : "0_") + std::to_string(iter) + std::string("_") + std::to_string(finalPivots[0]) + std::string(".txt");
+
+            std::ofstream myfile(filename, std::ofstream::trunc);
+            if (myfile.is_open())
+            {
+                for (int i = 0; i < pivot_samples[0].size(); i++) {
+                    for (int p = 0; p < P; p++){
+                        myfile << pivot_samples[p][i] << " " << pivotWeights[p][i] << " ";
+                    }
+                    myfile << "\n";
+                }
+
+                //myfile << "final pivot: " << finalPivot << "\n\n\n\n\n";
+
+                myfile.close();
+            }
+            else std::cout << "Unable to open file";
+        }
+            
+        
+        
+        // prints out results
+        if (trk.correlationRemoval.verbose){
+            for (int p = 0; p < P; p++){
+                printf("new, old pivot %i = %0.3f, %0.3f\t", p + 1, finalPivots[p], pivots[p]);
+            }
+            std::cout << std::endl;
+        }
+            
+        iter++;
+        
+        // check for iteration halt
+        int tolCheck = 0;
+        for (int p = 0; p < P; p++){
+            if (std::abs(finalPivots[p] - pivots[p]) <= tol) {tolCheck++;};
+        }
+        
+        if (iter >= maxPivotIter || tolCheck == P) { //termination check
+            break;
+        }
+        
+        if (refit_newPivot){refitWithNewPivots(finalPivots);};
+        
+        // iterate
+        
+        pivots = finalPivots;
+    }
+    
+    return;
+}
+
+void TRK::CorrelationRemoval::optimizePivotsWithRegression(){
+    std::vector <std::vector <double> > allparam_samples;
+    std::vector <double> finalPivots, allparams_better, oldPivots = pivots;
+    
+    for (int p = 1; p < P + 1; p++){
+        finalPivots.push_back((double) p);
+    }
+    
+    int iter = 0;
+
+    while (true)
+    {
+        if (iter > 0){
+            pivotPointActive = true;
+        }
+        
+        std::vector < std::vector <double> > param_samples(sample_R, std::vector<double>());
+        
+        
+        // 1. sample parameter space
+        
+        if (trk.correlationRemoval.verbose && trk.mcmc.verbose){
+            printf("\nSampling for pivot points...\n");
+        }
+
+        allparam_samples = trk.mcmc.samplePosterior(sample_R, sample_burnIn, trk.mcmc.allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
+        
+        for (int j = 0; j < allparam_samples.size(); j++) {
+            param_samples[j] = slice(allparam_samples[j], 0, (int)trk.M);
+        }
+        
+        // 2. for each pivot point, find new one by estimating slope of correlation ellipse
+        for (int p = 0; p < P; p++){
+            std::vector <double> b_samples, m_samples, fit_result;
+            double ellipse_slope; // slope along axis of correlation ellipse between slope and intercept
+            
+            for (int j = 0; j < param_samples.size(); j++) {
+                b_samples.push_back(pivot_intercept_functions[p](param_samples[j]));
+                m_samples.push_back(pivot_slope_functions[p](param_samples[j]));
+            }
+            
+            fit_result = trk.statistics.simpleLinearRegression(m_samples, b_samples);
+            ellipse_slope = fit_result[1];
+            
+            if (verbose){
+                printf("ellipse slope %i = %0.3f\t\t", p, ellipse_slope);
+            }
+            
+            finalPivots[p] = pivots[p] - ellipse_slope;
+            
+            if (writePivots){
+                // write b vs m distribution to file
+                std::string fileName = trk.settings.outputPath + std::string("/TRKMCMC_PIVOT") + std::to_string(p) + std::string("_") + std::to_string(iter) + std::string("_") + std::to_string(trk.allparams_guess[0]) + std::string("_") + std::to_string(sample_R) + std::string(".txt");
+
+                std::ofstream myfile;
+                myfile.open(fileName, std::ofstream::trunc);
+                
+                int m = 0;
+                if (trk.asymmetric.hasAsymSlop){
+                    m = 2;
+                }
+                
+                if (myfile.is_open())
+                {
+                    // filename    a     b     optimum scale    total computation time (s)
+                    for (int i = 0; i < b_samples.size(); i++) {
+                        myfile << m_samples[i] << " " << b_samples[i] << std::endl;
+                    }
+
+                    myfile.close();
+                }
+                else std::cout << "Unable to open file";
+            }
+        }
+            
+        
+        
+        // prints out results
+        if (trk.correlationRemoval.verbose){
+            for (int p = 0; p < P; p++){
+                printf("new, old pivot %i = %0.3f, %0.3f\t", p + 1, finalPivots[p], pivots[p]);
+            }
+            std::cout << std::endl;
+        }
+            
+        iter++;
+        
+        // check for iteration halt
+        int tolCheck = 0;
+        for (int p = 0; p < P; p++){
+            if (std::abs(finalPivots[p] - pivots[p]) <= tol) {tolCheck++;};
+        }
+        
+        if (iter >= maxPivotIter || tolCheck == P) { //termination check
+            break;
+        }
+        
+        if (refit_newPivot){refitWithNewPivots(finalPivots);};
+        
+        // iterate
+        
+        pivots = finalPivots;
+    }
+    
+    return;
+}
+
+void TRK::CorrelationRemoval::findPivotBrackets(){
+    double b1, b2, m1, m2, xp1, xp2, intersection;
+    std::vector <double> b, a = {trk.x_min}; // a is min(s), b is maxe(s)
+    
+    for (int q = 0; q < P - 1; q++){ // qth intersection between lines
+        b1 = pivot_intercept_functions[q](trk.allparams_guess);
+        b2 = pivot_intercept_functions[q + 1](trk.allparams_guess);
+        m1 = pivot_slope_functions[q](trk.allparams_guess);
+        m2 = pivot_slope_functions[q + 1](trk.allparams_guess);
+        xp1 = pivots[q];
+        xp2 = pivots[q + 1];
+        
+        intersection = (b2 - b1 + m1 * xp1 - m2 * xp2) / (m1 - m2);
+        a.push_back(intersection);
+        b.push_back(intersection);
+    }
+    
+    b.push_back(trk.x_max);
+    
+    min_pivots_brackets = a;
+    max_pivots_brackets = b;
+    
+    return;
+}
+
+void TRK::CorrelationRemoval::optimizePivotsWithPearson(){
+//    bool converge_check = false;
+    std::vector <double> previous_pivots;
+    
+    // initialization for golden section search
+    findPivotBrackets();
+    std::vector <double> a = min_pivots_brackets, b = max_pivots_brackets; // finds brackets (size P) for the pivot point(s);
+    
+    std::vector <double> K;
+    std::vector <double> h, c, d, yc, yd;
+    
+    for (int p = 0; p < P; p++){
+        h.push_back(b[p] - a[p]);
+    }
+    
+    double const invphi = (std::sqrt(5.0) - 1.0) / 2.0;     // 1 / phi
+    double const invphi2 = (3.0 - std::sqrt(5.0)) / 2.0;    // 1 / phi^2
+    
+    int iter = 0;
+    
+    for (int p = 0; p < P; p++){
+        c.push_back(a[p] + invphi2 * h[p]);
+        d.push_back(a[p] + invphi * h[p]);
+        yc.push_back(getAbsPearsonCorrFromNewPivot(c[p], p, iter));
+        yd.push_back(getAbsPearsonCorrFromNewPivot(d[p], p, iter));
+        
+        K.push_back((double) std::ceil(std::log(tol / h[p]) / std::log(invphi))); // maximum iterations needed for convergence
+    }
+    
+    int max_iter = minMax(K)[1];
+    
+    // begin golden section search
+    while (iter <= max_iter){
+        previous_pivots = pivots;
+        
+        for (int p = 0 ; p < P; p++){
+            if (yc < yd) {
+                b[p] = d[p];
+                d[p] = c[p];
+                yd[p] = yc[p];
+                h[p] = invphi * h[p];
+                c[p] = a[p] + invphi2 * h[p];
+                yc[p] = getAbsPearsonCorrFromNewPivot(c[p], p, iter);
+            } else {
+                a[p] = c[p];
+                c[p] = d[p];
+                yc[p] = yd[p];
+                h[p] = invphi * h[p];
+                d[p] = a[p] + invphi * h[p];
+                yd[p] = getAbsPearsonCorrFromNewPivot(d[p], p, iter);
+            }
+        }
+        
+        if (verbose){
+            printf("Optimum pivot point search progress:\t");
+            for (int p = 0; p < P; p++){
+                double printed_pivot;
+                if (yc[p] < yd[p]){
+                    printed_pivot = (a[p] + d[p]) / 2.0;
+                } else {
+                    printed_pivot = (c[p] + b[p]) / 2.0;
+                }
+                printf("%0.3f \t", printed_pivot);
+            }
+            std::cout << std::endl;
+        }
+        
+        iter++;
+    }
+    
+    for (int p = 0; p < P; p++){
+        if (yc[p] < yd[p]){
+            pivots[p] = (a[p] + d[p]) / 2.0;
+        } else {
+            pivots[p] = (c[p] + b[p]) / 2.0;
+        }
+    }
+    
+    return;
+}
+
 void TRK::CorrelationRemoval::findPivots() {
 	if (findPivotPoints) {
         printf("Finding pivot point(s)...\n\n");
         
-		std::vector <std::vector < std::vector <double > > > drawnCombos;
-        std::vector <std::vector <double> > allparam_samples, allPivots, oldPivots;
-        std::vector <std::vector <double> > pivot_samples(P, std::vector<double>());
-        std::vector <std::vector <double> > pivotWeights(P, std::vector<double>());
-        std::vector <double> onePivots, oneWeights, finalPivots, allparams_better;
-        for (int p = 0; p < P; p++){
-            oldPivots.push_back(std::vector <double>((int)(randomSampleCount*(randomSampleCount - 1)) / 2, pivots[p]));
-        }
-        for (int p = 1; p < P + 1; p++){
-            finalPivots.push_back((double) p);
-        }
-        
-		int iter = 0;
-
-		while (true)
-        {
-            if (iter > 0){
-                pivotPointActive = true;
-            }
-            
-            // 0. possibly refit for better guess for MCMC to avoid zero likelihood
-            if (refit_newPivot){
-                allparams_better = trk.fitting.downhillSimplex(trk.statistics.selectedChiSq, trk.allparams_guess, trk.scaleOptimization.s);
-                
-                if (trk.correlationRemoval.verbose){
-//                    printf("re-fit for new pivot point(s); old / new params:\n");
-//
-//                    for (int j = 0; j < (int)allparams_better.size(); j++){
-//                        printf("%.3e %.3e\n", trk.allparams_guess[j], allparams_better[j]);
-//                    }
-                }
-                trk.allparams_guess = allparams_better;
-            }
-            
-            std::vector < std::vector <double> > param_samples(sample_R, std::vector<double>());
-            
-            
-            // 1. sample parameter space
-            
-            if (trk.correlationRemoval.verbose && trk.mcmc.verbose){
-                printf("\nSampling for pivot points...\n");
-            }
-
-            allparam_samples = trk.mcmc.samplePosterior(sample_R, sample_burnIn, trk.mcmc.allparams_sigmas_guess); //allparam_samples is { {allparams0}, {allparams1}, ... }
-            
-            pivotPointParamsGuess = trk.allparams_guess;
-            
-            switch (thisPivotMethod){
-                case DIST:
-                {
-                    pivot_samples = std::vector <std::vector <double> >(P, std::vector<double>());
-                    pivotWeights = std::vector <std::vector <double> >(P, std::vector<double>());
-                    
-                    for (int j = 0; j < allparam_samples.size(); j++) {
-                        param_samples[j] = slice(allparam_samples[j], 0, (int)trk.M);
-                    }
-                    
-                    // 2. draw slope-intercept combos from parameter space
-                    if (!getCombosFromSampleDirectly) { //this option takes the ~10,000 MH samples, selects ~200 of them, then generates combos out of this subset
-                        printf("getCombosFromSampleDirectly=false not currently configured for multiple pivot points.\n");
-                    }
-                    else { //this option takes the ~10,000 MH samples, then generates combos directly out of this set.
-                        drawnCombos = directCombos(param_samples, maxCombos);
-                    }
-                    
-                    // 3. compute new pivot points for each of these combos
-                    double onePivot;
-                    for (int j = 0; j < drawnCombos.size(); j++) {
-                        onePivots.clear(); // size P
-                        bool has_NaN = false;
-                        for (int p = 0; p < P; p++){
-                            onePivot = pivots[p] + pivotFunc(drawnCombos[j][0], drawnCombos[j][1], p);
-                            has_NaN = std::isnan(onePivot);
-                            onePivots.push_back(onePivot);
-                        }
-                        if (!has_NaN) {
-                            for (int p = 0; p < P; p++){
-                                pivot_samples[p].push_back(onePivots[p]);
-                            }
-                        }
-                    }
-                    
-                    if (pruneOutlierPivots){
-                        for (int p = 0; p < P; p++){
-                            pivot_samples[p] = removeOutlierPivots(pivot_samples[p]);
-                        }
-                    }
-                    
-                    if (trk.correlationRemoval.verbose){
-                        printf("Weighting pivot points...\n");
-                    }
-                    
-                    
-                    // 4. weight these new pivot points
-                    std::vector <std::vector <double> >all_finalPivots(P, std::vector<double>());
-                    std::vector <std::vector <double> >finalWeights(P, std::vector<double>());
-                                                
-                    oneWeights.clear();
-                    double oneWeight;
-                    if (weightPivots) {
-                        for (int p = 0; p < P; p++){
-                            for (int i = 0; i < pivot_samples[0].size(); i++) {
-                                oneWeight = weightPivot(drawnCombos[i][0], drawnCombos[i][1], oldPivots[p], pivot_samples[p][i], p);
-                                if (!std::isnan(oneWeight)){
-                                    all_finalPivots[p].push_back(pivot_samples[p][i]);
-                                    finalWeights[p].push_back(oneWeight);
-                                }
-                            }
-                        }
-                    } else {
-                        for (int p = 0; p < P; p++){
-                            finalWeights[p] = std::vector<double>((int) pivot_samples[p].size(), 1.0);
-                        }
-                        all_finalPivots = pivot_samples;
-                    }
-                    
-                    pivot_samples = all_finalPivots;
-                    pivotWeights = finalWeights;
-                    
-                    // 5. find best new pivot point using some measure of central tendency
-                    
-                    for (int p = 0; p < P; p++){
-                        if (pivotMedian){
-                            finalPivots[p] = getMedian((int) pivot_samples[p].size(), pivotWeights[p], pivot_samples[p]);
-                        } else if (pivotMean){
-                            finalPivots[p] = trk.statistics.getAverage(pivot_samples[p], pivotWeights[p]);
-                        } else if (pivotHalfSampleMode){
-                            finalPivots[p] = trk.statistics.getMode((int) pivot_samples[p].size(), pivotWeights[p], pivot_samples[p]);
-                        } else { //mode
-                            finalPivots[p] = trk.statistics.getPeakCoord(pivot_samples[p], pivotWeights[p]);
-                        }
-                    }
-                    
-                    if (writePivots){
-                        std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo_public/diagnostics/") + std::string("TRKpivots") + (getCombosFromSampleDirectly ? "1" : "0") + (weightPivots ? "1_" : "0_") + std::to_string(iter) + std::string("_") + std::to_string(finalPivots[0]) + std::string(".txt");
-
-                        std::ofstream myfile(filename, std::ofstream::trunc);
-                        if (myfile.is_open())
-                        {
-                            for (int i = 0; i < pivot_samples[0].size(); i++) {
-                                for (int p = 0; p < P; p++){
-                                    myfile << pivot_samples[p][i] << " " << pivotWeights[p][i] << " ";
-                                }
-                                myfile << "\n";
-                            }
-
-                            //myfile << "final pivot: " << finalPivot << "\n\n\n\n\n";
-
-                            myfile.close();
-                        }
-                        else std::cout << "Unable to open file";
-                    }
-                    
-                    break;
-                }
-                case REGRESSION:
-                { // fit line to correlation ellipse between intercept vs slope
-                    for (int j = 0; j < allparam_samples.size(); j++) {
-                        param_samples[j] = slice(allparam_samples[j], 0, (int)trk.M);
-                    }
-                    
-                    for (int p = 0; p < P; p++){
-                        std::vector <double> b_samples, m_samples, fit_result;
-                        double ellipse_slope; // slope along axis of correlation ellipse between slope and intercept
-                        
-                        for (int j = 0; j < param_samples.size(); j++) {
-                            b_samples.push_back(pivot_intercept_functions[p](param_samples[j]));
-                            m_samples.push_back(pivot_slope_functions[p](param_samples[j]));
-                        }
-                        
-                        fit_result = trk.statistics.simpleLinearRegression(m_samples, b_samples);
-                        ellipse_slope = fit_result[1];
-                        
-                        double rxy = trk.statistics.pearsonCorrelation(m_samples, b_samples);
-                        printf("Pearson R2 %i = %0.3f\t", p, rxy);
-                        
-                        printf("ellipse slope %i = %0.3f\t\t", p, ellipse_slope);
-                        
-                        finalPivots[p] = pivots[p] - ellipse_slope;
-                        
-                        if (writePivots){
-                            // write b vs m distribution to file
-                            std::string fileName = trk.settings.outputPath + std::string("/TRKMCMC_PIVOT") + std::to_string(p) + std::string("_") + std::to_string(iter) + std::string("_") + std::to_string(trk.allparams_guess[0]) + std::string("_") + std::to_string(sample_R) + std::string(".txt");
-
-                            std::ofstream myfile;
-                            myfile.open(fileName, std::ofstream::trunc);
-                            
-                            int m = 0;
-                            if (trk.asymmetric.hasAsymSlop){
-                                m = 2;
-                            }
-                            
-                            if (myfile.is_open())
-                            {
-                                // filename    a     b     optimum scale    total computation time (s)
-                                for (int i = 0; i < b_samples.size(); i++) {
-                                    myfile << m_samples[i] << " " << b_samples[i] << std::endl;
-                                }
-
-                                myfile.close();
-                            }
-                            else std::cout << "Unable to open file";
-                        }
-                        
-                        
-                    }
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-            }
-            
-            if (trk.correlationRemoval.verbose){
-                for (int p = 0; p < P; p++){
-                    printf("new, old pivot %i = %0.3f, %0.3f\t", p + 1, finalPivots[p], pivots[p]);
-                }
-                std::cout << std::endl;
-            }
-                
-            allPivots.push_back(finalPivots); // each element of this is one iteration of the whole pivot point-finding loop
-            iter++;
-            
-            // check for iteration halt
-            int tolCheck = 0;
-            for (int p = 0; p < P; p++){
-                if (std::abs(finalPivots[p] - pivots[p]) <= pivotTol) {tolCheck++;};
-            }
-            
-            pivots = finalPivots;
-            
-            if (iter >= maxPivotIter || tolCheck == P) { //termination check
+        switch (thisPivotMethod){
+            case DIST:
+            { // generate a weighted distribution of possible new pivot points and characterize it to find new ones
+                optimizePivotsWithDistribution();
                 break;
             }
-		}
+            case REGRESSION:
+            { // fit line to correlation ellipse between intercept vs slope
+                optimizePivotsWithRegression();
+                break;
+            }
+            case PEARSON:
+            { // find pivot(s) that minimize abs(pearson correlation) for each set of intercept and slope
+                optimizePivotsWithPearson();
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
         
         if (trk.correlationRemoval.verbose){
             for (int p = 0; p < P; p++){
@@ -4162,8 +4521,6 @@ void TRK::CorrelationRemoval::findPivots() {
         trk.results.pivots = pivots;
         
         pivotPointActive = false;
-        
-        trk.allparams_guess =  pivotPointParamsGuess;
 
 		return;
     } else {
