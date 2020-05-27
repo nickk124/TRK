@@ -1466,48 +1466,6 @@ double TRK::TangentPointMethods::twoPointNR(std::vector <double> params, double 
 	return xkp1;
 }
 
-double TRK::Fitting::goldenSectionSearch(double(TRK::CorrelationRemoval::*f)(double), double a, double b){
-    // Finds the minimum of some 1D function *f, given brackets a < b
-    double h = b - a;
-    if ( h <= gssTol) {return (b + a)/2.0;};
-    
-    double c, d, yc, yd;
-    double const invphi = (std::sqrt(5.0) - 1.0) / 2.0;     // 1 / phi
-    double const invphi2 = (3.0 - std::sqrt(5.0)) / 2.0;    // 1 / phi^2
-    
-    c = a + invphi2 * h;
-    d = a + invphi * h;
-    yc = (trk.correlationRemoval.*f)(c);
-    yd = (trk.correlationRemoval.*f)(d);
-    
-    // Required steps to achieve tolerance
-    int K = (int) std::ceil(std::log(gssTol / h) / std::log(invphi));
-    
-    for (int k = 0; k < K; k++){
-        if (yc < yd) {
-            b = d;
-            d = c;
-            yd = yc;
-            h = invphi * h;
-            c = a + invphi2 * h;
-            yc = (trk.correlationRemoval.*f)(c);
-        } else {
-            a = c;
-            c = d;
-            yc = yd;
-            h = invphi * h;
-            d = a + invphi * h;
-            yd = (trk.correlationRemoval.*f)(d);
-        }
-    }
-    
-    if (yc < yd){
-        return (a + d) / 2.0;
-    } else {
-        return (c + b) / 2.0;
-    }
-}
-
 std::vector <double> TRK::Fitting::pegToZeroSlop(std::vector <double> vertex){
     double pegToZeroTol = trk.scaleOptimization.pegToZeroTol;
     if (trk.settings.do1DFit){
@@ -2114,6 +2072,7 @@ double TRK::Statistics::likelihood(std::vector <double> allparams) {
             for (int i = 0; i < trk.N; i++)
             {
                 futureVec[i] = std::async(std::launch::async, &TRK::TangentPointMethods::tangentParallelLikelihood, trk.tangentPointMethods, params, slop_x, slop_y, i); //pointer to fn run through MT, arguments to fn
+                // function returns 1) tangent points and 2) likelihood component
                 counter++;
                 liveThreads++;
 
@@ -2123,7 +2082,11 @@ double TRK::Statistics::likelihood(std::vector <double> allparams) {
                     {
                         results = futureVec[i].get();
                         all_x_t.push_back(results[0]);
-                        L *= results[1];
+                        if (trk.mcmc.useLogPosterior){
+                            L += std::log(results[1]);
+                        } else {
+                            L *= results[1];
+                        }
                     }
                     completedThreads += liveThreads;
                     liveThreads = 0;
@@ -4093,20 +4056,20 @@ double TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot(double new_pivot, 
     return abs_rxy; // returns maximally correlated if NaN
 }
 
-bool TRK::CorrelationRemoval::checkPearsonOptimizationTolerance(std::vector <double> previous_pivots){
-    if (verbose){ // ending iteration printing
-        std::cout << std::endl;
-    }
-    
-    int check = 0;
-    for (int p = 0; p < P; p++){
-        if (std::abs(pivots[p] - previous_pivots[p]) <= tol){check++;}
-    }
-    
-    return check == P;
-}
+//bool TRK::CorrelationRemoval::checkPearsonOptimizationTolerance(std::vector <double> previous_pivots){
+//    if (verbose){ // ending iteration printing
+//        std::cout << std::endl;
+//    }
+//
+//    int check = 0;
+//    for (int p = 0; p < P; p++){
+//        if (std::abs(pivots[p] - previous_pivots[p]) <= tol){check++;}
+//    }
+//
+//    return check == P;
+//}
 
-void TRK::CorrelationRemoval::optimizePivotsWithDistribution(){
+void TRK::CorrelationRemoval::optimizePivots_Distribution(){
     std::vector <std::vector < std::vector <double > > > drawnCombos;
     std::vector <std::vector <double> > old_pivots_sample, allparam_samples, pivot_samples(P, std::vector<double>()), pivotWeights(P, std::vector<double>());
     std::vector <double> onePivots, oneWeights, finalPivots, allparams_better, oldPivots = pivots;
@@ -4273,7 +4236,7 @@ void TRK::CorrelationRemoval::optimizePivotsWithDistribution(){
     return;
 }
 
-void TRK::CorrelationRemoval::optimizePivotsWithRegression(){
+void TRK::CorrelationRemoval::optimizePivots_Regression(){
     std::vector <std::vector <double> > allparam_samples;
     std::vector <double> finalPivots, allparams_better, oldPivots = pivots;
     
@@ -4405,12 +4368,9 @@ void TRK::CorrelationRemoval::findPivotBrackets(){
     return;
 }
 
-void TRK::CorrelationRemoval::optimizePivotsWithPearson(){
-//    bool converge_check = false;
-    std::vector <double> previous_pivots;
-    
-    // initialization for golden section search
-    findPivotBrackets();
+
+
+void TRK::CorrelationRemoval::optimizePivots_Pearson_Loop(){
     std::vector <double> a = min_pivots_brackets, b = max_pivots_brackets; // finds brackets (size P) for the pivot point(s);
     
     std::vector <double> K;
@@ -4437,24 +4397,83 @@ void TRK::CorrelationRemoval::optimizePivotsWithPearson(){
     int max_iter = minMax(K)[1];
     
     // begin golden section search
+    std::vector <double> pivot_vec(P, 0.0); // for CPP11 parallelization
+    
     while (iter <= max_iter){
-        previous_pivots = pivots;
-        
-        for (int p = 0 ; p < P; p++){
-            if (yc < yd) {
+        for (int p = 0; p < P; p++){
+            if (yc[p] < yd[p]) {
                 b[p] = d[p];
                 d[p] = c[p];
                 yd[p] = yc[p];
                 h[p] = invphi * h[p];
                 c[p] = a[p] + invphi2 * h[p];
-                yc[p] = getAbsPearsonCorrFromNewPivot(c[p], p, iter);
+                pivot_vec[p] = c[p];
             } else {
                 a[p] = c[p];
                 c[p] = d[p];
                 yc[p] = yd[p];
                 h[p] = invphi * h[p];
                 d[p] = a[p] + invphi * h[p];
-                yd[p] = getAbsPearsonCorrFromNewPivot(d[p], p, iter);
+                pivot_vec[p] = d[p];
+            }
+        }
+        
+        switch (trk.settings.ParallelizationBackEnd){
+                // parallelize the sampling (most computationally intensive part)
+            case CPP11:
+            {
+                // initialize parallelization objects, to compute ret_vec in parallel
+                int counter = 0, completedThreads = 0, liveThreads = 0;
+                double result;
+                std::vector <double> ret_vec(P, 0.0);
+                std::vector < std::future < double > > futureVec;
+                futureVec.resize(P);
+                
+                for (int p = 0; p < P; p++){
+                    futureVec[p] = std::async(std::launch::async, &TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot, trk.correlationRemoval, pivot_vec[p], p, iter);
+                    counter++;
+                    liveThreads++;
+                    
+                    if (liveThreads >= trk.settings.maxThreads)
+                    {
+                        for (int i = completedThreads; i < counter; i++)
+                        {
+                            result = futureVec[i].get();
+                            ret_vec[i] = result;
+                        }
+                        completedThreads += liveThreads;
+                        liveThreads = 0;
+                    }
+                }
+                
+                for (int i = completedThreads; i < P; i++)
+                {
+                    result = futureVec[i].get();
+                    ret_vec[i] = result;
+                }
+                
+                for (int p = 0; p < P; p++){
+                    if (yc[p] < yd[p]) {
+                        yc[p] = ret_vec[p];
+                    } else {
+                        yd[p] = ret_vec[p];
+                    }
+                }
+                break;
+            }
+            default:
+            {
+                if (trk.settings.ParallelizationBackEnd == OPENMP) {
+                    #pragma omp parallel for num_threads(maxThreads)
+                }
+                for (int p = 0; p < P; p++){
+                    if (yc[p] < yd[p]) {
+                        yc[p] = getAbsPearsonCorrFromNewPivot(c[p], p, iter);
+                    } else {
+                        yd[p] = getAbsPearsonCorrFromNewPivot(d[p], p, iter);
+                    }
+                }
+                break;
             }
         }
         
@@ -4486,6 +4505,18 @@ void TRK::CorrelationRemoval::optimizePivotsWithPearson(){
     return;
 }
 
+void TRK::CorrelationRemoval::optimizePivots_Pearson(){
+//    bool converge_check = false;
+    
+    // initialization for golden section search
+    findPivotBrackets();
+    
+    // run GSS to find pivot(s), either in series or parallel
+    optimizePivots_Pearson_Loop();
+
+    return;
+}
+
 void TRK::CorrelationRemoval::findPivots() {
 	if (findPivotPoints) {
         printf("Finding pivot point(s)...\n\n");
@@ -4493,17 +4524,17 @@ void TRK::CorrelationRemoval::findPivots() {
         switch (thisPivotMethod){
             case DIST:
             { // generate a weighted distribution of possible new pivot points and characterize it to find new ones
-                optimizePivotsWithDistribution();
+                optimizePivots_Distribution();
                 break;
             }
             case REGRESSION:
             { // fit line to correlation ellipse between intercept vs slope
-                optimizePivotsWithRegression();
+                optimizePivots_Regression();
                 break;
             }
             case PEARSON:
             { // find pivot(s) that minimize abs(pearson correlation) for each set of intercept and slope
-                optimizePivotsWithPearson();
+                optimizePivots_Pearson();
                 break;
             }
             default:

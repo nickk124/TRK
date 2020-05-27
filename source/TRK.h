@@ -330,6 +330,7 @@ class TRK // main class
                 bool get_pivot_guess = false;
                 bool verbose_refit = false;
                 bool verbose_pearson = false;
+                bool parallelize = false;
             
             private:
                 // settings
@@ -374,19 +375,21 @@ class TRK // main class
             
             
                 // find pivots by generating a distribution
-                void optimizePivotsWithDistribution();
+                void optimizePivots_Distribution();
                 double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot, int p);
                 double pivotFunc(std::vector <double> params1, std::vector <double> params2, int p);
             
                 // find pivots by using the slope of the correlation ellipse between intercepts and slopes
-                void optimizePivotsWithRegression();
+                void optimizePivots_Regression();
             
                 // find pivots using the correlation of intercepts and slopes and the golden section search (GSS) method
                 std::vector <double> max_pivots_brackets, min_pivots_brackets;
             
                 void findPivotBrackets();
-                void optimizePivotsWithPearson();
+                void optimizePivots_Pearson();
+                void optimizePivots_Pearson_Loop(); // both serial and parallel
                 void writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int iter, int p);
+//                std::vector <double> parallelGoldenSectionSearch(bool c_or_d, double pivot, int p, int iter);
                 bool checkPearsonOptimizationTolerance(std::vector <double> previous_pivots);
                 double getAbsPearsonCorrFromNewPivot(double new_pivot, int p, int iter);
             
@@ -412,9 +415,6 @@ class TRK // main class
             
             
             private:
-                // golden section search method for finding the minimum of some 1-D function
-                double gssTol = 1e-6;
-                double goldenSectionSearch(double(TRK::CorrelationRemoval::*f)(double), double a, double b);
             
                 // downhill simplex method for finding the minimum of some N-D function
                 void getBetterGuess();
