@@ -1,3 +1,9 @@
+/*
+Trotter Reichart Konz (TRK) Official Codebase
+Author: Nick C. Konz
+See license at https://github.com/nickk124/TRK
+*/
+
 #include "exampleModels.h"
 
 // model functions given, then their first two derivatives, then the functions needed to compute their linearized intercept(s) and slope(s) for pivot point finding.
@@ -911,6 +917,8 @@ double covid19_3BLPO_fixed(double t, std::vector <double> params){
 //    std::vector <double> smoothingparams = TRK::COVID19::fixed_params;
 //    std::vector <double> polyparams = slice(params, 6, 18);
 //    params = concat(_2BLparams, concat(smoothingparams, polyparams));
+    
+//    params
     
     params = concat(params, TRK::COVID19::fixed_params);
     

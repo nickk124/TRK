@@ -1,3 +1,9 @@
+/*
+Trotter Reichart Konz (TRK) Official Codebase
+Author: Nick C. Konz
+See license at https://github.com/nickk124/TRK
+*/
+
 #pragma once
 #include <vector>
 #include "TRK.h"

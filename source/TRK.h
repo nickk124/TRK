@@ -1,3 +1,9 @@
+/*
+Trotter Reichart Konz (TRK) Official Codebase
+Author: Nick C. Konz
+See license at https://github.com/nickk124/TRK
+*/
+
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -22,7 +28,7 @@ enum priorTypes { CUSTOM, CUSTOM_JOINT, GAUSSIAN, CONSTRAINED, MIXED};
 
 enum samplingMethod {ARWMH, AIES};   // Adaptive Random Walk Metropolis Hastings, and Affine Invariant Ensemble Sampler
 
-enum pivotPointFindingMethod {DIST, REGRESSION, PEARSON};  // Distribution generation, vs. regression of confidence ellipse, vs. minimizing pearson correlation of said ellipse
+enum pivotPointFindingMethod {DIST, REGRESSION, PEARSON_GSS, PEARSON_};  // Distribution generation, vs. regression of confidence ellipse, vs. minimizing pearson correlation of said ellipse
 
 enum ParallelizationBackEnd {CPP11, OPENMP};
 
@@ -57,7 +63,7 @@ struct Results
         std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
         std::vector < std::vector < std::vector <double> > > paramDistributionHistograms; // vector: {bins, edges}
     
-        // asymmetric uncertainties:
+        // asymmetric uncertainties
         double slop_x_minus;
         double slop_y_minus;
         std::vector < std::vector <double> > slopX_minus_123Sigmas;
@@ -69,124 +75,6 @@ class TRK // main class
 {
     public:
         // NESTED CLASSES
-        class Asymmetric    // Asymmetric Uncertainties
-        {
-            friend TRK;
-            TRK &trk; // parent class
-            
-            public:
-                // constructors/destructor
-                Asymmetric(TRK &trk);
-                ~Asymmetric();
-            
-                // dataset
-                std::vector <double> sx_minus, sy_minus; // negative asymmetric error bars
-                
-                // guesses
-                double slop_x_minus_guess = -1.0;  // negative asymmetric slop
-                double slop_y_minus_guess = -1.0;
-            
-            
-            private:
-                // settings
-                bool hasAsymEB = false;
-                bool hasAsymSlop = false;
-                bool verbose = false; // show info/steps about asymmetric uncertainty fitting
-            
-                // likelihood/posterior/tangent points
-                double singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
-                double pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
-                double dunDxAsym(double mtn, std::vector <double> Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind, double s);
-                double zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_shifted, double yn_shifted, std::vector <double> shifts, double x_tn, double y_tn, double m_tn);
-                double findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
-                std::vector <double> getAsymShifts(std::vector <double> allparams, int n);
-                std::vector <double> getAsymSigs2(std::vector <double> allparams, int n);
-                std::vector <double> tangentParallelAsym(std::vector<double> allparams, int n, double s);
-                std::vector <double> tangentParallelLikelihoodAsym(std::vector<double> allparams, int n);
-            
-                // tools
-                void checkAsym();
-        };
-
-        class ScaleOptimization
-        {
-            friend TRK;
-            TRK &trk; // parent class
-            
-            public:
-                // constructors/destructor
-                ScaleOptimization(TRK &trk);
-                ~ScaleOptimization();
-            
-                // fitting scales
-                double s, a, b;
-            
-                // settings
-                bool verbose = false;
-            
-            private:
-                // fitting scales
-                whichScaleExtrema whichExtrema = NONE;
-                whichScaleExtrema whichExtremaX = NONE;
-                whichScaleExtrema whichExtremaY = NONE;
-            
-                // iterative tolerances
-                double pegToZeroTol = 0.004;
-            
-                // guesses
-                bool firstGuess = true;
-                double slopYGuess;
-                double slopYScaleGuess = 1.0;
-                std::vector <double> iterative_allparams_guess;
-            
-                void getBetterSlopYGuess(double slop_y, double s);
-            
-                // optimization
-                std::vector <double (ScaleOptimization::*)()> optimizeList = {&ScaleOptimization::optimize_s_SlopX, &ScaleOptimization::optimize_s_SlopY};
-                
-                void optimizeScale();
-                double innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
-                double innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
-                double optimize_s_SlopX();
-                double optimize_s_SlopY();
-            
-                // TRK correlation coefficient
-                double innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> allparams_guess, double s0);
-                double iterateR2_OptimumScale(double s0);
-                double optimize_s0_R2();
-                double optimize_s_prime_R2(double s0);
-                double innerR2_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
-                double R2TRK_prime_as();
-                double R2TRK_prime_sb();
-                double R2TRK_prime_as0(double s0, std::vector <double> x_t_s0, std::vector <double> params_s0);
-                double R2TRK_prime_s0b(double s0, std::vector <double> x_t_s0, std::vector <double> params_s0);
-        };
-
-        class TangentPointMethods
-        {
-            friend TRK;
-            TRK &trk; // parent class
-            
-            public:
-                // constructors/destructor
-                TangentPointMethods(TRK &trk);
-                ~TangentPointMethods();
-            
-            private:
-                // settings
-                double root_bound = 10;
-                
-                // general
-                double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec, double s);
-                double twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1);
-                double newtonRaphson(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess);
-                std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
-                std::vector <double> approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1);
-                std::vector <double> tangentCubicSolver(double A, double B, double C, double D);
-                std::vector <double> tangentParallel(std::vector<double> params, double slop_x, double slop_y, int n, double s);
-                std::vector <double> tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n);
-        };
-
         class Statistics
         {
             friend TRK;
@@ -231,7 +119,7 @@ class TRK // main class
                 double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s);
                 double likelihood(std::vector <double> allparams);
             
-                // same but asymmetric uncertainties
+                // likelihoods and posteriors with asymmetric uncertainties
                 double modifiedChiSquaredAsym(std::vector <double> allparams, double s);
                 double likelihoodAsym(std::vector <double> allparams);
             
@@ -239,14 +127,131 @@ class TRK // main class
                 double stDevUnweighted(std::vector <double> x);
                 double getAverage(std::vector <double> x, std::vector <double> w);
                 double getAverage(std::vector <double> x);
+                double getMode(int trueCount, std::vector<double> w, std::vector<double> y);
                 double getPeakCoord(std::vector <double> x, std::vector <double> w);
                 double min(double a, double b);
                 double max(double a, double b);
-                double getMode(int trueCount, std::vector<double> w, std::vector<double> y);
             
                 // histograms
                 std::vector <std::vector <double> > getHistogram(std::vector <double> data);
                 std::vector <std::vector <double> > getHistogram(std::vector <double> data, std::vector <double> weights);
+        };
+    
+        class Optimization
+        {
+            friend TRK; // need TRK instances to be able to access private members of this
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                Optimization(TRK &trk);
+                ~Optimization();
+            
+                // settings
+                double simplexTol = 1e-5;  // downhill simplex fitting tolerance
+                int max_simplex_iters = 10000;   // maximum number of iterations for downhill simplex
+                bool showSimplexSteps = false;
+            
+            
+            private:
+            
+                // downhill simplex method for finding the minimum of some N-D function
+                std::vector <double> downhillSimplex(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s);
+                
+                // downhill simplex tools
+                double evalWPriors(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
+                std::vector <double> avoidNegativeSlop(std::vector <double> vertex, unsigned long n);
+                std::vector <double> pegToZeroSlop(std::vector <double> vertex);
+                std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
+                void getBetterGuess();
+            
+                // settings
+                double simplex_size = 0.1;
+        };
+
+        class ScaleOptimization
+        {
+            friend TRK;
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                ScaleOptimization(TRK &trk);
+                ~ScaleOptimization();
+            
+                // fitting scales
+                double s, a, b;
+            
+                // settings
+                bool verbose = false;
+            
+            private:
+                // fitting scales
+                whichScaleExtrema whichExtrema = NONE;
+                whichScaleExtrema whichExtremaX = NONE;
+                whichScaleExtrema whichExtremaY = NONE;
+            
+                // iterative tolerances
+                double pegToZeroTol = 0.004;
+            
+                // guesses
+                bool firstGuess = true;
+                double slopYGuess;
+                double slopYScaleGuess = 1.0;
+                std::vector <double> iterative_allparams_guess;
+            
+                void getBetterSlopYGuess(double slop_y, double s);
+            
+                // core optimization / slop vs. scale
+                std::vector <double (ScaleOptimization::*)()> optimizeList = {&ScaleOptimization::optimize_s_SlopX, &ScaleOptimization::optimize_s_SlopY};
+                
+                void optimizeScale();
+                double optimize_s_SlopX();
+                double optimize_s_SlopY();
+                double innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
+                double innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
+            
+                // TRK correlation coefficient
+                double optimize_s0_R2();
+                double optimize_s_prime_R2(double s0);
+                double iterateR2_OptimumScale(double s0);
+                double innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> allparams_guess, double s0);
+                double innerR2_Simplex(std::vector <double> ss, std::vector <double> allparams_guess);
+                double R2TRK_prime_as();
+                double R2TRK_prime_sb();
+                double R2TRK_prime_as0(double s0, std::vector <double> x_t_s0, std::vector <double> params_s0);
+                double R2TRK_prime_s0b(double s0, std::vector <double> x_t_s0, std::vector <double> params_s0);
+        };
+
+        class TangentPointMethods
+        {
+            friend TRK;
+            TRK &trk; // parent class
+            
+            public:
+                // constructors/destructor
+                TangentPointMethods(TRK &trk);
+                ~TangentPointMethods();
+            
+            private:
+                // settings
+                double root_bound = 10;
+                
+                // root finders
+                double twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1);
+                double newtonRaphson(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess);
+                
+                // tangent point choosing
+                double findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec, double s);
+                std::vector <double> tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg);
+            
+                // approximations
+                std::vector <double> approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1);
+                std::vector <double> tangentCubicSolver(double A, double B, double C, double D);
+            
+                // parallel computing methods
+                std::vector <double> tangentParallel(std::vector<double> params, double slop_x, double slop_y, int n, double s);
+                std::vector <double> tangentParallelLikelihood(std::vector<double> params, double slop_x, double slop_y, int n);
         };
 
         class MCMC
@@ -286,7 +291,7 @@ class TRK // main class
                 bool printAIESWalkerEvolution = false;
                 int amt_walkers = 2; // number of walkers is amt_walkers * (number of parameters sampled)
                 double AIES_a = 2.0;
-                double AIES_initial_scaling = 1.0 / 10.0;
+                double AIES_initial_scaling = 0.1;
                 std::vector <double> updateAIESWalker(std::vector <double> X, std::vector <std::vector <double> > YY);
                 std::vector <double> parallelUpdateAIESWalkers(std::vector <std::vector <double> > XX, std::vector <std::vector <double> > YY, int k);
                 
@@ -315,15 +320,18 @@ class TRK // main class
                 CorrelationRemoval(TRK &trk);
                 ~CorrelationRemoval();
             
+            
                 // general
                 static std::vector <double> pivots; // pivot point(s) themselves; to be fixed pre-fitting if desired
                 std::vector <double(*)(std::vector <double>)> pivot_intercept_functions; // vector of functions that return intercept parameters(s) of corresponding pivot points
                 std::vector <double(*)(std::vector <double>)> pivot_slope_functions; // same, but for slope parameter(s)
                 
+            
                 // settings
                 int maxPivotIter = 100; // Maximum number of iterations for the pivot point finder. 5 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
                 bool findPivotPoints = false;
                 bool verbose = false; // show pivot point finding steps
+            
             
                 // testing/experimental
                 bool writePivots = false; //outputs pivot point sampling results for single-pivot case
@@ -333,6 +341,9 @@ class TRK // main class
                 bool parallelize = false;
             
             private:
+                // core
+                void findPivots();
+            
                 // settings
                 pivotPointFindingMethod thisPivotMethod = PEARSON;
             
@@ -347,7 +358,7 @@ class TRK // main class
                 bool pruneOutlierPivots = true;
                 bool pivotPointActive = false;
             
-                int P; // number of pivot points
+                int P = 0; // number of pivot points
                 int sample_R = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
                 int randomSampleCount = 450;
                 int maxCombos = 10000; // 50,000 seems sufficient, but 100,000 works for sure
@@ -362,6 +373,7 @@ class TRK // main class
                 void getCombos(std::vector <std::vector <double> > total, int k, int offset);
                 std::vector < std::vector <std::vector <double > > > directCombos(std::vector < std::vector <double> > params_sample, int comboCount);
 
+            
                 // guesses
                 std::vector <int> intercept_indices; // indices of intercepts and slopes in vector of parameters describing model
                 std::vector <int> slope_indices;
@@ -370,60 +382,73 @@ class TRK // main class
                 void refitWithNewPivots(std::vector <double> new_pivots);
                 std::vector <double> refitAnalytic(std::vector <double> new_pivots);
             
-                // general
-                void findPivots();
-            
             
                 // find pivots by generating a distribution
                 void optimizePivots_Distribution();
                 double weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> oldPivots, double newPivot, int p);
                 double pivotFunc(std::vector <double> params1, std::vector <double> params2, int p);
+                std::vector <double> removeOutlierPivots(std::vector <double> pivots);
             
-                // find pivots by using the slope of the correlation ellipse between intercepts and slopes
+            
+                // find pivots using the slope of the correlation ellipse between intercepts and slopes
                 void optimizePivots_Regression();
+            
             
                 // find pivots using the correlation of intercepts and slopes and the golden section search (GSS) method
                 std::vector <double> max_pivots_brackets, min_pivots_brackets;
             
-                void findPivotBrackets();
                 void optimizePivots_Pearson();
                 void optimizePivots_Pearson_Loop(); // both serial and parallel
                 void writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int iter, int p);
-//                std::vector <double> parallelGoldenSectionSearch(bool c_or_d, double pivot, int p, int iter);
+                // std::vector <double> parallelGoldenSectionSearch(bool c_or_d, double pivot, int p, int iter);
                 bool checkPearsonOptimizationTolerance(std::vector <double> previous_pivots);
                 double getAbsPearsonCorrFromNewPivot(double new_pivot, int p, int iter);
             
+            
                 // tools
                 std::vector <double> findNTiles(int Q);
-                std::vector <double> removeOutlierPivots(std::vector <double> pivots);
+                void findPivotBrackets();
         };
     
-        class Fitting
+        class Asymmetric    // Asymmetric Uncertainties
         {
-            friend TRK; // need TRK instances to be able to access private members of this
+            friend TRK;
             TRK &trk; // parent class
             
             public:
                 // constructors/destructor
-                Fitting(TRK &trk);
-                ~Fitting();
+                Asymmetric(TRK &trk);
+                ~Asymmetric();
             
-                // settings
-                double simplexTol = 1e-5;  // downhill simplex fitting tolerance
-                int max_simplex_iters = 10000;   // maximum number of iterations for downhill simplex
-                bool showSimplexSteps = false;
+                // dataset
+                std::vector <double> sx_minus, sy_minus; // negative asymmetric error bars
+                
+                // guesses
+                double slop_x_minus_guess = -1.0;  // negative asymmetric slop
+                double slop_y_minus_guess = -1.0;
             
             
             private:
+                // settings
+                bool hasAsymEB = false;
+                bool hasAsymSlop = false;
+                bool verbose = false; // show info/steps about asymmetric uncertainty fitting
             
-                // downhill simplex method for finding the minimum of some N-D function
-                void getBetterGuess();
-                double simplex_size = 0.1;
-                double evalWPriors(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
-                std::vector <double> avoidNegativeSlop(std::vector <double> vertex, unsigned long n);
-                std::vector <double> pegToZeroSlop(std::vector <double> vertex);
-                std::vector <double> downhillSimplex(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s);
-                std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
+                // tools
+                void checkAsym();
+            
+                // likelihoods/posteriors
+                double singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
+                double pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
+                double dunDxAsym(double mtn, std::vector <double> Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind, double s);
+                double zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_shifted, double yn_shifted, std::vector <double> shifts, double x_tn, double y_tn, double m_tn);
+            
+                // tangent points
+                std::vector <double> tangentParallelAsym(std::vector<double> allparams, int n, double s);
+                std::vector <double> tangentParallelLikelihoodAsym(std::vector<double> allparams, int n);
+                double findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
+                std::vector <double> getAsymShifts(std::vector <double> allparams, int n);
+                std::vector <double> getAsymSigs2(std::vector <double> allparams, int n);
         };
 
         class Settings
@@ -517,13 +542,13 @@ class TRK // main class
 		Results results;
         
         // instances of nested classes
-        Fitting fitting;
-        Asymmetric asymmetric;
+        Statistics statistics;
+        Optimization optimization;
         ScaleOptimization scaleOptimization;
         TangentPointMethods tangentPointMethods;
-        Statistics statistics;
         MCMC mcmc;
         CorrelationRemoval correlationRemoval;
+        Asymmetric asymmetric;
         Settings settings;
         COVID19 covid19;
 
@@ -531,16 +556,16 @@ class TRK // main class
     private:
     
         // dataset
+        void getDataWidth();
+        void checkZeroErrorBars();
+    
         unsigned long bigM; //bigM is total number of model AND slop params
         double datawidth, x_min, x_max;
         std::vector <double> SigXVec, SigYVec;
     
-        void getDataWidth();
-        void checkZeroErrorBars();
-    
     
         // guesses
-        double slop_x_guess, slop_y_guess;;
+        double slop_x_guess, slop_y_guess;
         std::vector <double> x_t_slopx, x_t_slopy, x_t_a, x_t_b, x_t_s;
         std::vector <double> params_slopx, params_slopy, params_a, params_b, params_s, allparams_s, iterative_allparams_guess;
         std::vector <double> params_guess;
@@ -600,9 +625,9 @@ BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
 	return begin;
 };
 
-// non-object tools:
+// non-object/global tools:
 
-// mcmc
+// mcmc/sampling
 double noPrior(double param);
 
 // statistics
@@ -612,11 +637,11 @@ std::vector <int> getSortedIndices(std::vector <double> x);
 double getMedian(std::vector<double> y);
 double getMedian(int trueCount, std::vector<double> w, std::vector<double> y);
 
-// numerical methods
+// numerical methods/optimization
 double twoPointNR(double(*y)(double, std::vector <double>), double(*dy)(double, std::vector <double>), double(*ddy)(double, std::vector <double>), std::vector <double> params, double xguess, double xguessp1);
 std::vector <double> cubicSolver(double A, double B, double C, double D);
 
-//for testing only
+// for testing only
 
 clock_t startTimer();
 
