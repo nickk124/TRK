@@ -1609,7 +1609,236 @@ std::vector <std::vector <double> > TRK::Statistics::getHistogram(std::vector <d
 
 // OPTIMIZATION ##############################################################################################################
 
-// downhill simplex/ nelder mead method
+// general downhill simplex/ nelder mead method (ND case)
+std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(std::vector <double>)> func, std::vector <double> guess, double tolerance){
+    double tol = tolerance;
+
+    unsigned long n = (int) guess.size(); // dimensionality
+
+
+    double rho = 1.0; //reflection
+    double chi = 2.0; //expansion
+    double gamma = 0.5; //contraction
+    double sigma = 0.5; //shrinkage
+    
+    // simplex initialization
+
+    std::vector <double> init_point = guess;
+
+    std::vector <std::vector <double> > vertices(n + 1, init_point);
+    std::vector <double> optimum;
+
+    int i = 0;
+    for (int j = 1; j < n + 1; j++) { //for each simplex node
+
+        vertices[j][i] = guess[i] != 0 ? guess[i] + simplex_size*guess[i] : 0.1; //add initial "step size"
+        i += 1;
+    }
+
+    std::vector <double> result;
+    int it = 0;
+    while (true) {
+        while (true) {
+            // order
+
+            std::vector <int> orderedindices;
+            std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
+            for (int i = 0; i < n + 1; i++) {
+                unorderedEvals.push_back(func(vertices[i]));
+            }
+            orderedindices = getSortedIndices(unorderedEvals);
+
+            std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
+            for (int i = 1; i < n + 1; i++) {
+                orderedvertices.push_back(vertices[orderedindices[i]]);
+            }
+
+            vertices = orderedvertices;
+
+            // reflect
+            std::vector <double> refpoint;
+            std::vector <std::vector <double> > nvertices;
+            for (int i = 0; i < n; i++) {
+                nvertices.push_back(vertices[i]);
+            }
+
+            std::vector <double> centroid = findCentroid(nvertices);
+
+            for (int i = 0; i < n; i++) {
+                refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
+            }
+
+            double fr = func(refpoint);
+            double f1 = func(vertices[0]);
+            double fn = func(vertices[n - 1]);
+
+            if (f1 <= fr && fr < fn) {
+                result = refpoint;
+                break;
+            }
+
+            //expand
+            if (fr < f1) {
+                std::vector <double> exppoint;
+
+                for (int i = 0; i < n; i++) {
+                    exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
+                }
+
+                double fe = func(exppoint);
+
+
+                if (fe < fr) {
+                    result = exppoint;
+                    break;
+                }
+                else if (fe >= fr) {
+                    result = refpoint;
+                    break;
+                }
+            }
+
+            //contract
+
+            if (fr >= fn) {
+                //outside
+                double fnp1 = func(vertices[n]);
+
+                if (fn <= fr && fr < fnp1) {
+                    std::vector <double> cpoint;
+
+                    for (int i = 0; i < n; i++) {
+                        cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
+                    }
+
+                    double fc = func(cpoint);
+
+                    if (fc <= fr) {
+                        result = cpoint;
+                        break;
+                    }
+                    else {
+                        //shrink
+
+                        std::vector < std::vector <double> > v = { vertices[0] };
+
+                        for (int i = 1; i < n + 1; i++) {
+                            std::vector <double> vi;
+                            vi.clear();
+                            for (int j = 0; j < n; j++) {
+                                vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+                            }
+                            v.push_back(vi);
+                        }
+
+                        vertices = v;
+                    }
+                }
+                else if (fr >= fnp1) {
+                    std::vector <double> ccpoint;
+
+                    for (int i = 0; i < n; i++) {
+                        ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
+                    }
+
+                    double fcc = func(ccpoint);
+
+                    if (fcc <= fnp1) {
+                        result = ccpoint;
+                        break;
+                    }
+                    else {
+                        //shrink
+
+                        std::vector < std::vector <double> > v = { vertices[0] };
+
+                        for (int i = 1; i < n + 1; i++) {
+                            std::vector <double> vi;
+                            vi.clear();
+                            for (int j = 0; j < n; j++) {
+                                vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+                            }
+                            v.push_back(vi);
+                        }
+
+                        vertices = v;
+                    }
+
+
+                }
+
+            }
+
+            //shrink
+
+            std::vector < std::vector <double> > v = { vertices[0] };
+
+            for (int i = 1; i < n + 1; i++) {
+                std::vector <double> vi;
+                vi.clear();
+                for (int j = 0; j < n; j++) {
+                    vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+                }
+                v.push_back(vi);
+            }
+
+            vertices = v;
+        }
+
+        std::vector <std::vector <double> > bettervertices;
+        for (int i = 0; i < n; i++) {
+            bettervertices.push_back(vertices[i]);
+        }
+
+        //check that new node does not have negative slops (fixes it if it does)
+
+        bettervertices.push_back(result);
+
+        vertices = bettervertices;
+        
+        if (showSimplexSteps){
+            std::cout << "simplex vertex = ";
+            for (int i = 0; i < result.size(); i++) {
+                std::cout << result[i] << " ";
+            }
+            
+            double eval = func(result);
+            std::cout << "func = " << eval << "\n";
+            
+        }
+        
+
+        
+        
+        //test for termination
+
+        std::vector <double> evals;
+        for (int i = 0; i < n + 1; i++) {
+            evals.push_back(func(vertices[i]));
+        }
+
+        if (trk.statistics.stDevUnweighted(evals) < tol) {
+            break;
+        }
+        
+        if (it >= max_simplex_iters){
+            printf("Downhill simplex exceeded %i iterations; halting...\n", max_simplex_iters);
+            break;
+        }
+        
+        if (it % 100 == 0 && showSimplexSteps){printf("simplex iteration: %i\n", it);};
+
+        it++;
+    }
+
+    optimum = vertices[n];
+
+    return optimum;
+    
+}
+
+
+// downhill simplex/ nelder mead method customized for fitting
 std::vector <double> TRK::Optimization::downhillSimplex(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s) {
 
     double tol = simplexTol;
@@ -1996,6 +2225,68 @@ void TRK::Optimization::getBetterGuess(){
     }
     
     return;
+}
+
+
+// golden section search: finds the x_min that minimizes some f(x)
+void TRK::Optimization::printGSSProgress(double yc, double yd, double a, double b, double c, double d){
+    printf("f(x) = %0.3f for x = %0.3f\n", yc, c);
+    printf("f(x) = %0.3f for x = %0.3f\n", yd, d);
+
+    printf("GSS progress:\t");
+    double printed_x;
+    if (yc < yd){
+        printed_x = (a + d) / 2.0;
+    } else {
+        printed_x = (c + b) / 2.0;
+    }
+    printf("%0.3f \t", printed_x);
+    std::cout << std::endl;
+    
+    return;
+}
+    
+double TRK::Optimization::goldenSectionSearch(std::function <double(double)> func, double min_bracket, double max_bracket, double tolerance){
+    
+    double K, h, c, d, yc, yd, x_optimum, tol = tolerance;
+    double a = min_bracket, b = max_bracket;
+    
+    h = b - a;
+    int iter = 0;
+    
+    c = a + invphi2 * h;
+    d = a + invphi * h;
+    yc = func(c);
+    yd = func(d);
+    K = (double) std::ceil(std::log(tol / h) / std::log(invphi));  // maximum iterations needed for convergence
+        
+    while (iter <= K){
+        if (yc < yd) {
+            b = d;
+            d = c;
+            yd = yc;
+            h = invphi * h;
+            c = a + invphi2 * h;
+        } else {
+            a = c;
+            c = d;
+            yc = yd;
+            h = invphi * h;
+            d = a + invphi * h;
+        }
+        
+        if (trk.optimization.verbose_GSS){
+            printGSSProgress(yc, yd, a, b, c, d);
+        }
+    }
+    
+    if (yc < yd){
+        x_optimum = (a + d) / 2.0;
+    } else {
+        x_optimum = (c + b) / 2.0;
+    }
+    
+    return x_optimum;
 }
 
 // ###########################################################################################################################
@@ -3628,7 +3919,7 @@ void TRK::CorrelationRemoval::findPivots() {
                 optimizePivots_Regression();
                 break;
             }
-            case PEARSON:
+            case PEARSON_GSS | PEARSON_SIMPLEX:
             { // find pivot(s) that minimize abs(pearson correlation) for each set of intercept and slope
                 optimizePivots_Pearson();
                 break;
@@ -4138,90 +4429,44 @@ void TRK::CorrelationRemoval::optimizePivots_Regression(){
 
 // PEARSON method: find pivots using the correlation of intercepts and slopes and the golden section search (GSS) method
 void TRK::CorrelationRemoval::optimizePivots_Pearson(){
-//    bool converge_check = false;
     
-    // initialization for golden section search
-    findPivotBrackets();
-    
-    // run GSS to find pivot(s), either in series or parallel
-    optimizePivots_Pearson_Loop();
-
-    return;
-}
-
-void TRK::CorrelationRemoval::optimizePivots_Pearson_Loop(){
-    double const invphi = (std::sqrt(5.0) - 1.0) / 2.0;     // 1 / phi
-    double const invphi2 = (3.0 - std::sqrt(5.0)) / 2.0;    // 1 / phi^2
-    
-    // each pivot can be optimized independently (the value of the others pivots shouldn't affect it
-    for (int p = 0; p < P; p++){
-        double K, h, c, d, yc, yd;
-        double a = min_pivots_brackets[p], b = max_pivots_brackets[p];
-        
-        h = b - a;
-        int iter = 0;
-        
-        c = a + invphi2 * h;
-        d = a + invphi * h;
-        yc = getAbsPearsonCorrFromNewPivot(c, p, iter);
-        yd = getAbsPearsonCorrFromNewPivot(d, p, iter);
-        K = (double) std::ceil(std::log(tol / h) / std::log(invphi));  // maximum iterations needed for convergence
-        
-        
-        while (iter <= K){
-            for (int p = 0; p < P; p++){
-                if (yc < yd) {
-                    b = d;
-                    d = c;
-                    yd = yc;
-                    h = invphi * h;
-                    c = a + invphi2 * h;
-                } else {
-                    a = c;
-                    c = d;
-                    yc = yd;
-                    h = invphi * h;
-                    d = a + invphi * h;
-                }
-            }
-            
-            if (verbose_pearson){
-                for (int p = 0; p < P; p++){
-                    printf("Abs. Pearson Correlation = %0.3f for pivot %i = %0.3f", yc, p + 1, c);
-                    p + 1 < P ? printf("\t") : printf("\n");
-                }
-                
-                for (int p = 0; p < P; p++){
-                    printf("Abs. Pearson Correlation = %0.3f for pivot %i = %0.3f", yd, p + 1, d);
-                    p + 1 < P ? printf("\t") : printf("\n");
-                }
-            }
-            
-            if (verbose){
-                printf("Optimum pivot point search progress:\t");
-                for (int p = 0; p < P; p++){
-                    double printed_pivot;
-                    if (yc < yd){
-                        printed_pivot = (a + d) / 2.0;
-                    } else {
-                        printed_pivot = (c + b) / 2.0;
-                    }
-                    printf("%0.3f \t", printed_pivot);
-                }
-                std::cout << std::endl;
-            }
-        }
-        
+    if (thisPivotMethod == PEARSON_GSS){
+        // initialization for golden section search
+        findPivotBrackets();
     }
     
+    for (int p = 0; p < P; p++){ // each pivot can be optimized independently (the value of the others pivots shouldn't affect it
+
+        switch (thisPivotMethod){
+            case PEARSON_GSS : {
+                // function to be minimized:
+                std::function <double(double)> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot, this, std::placeholders::_1, p);
+                
+                pivots[p] = trk.optimization.goldenSectionSearch(correlation_func, min_pivots_brackets[p], max_pivots_brackets[p], tol);
+                break;
+            }
+            case PEARSON_SIMPLEX : {
+                // function to be minimized:
+                std::function <double(std::vector <double>)> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
+                
+                pivots[p] = trk.optimization.downhillSimplex(correlation_func, {pivots[p]}, tol)[0];
+                break;
+            }
+            default : {
+                break;
+            }
+        }
+    }
+       
+    
     return;
 }
 
-void TRK::CorrelationRemoval::writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int iter, int p)
+void TRK::CorrelationRemoval::writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int p)
 {
     if (writePivots){
         // write b vs m distribution to file
-        std::string fileName = trk.settings.outputPath + std::string("/TRKMCMC_PIVOT") + std::to_string(p + 1) + std::string("_") + std::to_string(iter) + std::string("_") + std::to_string(trk.allparams_guess[0]) + std::string("_") + std::to_string(sample_R) + std::string(".txt");
+        std::string fileName = trk.settings.outputPath + std::string("/TRKMCMC_PIVOT") + std::to_string(p + 1) + std::string("_") + std::to_string(trk.mcmc.runiform(0.0, 1.0)) + std::string("_") + std::to_string(trk.allparams_guess[0]) + std::string("_") + std::to_string(sample_R) + std::string(".txt");
 
         std::ofstream myfile;
         myfile.open(fileName, std::ofstream::trunc);
@@ -4246,7 +4491,7 @@ void TRK::CorrelationRemoval::writePearsonOptimizationSampling(std::vector <doub
     return;
 }
 
-double TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot(double new_pivot, int p, int iter){
+double TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot(double new_pivot, int p){
     std::vector < std::vector <double> > param_samples(sample_R, std::vector<double>());
     std::vector <double> b_samples, m_samples, original_pivots = pivots;
     double rxy, abs_rxy; // correlation between slope and intercept
@@ -4271,11 +4516,15 @@ double TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot(double new_pivot, 
     
     abs_rxy = std::isnan(rxy) ? 1.0 : std::abs(rxy); // returns maximally correlated if NaN
     
-    writePearsonOptimizationSampling(b_samples, m_samples, iter, p);
+    writePearsonOptimizationSampling(b_samples, m_samples, p);
     
     pivots = original_pivots; //reset pivots to previous values
     
     return abs_rxy; // returns maximally correlated if NaN
+}
+
+double TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot_Wrapper(std::vector <double> new_pivot, int p){
+    return getAbsPearsonCorrFromNewPivot(new_pivot[0], p);
 }
 
 

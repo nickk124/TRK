@@ -21,6 +21,8 @@ See license at https://github.com/nickk124/TRK
 
 const double PI = 3.1415926535897932384626434;
 const std::vector <double> SIGMAS = { 0.682639, 0.954500, 0.997300 };
+double const invphi = (std::sqrt(5.0) - 1.0) / 2.0;     // 1 / phi
+double const invphi2 = (3.0 - std::sqrt(5.0)) / 2.0;    // 1 / phi^2
 
 enum whichScaleExtrema{ S, slopx, slopy, NONE };
 
@@ -28,7 +30,7 @@ enum priorTypes { CUSTOM, CUSTOM_JOINT, GAUSSIAN, CONSTRAINED, MIXED};
 
 enum samplingMethod {ARWMH, AIES};   // Adaptive Random Walk Metropolis Hastings, and Affine Invariant Ensemble Sampler
 
-enum pivotPointFindingMethod {DIST, REGRESSION, PEARSON_GSS, PEARSON_};  // Distribution generation, vs. regression of confidence ellipse, vs. minimizing pearson correlation of said ellipse
+enum pivotPointFindingMethod {DIST, REGRESSION, PEARSON_GSS, PEARSON_SIMPLEX};  // Distribution generation, vs. regression of confidence ellipse, vs. minimizing pearson correlation of said ellipse
 
 enum ParallelizationBackEnd {CPP11, OPENMP};
 
@@ -151,11 +153,15 @@ class TRK // main class
                 double simplexTol = 1e-5;  // downhill simplex fitting tolerance
                 int max_simplex_iters = 10000;   // maximum number of iterations for downhill simplex
                 bool showSimplexSteps = false;
+                
+                // testing
+                bool verbose_GSS = false;
             
             
             private:
-            
-                // downhill simplex method for finding the minimum of some N-D function
+                // downhill simplex method (general) for minimizing some ND function
+                std::vector <double> downhillSimplex(std::function <double(std::vector <double>)> func, std::vector <double> guess, double tolerance);
+                // downhill simplex method customized for minimizing goodness of fit
                 std::vector <double> downhillSimplex(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s);
                 
                 // downhill simplex tools
@@ -164,6 +170,10 @@ class TRK // main class
                 std::vector <double> pegToZeroSlop(std::vector <double> vertex);
                 std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
                 void getBetterGuess();
+            
+                // golden section search: finds the x_min that minimizes some f(x)
+                double goldenSectionSearch(std::function <double(double)> func, double min_bracket, double max_bracket, double tolerance);
+                void printGSSProgress(double yc, double yd, double a, double b, double c, double d);
             
                 // settings
                 double simplex_size = 0.1;
@@ -337,7 +347,7 @@ class TRK // main class
                 bool writePivots = false; //outputs pivot point sampling results for single-pivot case
                 bool get_pivot_guess = false;
                 bool verbose_refit = false;
-                bool verbose_pearson = false;
+//                bool verbose_pearson = false;
                 bool parallelize = false;
             
             private:
@@ -345,7 +355,7 @@ class TRK // main class
                 void findPivots();
             
                 // settings
-                pivotPointFindingMethod thisPivotMethod = PEARSON;
+                pivotPointFindingMethod thisPivotMethod = PEARSON_SIMPLEX;
             
                 bool refit_newPivot = true;
                 bool refit_with_simplex = true;
@@ -394,15 +404,14 @@ class TRK // main class
                 void optimizePivots_Regression();
             
             
-                // find pivots using the correlation of intercepts and slopes and the golden section search (GSS) method
+                // find pivots using the correlation of intercepts and slopes
                 std::vector <double> max_pivots_brackets, min_pivots_brackets;
             
                 void optimizePivots_Pearson();
-                void optimizePivots_Pearson_Loop(); // both serial and parallel
-                void writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int iter, int p);
-                // std::vector <double> parallelGoldenSectionSearch(bool c_or_d, double pivot, int p, int iter);
+                void writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int p);
                 bool checkPearsonOptimizationTolerance(std::vector <double> previous_pivots);
-                double getAbsPearsonCorrFromNewPivot(double new_pivot, int p, int iter);
+                double getAbsPearsonCorrFromNewPivot(double new_pivot, int p);
+                double getAbsPearsonCorrFromNewPivot_Wrapper(std::vector <double> new_pivot, int p); // wrapper of the above function for use with nelder mead method
             
             
                 // tools
