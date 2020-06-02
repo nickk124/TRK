@@ -24,7 +24,7 @@ const std::vector <double> SIGMAS = { 0.682639, 0.954500, 0.997300 };
 double const invphi = (std::sqrt(5.0) - 1.0) / 2.0;     // 1 / phi
 double const invphi2 = (3.0 - std::sqrt(5.0)) / 2.0;    // 1 / phi^2
 
-enum whichScaleExtrema{ S, slopx, slopy, NONE };
+enum whichScaleExtrema{ S, SLOP_X, SLOP_Y, ANY};
 
 enum priorTypes { CUSTOM, CUSTOM_JOINT, GAUSSIAN, CONSTRAINED, MIXED};
 
@@ -32,7 +32,7 @@ enum samplingMethod {ARWMH, AIES};   // Adaptive Random Walk Metropolis Hastings
 
 enum pivotPointFindingMethod {DIST, REGRESSION, PEARSON_GSS, PEARSON_SIMPLEX};  // Distribution generation, vs. regression of confidence ellipse, vs. minimizing pearson correlation of said ellipse
 
-enum ParallelizationBackEnd {CPP11, OPENMP};
+enum ParallelizationBackEnd {CPP11, OPENMP, NONE};
 
 class Priors
 {
@@ -104,6 +104,7 @@ class TRK // main class
             
                 // correlation
                 double pearsonCorrelation(std::vector <double> x, std::vector <double> y);
+                double spearmanCorrelation(std::vector <double> x, std::vector <double> y);
             
             
                 // goodness of fit metrics
@@ -152,7 +153,7 @@ class TRK // main class
                 // settings
                 double simplexTol = 1e-5;  // downhill simplex fitting tolerance
                 int max_simplex_iters = 10000;   // maximum number of iterations for downhill simplex
-                bool showSimplexSteps = false;
+                bool showFittingSteps = false;
                 
                 // testing
                 bool verbose_GSS = false;
@@ -160,9 +161,10 @@ class TRK // main class
             
             private:
                 // downhill simplex method (general) for minimizing some ND function
-                std::vector <double> downhillSimplex(std::function <double(std::vector <double>)> func, std::vector <double> guess, double tolerance);
+                std::vector <double> downhillSimplex(std::function <double(std::vector <double>)> func, std::vector <double> guess, double tolerance, bool show_steps);
+                double downhillSimplex_1DWrapper(std::function <double(std::vector <double>)> func, std::vector <double> guess, double tolerance, bool show_steps);
                 // downhill simplex method customized for minimizing goodness of fit
-                std::vector <double> downhillSimplex(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s);
+                std::vector <double> downhillSimplex_Fit(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s, bool show_steps);
                 
                 // downhill simplex tools
                 double evalWPriors(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
@@ -196,10 +198,13 @@ class TRK // main class
                 bool verbose = false;
             
             private:
+                // settings
+                bool showSimplexSteps = false;
+            
                 // fitting scales
-                whichScaleExtrema whichExtrema = NONE;
-                whichScaleExtrema whichExtremaX = NONE;
-                whichScaleExtrema whichExtremaY = NONE;
+                whichScaleExtrema whichExtrema = ANY;
+                whichScaleExtrema whichExtremaX = ANY;
+                whichScaleExtrema whichExtremaY = ANY;
             
                 // iterative tolerances
                 double pegToZeroTol = 0.004;
@@ -347,8 +352,9 @@ class TRK // main class
                 bool writePivots = false; //outputs pivot point sampling results for single-pivot case
                 bool get_pivot_guess = false;
                 bool verbose_refit = false;
-//                bool verbose_pearson = false;
-                bool parallelize = false;
+                bool showSimplexSteps = false;
+                bool refit_with_simplex = false;
+//                bool parallelize = false;
             
             private:
                 // core
@@ -358,7 +364,6 @@ class TRK // main class
                 pivotPointFindingMethod thisPivotMethod = PEARSON_SIMPLEX;
             
                 bool refit_newPivot = true;
-                bool refit_with_simplex = true;
             
                 bool getCombosFromSampleDirectly = true;
                 bool weightPivots = true;
@@ -372,9 +377,10 @@ class TRK // main class
                 int sample_R = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
                 int randomSampleCount = 450;
                 int maxCombos = 10000; // 50,000 seems sufficient, but 100,000 works for sure
-                int sample_burnIn = 5000;
+                int sample_burnIn = 10000;
             
-                double tol = 1e-3;
+                double pivot_tol = 1e-3;
+                double correlation_tol = 1e-3;
                 double pruneWidth = 10.0;
             
                 // combinations
@@ -407,11 +413,13 @@ class TRK // main class
                 // find pivots using the correlation of intercepts and slopes
                 std::vector <double> max_pivots_brackets, min_pivots_brackets;
             
-                void optimizePivots_Pearson();
-                void writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int p);
-                bool checkPearsonOptimizationTolerance(std::vector <double> previous_pivots);
-                double getAbsPearsonCorrFromNewPivot(double new_pivot, int p);
-                double getAbsPearsonCorrFromNewPivot_Wrapper(std::vector <double> new_pivot, int p); // wrapper of the above function for use with nelder mead method
+                void optimizePivots_Correlation();
+                void optimizePivots_Correlation_CPP11();
+                void optimizePivots_Correlation_Default(); // both serial and openmp parallelized
+                void writeCorrelationOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int p);
+                bool checkCorrelationOptimizationTolerance(std::vector <double> previous_pivots);
+                double getAbsCorrFromNewPivot(double new_pivot, int p);
+                double getAbsCorrFromNewPivot_Wrapper(std::vector <double> new_pivot, int p); // wrapper of the above function for use with nelder mead method
             
             
                 // tools
@@ -620,6 +628,41 @@ vec concat(vec v, vec u ) {
     
     return x;
 };
+
+template <class vec>
+vec rankVector(vec x){
+  
+    int N = (int) x.size();
+  
+    // Rank Vector
+    vec rank_x(N);
+      
+    for(int i = 0; i < N; i++)
+    {
+        int r = 1, s = 1;
+          
+        // Count no of smaller elements
+        // in 0 to i-1
+        for(int j = 0; j < i; j++) {
+            if (x[j] < x[i] ) r++;
+            if (x[j] == x[i] ) s++;
+        }
+      
+        // Count no of smaller elements
+        // in i+1 to N-1
+        for (int j = i+1; j < N; j++) {
+            if (x[j] < x[i] ) r++;
+            if (x[j] == x[i] ) s++;
+        }
+  
+        // Use Fractional Rank formula
+        // fractional_rank = r + (n-1)/2
+        rank_x[i] = r + (s-1) * 0.5;
+    }
+      
+    // Return Rank Vector
+    return rank_x;
+}
 
 template <class BidiIter >
 BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {

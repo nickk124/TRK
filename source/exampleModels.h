@@ -127,3 +127,8 @@ double covid19_BL_oscil_poly_fixedoscil(double t, std::vector <double> params);
 // 3 Broken Line model with Polynomial Oscillation frequency
 double covid19_3BLPO(double t, std::vector <double> params);
 double covid19_3BLPO_fixed(double t, std::vector <double> params);
+
+// Same, but with 4 lines
+// 4-broken line model
+double covid19_4BLPO(double t, std::vector <double> params);
+double covid19_4BLPO_fixed(double t, std::vector <double> params);

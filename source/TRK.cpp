@@ -84,7 +84,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
     
     this->bigM = allparams_guess.size();
 
-    this->scaleOptimization.whichExtrema = NONE;
+    this->scaleOptimization.whichExtrema = ANY;
 
     this->scaleOptimization.s = 1.0;
 
@@ -130,7 +130,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
     
     this->bigM = allparams_guess.size();
 
-	this->scaleOptimization.whichExtrema = NONE;
+	this->scaleOptimization.whichExtrema = ANY;
 
 	this->scaleOptimization.s = 1.0;
 
@@ -175,7 +175,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
     
     this->bigM = allparams_guess.size();
 
-	this->scaleOptimization.whichExtrema = NONE;
+	this->scaleOptimization.whichExtrema = ANY;
 
 	this->scaleOptimization.s = 1.0;
 
@@ -223,7 +223,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::ve
     
     this->bigM = allparams_guess.size();
 
-	this->scaleOptimization.whichExtrema = NONE;
+	this->scaleOptimization.whichExtrema = ANY;
 
 	this->scaleOptimization.s = 1.0;
 
@@ -266,7 +266,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std:
     
     this->bigM = allparams_guess.size();
 
-    this->scaleOptimization.whichExtrema = NONE;
+    this->scaleOptimization.whichExtrema = ANY;
 
     this->scaleOptimization.s = 1.0;
 
@@ -309,7 +309,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std:
     
     this->bigM = allparams_guess.size();
 
-    this->scaleOptimization.whichExtrema = NONE;
+    this->scaleOptimization.whichExtrema = ANY;
 
     this->scaleOptimization.s = 1.0;
 
@@ -351,7 +351,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std:
 
     this->allparams_guess = allparams_guess;
 
-    this->scaleOptimization.whichExtrema = NONE;
+    this->scaleOptimization.whichExtrema = ANY;
 
     this->scaleOptimization.s = 1.0;
 
@@ -396,7 +396,7 @@ TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std:
     
     this->bigM = allparams_guess.size();
 
-    this->scaleOptimization.whichExtrema = NONE;
+    this->scaleOptimization.whichExtrema = ANY;
 
     this->scaleOptimization.s = 1.0;
 
@@ -465,6 +465,8 @@ void TRK::performTRKFit() {//finds optimum scale AND performs TRK fit + uncertai
     
     asymmetric.checkAsym();
     
+    optimization.getBetterGuess(); // once before pivot point optimization, once after
+    
     correlationRemoval.getPivotGuess();
     
     scaleOptimization.optimizeScale();
@@ -486,6 +488,8 @@ void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for
     scaleOptimization.s = scale;
     results.optimumScale = scale;
     
+    optimization.getBetterGuess();
+    
     correlationRemoval.getPivotGuess();
 
     correlationRemoval.findPivots();
@@ -493,8 +497,8 @@ void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for
     results.bestFitParams.clear();
 
     scaleOptimization.whichExtrema = S;
-    allparams_s = optimization.downhillSimplex(statistics.selectedChiSq, allparams_guess, scale);
-    scaleOptimization.whichExtrema = NONE;
+    allparams_s = optimization.downhillSimplex_Fit(statistics.selectedChiSq, allparams_guess, scale, optimization.showFittingSteps);
+    scaleOptimization.whichExtrema = ANY;
 
     for (int j = 0; j < M; j++) {
         results.bestFitParams.push_back(allparams_s[j]);
@@ -519,6 +523,8 @@ void TRK::performSimpleTRKFit() {//finds optimum scale and performs TRK fit but 
     
     asymmetric.checkAsym();
     
+    optimization.getBetterGuess();
+    
     correlationRemoval.getPivotGuess();
     
     scaleOptimization.optimizeScale(); // (stores results in TRK.results)
@@ -528,8 +534,8 @@ void TRK::performSimpleTRKFit() {//finds optimum scale and performs TRK fit but 
     results.bestFitParams.clear();
     
     scaleOptimization.whichExtrema = S;
-    allparams_s = optimization.downhillSimplex(statistics.selectedChiSq, allparams_guess, scaleOptimization.s);
-    scaleOptimization.whichExtrema = NONE;
+    allparams_s = optimization.downhillSimplex_Fit(statistics.selectedChiSq, allparams_guess, scaleOptimization.s, optimization.showFittingSteps);
+    scaleOptimization.whichExtrema = ANY;
     
     for (int j = 0; j < M; j++) {
         results.bestFitParams.push_back(allparams_s[j]);
@@ -554,6 +560,8 @@ void TRK::performSimpleTRKFit(double scale) {//given some provided scale, perfor
     asymmetric.checkAsym();
     
     scaleOptimization.s = scale;
+    
+    optimization.getBetterGuess();
 
     correlationRemoval.getPivotGuess();
 
@@ -562,8 +570,8 @@ void TRK::performSimpleTRKFit(double scale) {//given some provided scale, perfor
     results.bestFitParams.clear();
 
     scaleOptimization.whichExtrema = S;
-    allparams_s = optimization.downhillSimplex(statistics.selectedChiSq, allparams_guess, scaleOptimization.s);
-    scaleOptimization.whichExtrema = NONE;
+    allparams_s = optimization.downhillSimplex_Fit(statistics.selectedChiSq, allparams_guess, scaleOptimization.s, optimization.showFittingSteps);
+    scaleOptimization.whichExtrema = ANY;
     
     for (int j = 0; j < M; j++) {
         results.bestFitParams.push_back(allparams_s[j]);
@@ -678,37 +686,16 @@ void TRK::showResults(bool didScaleOp, bool didMCMC){
         }
         printf("\n\n");
     }
-    
-    if (covid19.covid19fit){
-//        for (int i = 0; i < (int)params_guess.size()/2; i++){
-//            printf("intercept %i = %4.3f +/- %4.3f\n", i+1, results.bestFitParams[0+2*i], results.bestFit_123Sigmas[0+2*i][1][0]);
-//            printf("slope %i = %4.3f +/- %4.3f\n", i+1, results.bestFitParams[1+2*i], results.bestFit_123Sigmas[1+2*i][1][0]);
-//        }
-//
-//        if (params_guess.size() == 5){
-//            printf("s = %4.3f +/- %4.3f\n", results.bestFitParams[4], results.bestFit_123Sigmas[4][1][0]);
-//        }
-//
-//        printf("y_slop = %4.3f +/- %4.3f\n\n", results.slop_y, results.slopY_123Sigmas[1][0]);
-//
-//        std::vector <double> pivs = {results.pivot, results.pivot2};
-//
-//        for (int i = 0; i < (int)params_guess.size()/2; i++){
-//            printf("pivot %i = %4.3f\n", i+1, pivs[i]);
-//        }
-        
-        return;
-    }
 
-
-    printf("FITTED PARAMETERS (including slop):\n");
+    printf("BEST FIT MODEL PARAMETERS (including slop):\n");
     for (int k = 0; k < params_guess.size(); k++) {
         printf("%.3e ", results.bestFitParams[k]);
     }
+    printf("\n\nBEST FIT SLOP (EXTRINSIC SCATTER) PARAMETERS:\n");
     if (settings.do1DFit){
-        printf(" %.3e", results.slop_y);
+        printf("y-slop =  %.3e", results.slop_y);
     } else {
-        printf(" %.3e %.3e", results.slop_x, results.slop_y);
+        printf("x-slop =  %.3e y-slop = %.3e", results.slop_x, results.slop_y);
     }
     std::cout << std::endl;
     
@@ -743,7 +730,7 @@ void TRK::showResults(bool didScaleOp, bool didMCMC){
         std::cout << std::endl << std::endl;
     }
     
-    printf("\nFITNESS\n\nchisquared = %.3e\n\n", results.chisquared);
+    printf("\nFITNESS:\nchisquared = %.3e\n\n", results.chisquared);
     
     return;
 }
@@ -863,6 +850,34 @@ double TRK::Statistics::pearsonCorrelation(std::vector<double> x, std::vector<do
     return uppersum / (std::sqrt(lowersum1) * std::sqrt(lowersum2));
 }
 
+double TRK::Statistics::spearmanCorrelation(std::vector<double> x, std::vector<double> y){
+    std::vector <double> u, v; // ranks
+    u = rankVector(x);
+    v = rankVector(y);
+    
+//    double num, denom1, denom2;
+//    double sum1 = 0, sum2 = 0, sum3 = 0, sum4 = 0, sum5 = 0, sum6 = 0, sum7 = 0;
+//    int n = (int) u.size();
+//
+//    for (int i = 0; i < n; i++){
+//        sum1 += u[i] * v[i];
+//        sum2 += u[i];
+//        sum3 += v[i];
+//        sum4 += std::pow(u[i], 2.0);
+//        sum6 += std::pow(v[i], 2.0);
+//    }
+//    sum5 = sum2;
+//    sum7 = sum3;
+//
+//    num = n*sum1 - sum2*sum2;
+//    denom1 = n * sum4 - std::pow(sum5, 2.0);
+//    denom2 = n * sum6 - std::pow(sum7, 2.0);
+//
+//    return num/std::sqrt(denom1 * denom2);
+    
+    return pearsonCorrelation(u, v);
+}
+
 
 // goodness of fit metrics
 double TRK::Statistics::regularChiSquared(std::vector <double> params) {
@@ -973,7 +988,7 @@ double TRK::Statistics::modifiedChiSquared(std::vector <double> allparams, doubl
     }
 
     switch (trk.scaleOptimization.whichExtrema) {
-        case NONE:
+        case ANY:
             break;
         case S:
             trk.x_t_s = all_x_t;
@@ -984,9 +999,9 @@ double TRK::Statistics::modifiedChiSquared(std::vector <double> allparams, doubl
     }
 
     switch (trk.scaleOptimization.whichExtremaX) {
-    case NONE:
+    case ANY:
         break;
-    case slopx:
+    case SLOP_X:
         trk.x_t_slopx = all_x_t;
         trk.params_slopx = params;
         break;
@@ -995,9 +1010,9 @@ double TRK::Statistics::modifiedChiSquared(std::vector <double> allparams, doubl
     }
 
     switch (trk.scaleOptimization.whichExtremaY) {
-    case NONE:
+    case ANY:
         break;
-    case slopy:
+    case SLOP_Y:
         trk.x_t_slopy = all_x_t;
         trk.params_slopy = params;
         break;
@@ -1231,7 +1246,7 @@ double TRK::Statistics::modifiedChiSquaredAsym(std::vector <double> allparams, d
     }
 
     switch (trk.scaleOptimization.whichExtrema) {
-        case NONE:
+        case ANY:
             break;
         case S:
             trk.x_t_s = all_x_t;
@@ -1242,9 +1257,9 @@ double TRK::Statistics::modifiedChiSquaredAsym(std::vector <double> allparams, d
     }
 
     switch (trk.scaleOptimization.whichExtremaX) {
-    case NONE:
+    case ANY:
         break;
-    case slopx:
+    case SLOP_X:
         trk.x_t_slopx = all_x_t;
         trk.params_slopx = params;
         break;
@@ -1253,9 +1268,9 @@ double TRK::Statistics::modifiedChiSquaredAsym(std::vector <double> allparams, d
     }
 
     switch (trk.scaleOptimization.whichExtremaY) {
-    case NONE:
+    case ANY:
         break;
-    case slopy:
+    case SLOP_Y:
         trk.x_t_slopy = all_x_t;
         trk.params_slopy = params;
         break;
@@ -1610,7 +1625,7 @@ std::vector <std::vector <double> > TRK::Statistics::getHistogram(std::vector <d
 // OPTIMIZATION ##############################################################################################################
 
 // general downhill simplex/ nelder mead method (ND case)
-std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(std::vector <double>)> func, std::vector <double> guess, double tolerance){
+std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(std::vector <double>)> func, std::vector <double> guess, double tolerance, bool show_steps){
     double tol = tolerance;
 
     unsigned long n = (int) guess.size(); // dimensionality
@@ -1796,14 +1811,14 @@ std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(st
 
         vertices = bettervertices;
         
-        if (showSimplexSteps){
+        if (show_steps){
             std::cout << "simplex vertex = ";
             for (int i = 0; i < result.size(); i++) {
                 std::cout << result[i] << " ";
             }
             
             double eval = func(result);
-            std::cout << "func = " << eval << "\n";
+            std::cout << "\tfunc = " << eval << "\n";
             
         }
         
@@ -1826,7 +1841,7 @@ std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(st
             break;
         }
         
-        if (it % 100 == 0 && showSimplexSteps){printf("simplex iteration: %i\n", it);};
+        if (it % 100 == 0 && show_steps){printf("simplex iteration: %i\n", it);};
 
         it++;
     }
@@ -1837,9 +1852,13 @@ std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(st
     
 }
 
+double TRK::Optimization::downhillSimplex_1DWrapper(std::function <double(std::vector <double>)> func, std::vector <double> guess, double tolerance, bool show_steps){
+    
+    return downhillSimplex(func, guess, tolerance, show_steps)[0];
+}
 
 // downhill simplex/ nelder mead method customized for fitting
-std::vector <double> TRK::Optimization::downhillSimplex(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s) {
+std::vector <double> TRK::Optimization::downhillSimplex_Fit(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s, bool show_steps) {
 
     double tol = simplexTol;
 
@@ -2029,7 +2048,7 @@ std::vector <double> TRK::Optimization::downhillSimplex(double(TRK::Statistics::
 
         vertices = bettervertices;
         
-        if (showSimplexSteps){
+        if (show_steps){
             std::cout << "chi-square parameters at s = " << s << " ";
             for (int i = 0; i < result.size(); i++) {
                 std::cout << result[i] << " ";
@@ -2040,7 +2059,7 @@ std::vector <double> TRK::Optimization::downhillSimplex(double(TRK::Statistics::
             
         }
         
-        if (trk.scaleOptimization.whichExtrema == S or trk.scaleOptimization.whichExtrema == NONE){
+        if (trk.scaleOptimization.whichExtrema == S or trk.scaleOptimization.whichExtrema == ANY){
             double fitness = evalWPriors(f, result, trk.scaleOptimization.s);
             trk.results.chisquared = fitness;
 //            printf("\n\nfinal fitness = %.3e\n\n", fitness);
@@ -2063,7 +2082,7 @@ std::vector <double> TRK::Optimization::downhillSimplex(double(TRK::Statistics::
             break;
         }
         
-        if (it % 100 == 0 && showSimplexSteps){printf("simplex iteration: %i\n", it);};
+        if (it % 100 == 0 && show_steps){printf("simplex iteration: %i\n", it);};
 //
         it++;
     }
@@ -2196,8 +2215,8 @@ void TRK::Optimization::getBetterGuess(){
         trk.results.bestFitParams.clear();
 
         trk.scaleOptimization.whichExtrema = S;
-        trk.allparams_s = trk.optimization.downhillSimplex(trk.statistics.selectedChiSq, trk.allparams_guess, trk.scaleOptimization.s);
-        trk.scaleOptimization.whichExtrema = NONE;
+        trk.allparams_s = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, trk.allparams_guess, trk.scaleOptimization.s, false);
+        trk.scaleOptimization.whichExtrema = ANY;
 
         for (int j = 0; j < trk.M; j++) {
             trk.results.bestFitParams.push_back(trk.allparams_s[j]);
@@ -2378,7 +2397,15 @@ void TRK::ScaleOptimization::optimizeScale() {
             
             break;
         }
-    }
+        case NONE:
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                s_slops[i] = (this->*optimizeList[i])();
+            }
+            break;
+        }
+}
 
     
 
@@ -2519,9 +2546,9 @@ double TRK::ScaleOptimization::optimize_s_SlopX() {
     while (true) {
         c = (a + b) / 2;
 
-        whichExtremaX = slopx;
+        whichExtremaX = SLOP_X;
         slop_c = innerSlopX_Simplex({ c }, iterative_allparams_guess);
-        whichExtremaX = NONE;
+        whichExtremaX = ANY;
 
         if (slop_c <= tol_bisect && slop_c > 0) { //convergence criterion
             break;
@@ -2614,9 +2641,9 @@ double TRK::ScaleOptimization::optimize_s_SlopY() {
     while (true) {
         c = (a + b) / 2;
 
-        whichExtremaY = slopy;
+        whichExtremaY = SLOP_Y;
         slop_c = innerSlopY_Simplex({ c }, iterative_allparams_guess);
-        whichExtremaY = NONE;
+        whichExtremaY = ANY;
 
         if ((slop_c <= tol_bisect && slop_c > 0)) { //convergence criterion
             break;
@@ -2640,7 +2667,7 @@ double TRK::ScaleOptimization::optimize_s_SlopY() {
 }
 
 double TRK::ScaleOptimization::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
-    trk.allparams_s = trk.optimization.downhillSimplex(trk.statistics.selectedChiSq, allparams_guess, ss[0]);
+    trk.allparams_s = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, allparams_guess, ss[0], showSimplexSteps);
 
     if (verbose){
         if (trk.asymmetric.hasAsymSlop){
@@ -2668,7 +2695,7 @@ double TRK::ScaleOptimization::innerSlopY_Simplex(std::vector <double> ss, std::
     //s = ss[0];
 
     
-    trk.allparams_s = trk.optimization.downhillSimplex(trk.statistics.selectedChiSq, allparams_guess, ss[0]);
+    trk.allparams_s = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, allparams_guess, ss[0], showSimplexSteps);
     
     if (verbose){
         if (trk.asymmetric.hasAsymSlop){
@@ -2711,7 +2738,7 @@ double TRK::ScaleOptimization::optimize_s0_R2() {
 
         whichExtrema = S;
         f_c = innerR2_Simplex({ c }, iterative_allparams_guess);
-        whichExtrema = NONE;
+        whichExtrema = ANY;
 
         //printf("%.3e %.3e \n", f_c, c);
 
@@ -2761,7 +2788,7 @@ double TRK::ScaleOptimization::optimize_s_prime_R2(double s0) {
 
         whichExtrema = S;
         f_c = innerR2_iter_Simplex({ c }, iterative_allparams_guess, s0);
-        whichExtrema = NONE;
+        whichExtrema = ANY;
 
         if (std::abs(f_c) <= tol_bisect) { //convergence criterion
             break;
@@ -2809,8 +2836,8 @@ double TRK::ScaleOptimization::innerR2_Simplex(std::vector <double> ss, std::vec
     //s = ss[0];
 
     whichExtrema = S;
-    trk.allparams_s = trk.optimization.downhillSimplex(trk.statistics.selectedChiSq, allparams_guess, ss[0]);
-    whichExtrema = NONE;
+    trk.allparams_s = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, allparams_guess, ss[0], showSimplexSteps);
+    whichExtrema = ANY;
 
     if (verbose){
         if (trk.asymmetric.hasAsymSlop){
@@ -2830,8 +2857,8 @@ double TRK::ScaleOptimization::innerR2_iter_Simplex(std::vector <double> ss, std
     //s = ss[0];
 
     whichExtrema = S;
-    trk.allparams_s = trk.optimization.downhillSimplex(trk.statistics.selectedChiSq, allparams_guess, ss[0]);
-    whichExtrema = NONE;
+    trk.allparams_s = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, allparams_guess, ss[0], showSimplexSteps);
+    whichExtrema = ANY;
 
     if (verbose){
         if (trk.asymmetric.hasAsymSlop){
@@ -3921,7 +3948,7 @@ void TRK::CorrelationRemoval::findPivots() {
             }
             case PEARSON_GSS | PEARSON_SIMPLEX:
             { // find pivot(s) that minimize abs(pearson correlation) for each set of intercept and slope
-                optimizePivots_Pearson();
+                optimizePivots_Correlation();
                 break;
             }
             default:
@@ -3942,6 +3969,8 @@ void TRK::CorrelationRemoval::findPivots() {
 
         return;
     } else {
+        // just use whatever guess was provided
+        trk.results.pivots = pivots;
         return;
     }
 }
@@ -4081,7 +4110,7 @@ void TRK::CorrelationRemoval::refitWithNewPivots(std::vector <double> new_pivots
     std::vector <double> allparams_better = refitAnalytic(new_pivots); // determine the best fit
     
     if (refit_with_simplex){
-        allparams_better = trk.optimization.downhillSimplex(trk.statistics.selectedChiSq, allparams_better, trk.scaleOptimization.s);
+        allparams_better = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, allparams_better, trk.scaleOptimization.s, trk.optimization.showFittingSteps);
     }
     
     if (trk.correlationRemoval.verbose_refit){
@@ -4248,7 +4277,7 @@ void TRK::CorrelationRemoval::optimizePivots_Distribution(){
         // check for iteration halt
         int tolCheck = 0;
         for (int p = 0; p < P; p++){
-            if (std::abs(finalPivots[p] - pivots[p]) <= tol) {tolCheck++;};
+            if (std::abs(finalPivots[p] - pivots[p]) <= pivot_tol) {tolCheck++;};
         }
         
         if (iter >= maxPivotIter || tolCheck == P) { //termination check
@@ -4409,7 +4438,7 @@ void TRK::CorrelationRemoval::optimizePivots_Regression(){
         // check for iteration halt
         int tolCheck = 0;
         for (int p = 0; p < P; p++){
-            if (std::abs(finalPivots[p] - pivots[p]) <= tol) {tolCheck++;};
+            if (std::abs(finalPivots[p] - pivots[p]) <= pivot_tol) {tolCheck++;};
         }
         
         if (iter >= maxPivotIter || tolCheck == P) { //termination check
@@ -4428,28 +4457,103 @@ void TRK::CorrelationRemoval::optimizePivots_Regression(){
 
 
 // PEARSON method: find pivots using the correlation of intercepts and slopes and the golden section search (GSS) method
-void TRK::CorrelationRemoval::optimizePivots_Pearson(){
+void TRK::CorrelationRemoval::optimizePivots_Correlation(){
     
     if (thisPivotMethod == PEARSON_GSS){
         // initialization for golden section search
         findPivotBrackets();
     }
     
-    for (int p = 0; p < P; p++){ // each pivot can be optimized independently (the value of the others pivots shouldn't affect it
+    switch (trk.settings.ParallelizationBackEnd){ // search for multiple pivot points simultaneously
+        case CPP11:
+            optimizePivots_Correlation_CPP11();
+            break;
+        case OPENMP:
+            optimizePivots_Correlation_Default();
+            break;
+        default:
+            optimizePivots_Correlation_Default();
+            break;
+    }
+    
+    return;
+}
 
+void TRK::CorrelationRemoval::optimizePivots_Correlation_CPP11(){
+    // initialize parallelization objects, to compute ret_vec in parallel
+    int counter = 0, completedThreads = 0, liveThreads = 0;
+    double result;
+    std::vector < std::future < double > > futureVec;
+    futureVec.resize(P);
+    
+                    
+    for (int p = 0; p < P; p++){
+        switch (thisPivotMethod){
+            case PEARSON_SIMPLEX : {
+                // function to be minimized:
+                std::function <double(std::vector <double>)> correlation_func_simplex = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
+                
+                std::vector <double> guess = {pivots[p]};
+                
+                futureVec[p] = std::async(std::launch::async, &TRK::Optimization::downhillSimplex_1DWrapper, trk.optimization, correlation_func_simplex, guess, correlation_tol, showSimplexSteps);
+                break;
+            }
+            case PEARSON_GSS : {
+                // function to be minimized:
+                std::function <double(double)> correlation_func_GSS = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot, this, std::placeholders::_1, p);
+                
+                futureVec[p] = std::async(std::launch::async, &TRK::Optimization::goldenSectionSearch, trk.optimization, correlation_func_GSS, min_pivots_brackets[p], max_pivots_brackets[p], correlation_tol);
+                break;
+            }
+            case DIST: {
+                break;
+            }
+            case REGRESSION: {
+                break;
+            }
+            default : {
+                break;
+            }
+        }
+        counter++;
+        liveThreads++;
+        
+        if (liveThreads >= trk.settings.maxThreads)
+        {
+            for (int i = completedThreads; i < counter; i++)
+            {
+                result = futureVec[i].get();
+                pivots[p] = result;
+            }
+            completedThreads += liveThreads;
+            liveThreads = 0;
+        }
+    }
+    for (int p = completedThreads; p < P; p++)
+    {
+        result = futureVec[p].get();
+        pivots[p] = result;
+    }
+    
+    return;
+}
+
+void TRK::CorrelationRemoval::optimizePivots_Correlation_Default(){
+    #pragma omp parallel for num_threads(maxThreads)
+    for (int p = 0; p < P; p++){ // each pivot can be optimized independently (the value of the others pivots shouldn't affect it
         switch (thisPivotMethod){
             case PEARSON_GSS : {
                 // function to be minimized:
-                std::function <double(double)> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot, this, std::placeholders::_1, p);
+                std::function <double(double)> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot, this, std::placeholders::_1, p);
                 
-                pivots[p] = trk.optimization.goldenSectionSearch(correlation_func, min_pivots_brackets[p], max_pivots_brackets[p], tol);
+                pivots[p] = trk.optimization.goldenSectionSearch(correlation_func, min_pivots_brackets[p], max_pivots_brackets[p], correlation_tol);
                 break;
             }
             case PEARSON_SIMPLEX : {
                 // function to be minimized:
-                std::function <double(std::vector <double>)> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
+                std::function <double(std::vector <double>)> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
                 
-                pivots[p] = trk.optimization.downhillSimplex(correlation_func, {pivots[p]}, tol)[0];
+                pivots[p] = trk.optimization.downhillSimplex(correlation_func, {pivots[p]}, correlation_tol, showSimplexSteps)[0];
                 break;
             }
             default : {
@@ -4457,12 +4561,10 @@ void TRK::CorrelationRemoval::optimizePivots_Pearson(){
             }
         }
     }
-       
-    
     return;
 }
 
-void TRK::CorrelationRemoval::writePearsonOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int p)
+void TRK::CorrelationRemoval::writeCorrelationOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int p)
 {
     if (writePivots){
         // write b vs m distribution to file
@@ -4491,7 +4593,7 @@ void TRK::CorrelationRemoval::writePearsonOptimizationSampling(std::vector <doub
     return;
 }
 
-double TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot(double new_pivot, int p){
+double TRK::CorrelationRemoval::getAbsCorrFromNewPivot(double new_pivot, int p){
     std::vector < std::vector <double> > param_samples(sample_R, std::vector<double>());
     std::vector <double> b_samples, m_samples, original_pivots = pivots;
     double rxy, abs_rxy; // correlation between slope and intercept
@@ -4512,19 +4614,31 @@ double TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot(double new_pivot, 
         m_samples.push_back(pivot_slope_functions[p](param_samples[j]));
     }
     
+//    printf("Currently using spearman...\n");
     rxy = trk.statistics.pearsonCorrelation(b_samples, m_samples); // compute pearson correlation
+//    rxy = trk.statistics.spearmanCorrelation(b_samples, m_samples); // compute spearman correlation
+    
+    
+    
+    double spearmanR = trk.statistics.spearmanCorrelation(b_samples, m_samples);
+    double pearsonR = trk.statistics.pearsonCorrelation(b_samples, m_samples);
+    
+    if (std::abs(spearmanR - pearsonR) > 0.2){
+        printf("differing correlations; pearson = %f\t spearman = %f\n", trk.statistics.pearsonCorrelation(b_samples, m_samples), trk.statistics.spearmanCorrelation(b_samples, m_samples));
+    }
+    
     
     abs_rxy = std::isnan(rxy) ? 1.0 : std::abs(rxy); // returns maximally correlated if NaN
     
-    writePearsonOptimizationSampling(b_samples, m_samples, p);
+    writeCorrelationOptimizationSampling(b_samples, m_samples, p);
     
     pivots = original_pivots; //reset pivots to previous values
     
     return abs_rxy; // returns maximally correlated if NaN
 }
 
-double TRK::CorrelationRemoval::getAbsPearsonCorrFromNewPivot_Wrapper(std::vector <double> new_pivot, int p){
-    return getAbsPearsonCorrFromNewPivot(new_pivot[0], p);
+double TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper(std::vector <double> new_pivot, int p){
+    return getAbsCorrFromNewPivot(new_pivot[0], p);
 }
 
 
