@@ -4,7 +4,7 @@ Author: Nick C. Konz
 See license at https://github.com/nickk124/TRK
 */
 
-#pragma once
+//#pragma once
 #include <vector>
 #include "TRK.h"
 
@@ -95,6 +95,8 @@ double covid19_BL_Intercept2(std::vector <double> params);
 double covid19_BL_Slope2(std::vector <double> params);
 double covid19_BL_Intercept3(std::vector <double> params);
 double covid19_BL_Slope3(std::vector <double> params);
+double covid19_BL_Intercept4(std::vector <double> params);
+double covid19_BL_Slope4(std::vector <double> params);
 
 // with fixed s
 double covid19_BL_fixed(double t, std::vector <double> params);

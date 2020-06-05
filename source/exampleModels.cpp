@@ -9,6 +9,8 @@ See license at https://github.com/nickk124/TRK
 // model functions given, then their first two derivatives, then the functions needed to compute their linearized intercept(s) and slope(s) for pivot point finding.
 // if you have a pivot point, it must be called as TRK::pivot.
 
+using namespace TRKLib;
+
 // LINEAR
 double linear(double x, std::vector <double> params) {
 	double a0 = params[0];
@@ -362,6 +364,14 @@ double covid19_BL_Intercept3(std::vector <double> params){
 
 double covid19_BL_Slope3(std::vector <double> params){
     return params[5];
+}
+
+double covid19_BL_Intercept4(std::vector <double> params){
+    return params[6];
+}
+
+double covid19_BL_Slope4(std::vector <double> params){
+    return params[7];
 }
 
 // fixed at s=infty
@@ -913,10 +923,10 @@ double covid19_3BLPO(double t, std::vector <double> params){
 }
 
 double covid19_3BLPO_fixed(double t, std::vector <double> params){
-//    std::vector<double> _2BLparams = slice(params, 0, 6);
+//    std::vector<double> _3BLparams = slice(params, 0, 6);
 //    std::vector <double> smoothingparams = TRK::COVID19::fixed_params;
 //    std::vector <double> polyparams = slice(params, 6, 18);
-//    params = concat(_2BLparams, concat(smoothingparams, polyparams));
+//    params = concat(_3BLparams, concat(smoothingparams, polyparams));
     
     params = concat(TRK::COVID19::fixed_params, params);
     
@@ -1037,7 +1047,22 @@ double covid19_4BLPO(double t, std::vector <double> params){
 
 double covid19_4BLPO_fixed(double t, std::vector <double> params){
     
-    params = concat(TRK::COVID19::fixed_params, params);
+    // all fixed except linear params
+    params = concat(params, TRK::COVID19::fixed_params);
+    
+    // all smoothing params fixed:
+//    std::vector<double> _4BLparams = slice(params, 0, 8);
+//    std::vector <double> smoothingparams = TRK::COVID19::fixed_params;
+//    std::vector <double> polyparams = slice(params, 8, 20);
+//    params = concat(_4BLparams, concat(smoothingparams, polyparams));
+    
+    // only third smoothing param fixed:
+//    std::vector<double> _4BLparams = slice(params, 0, 10);
+//    std::vector <double> smoothingparams = TRK::COVID19::fixed_params;
+//    std::vector <double> polyparams = slice(params, 10, (int) params.size());
+//    params = concat(_4BLparams, concat(smoothingparams, polyparams));
+    
+//    params = concat(TRK::COVID19::fixed_params, params);
     
     double b1 = params[0];
     double m1 = params[1];
