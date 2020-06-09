@@ -58,7 +58,7 @@ namespace TRKLib {
 
     // CONSTRUCTORS ##############################################################################################################
 
-    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> &x, std::vector <double> &y, std::vector <double> &w, std::vector <double> &sx, std::vector <double> &sy, std::vector <double> &params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->yc = (*yc);
         this->dyc = (*dyc);
         this->ddyc = (*ddyc);
@@ -102,7 +102,7 @@ namespace TRKLib {
 
 
     //equal weights/unweighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> &x, std::vector <double> &y, std::vector <double> &sx, std::vector <double> &sy, std::vector <double> &params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->yc = (*yc);
         this->dyc = (*dyc);
         this->ddyc = (*ddyc);
@@ -149,7 +149,7 @@ namespace TRKLib {
 
     //priors:
     //weighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> &x, std::vector <double> &y, std::vector <double> &w, std::vector <double> &sx, std::vector <double> &sy, std::vector <double> &params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->yc = (*yc);
         this->dyc = (*dyc);
         this->ddyc = (*ddyc);
@@ -195,7 +195,7 @@ namespace TRKLib {
 
 
     //equal weights/unweighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> &x, std::vector <double> &y, std::vector <double> &sx, std::vector <double> &sy, std::vector <double> &params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->yc = (*yc);
         this->dyc = (*dyc);
         this->ddyc = (*ddyc);
@@ -243,7 +243,7 @@ namespace TRKLib {
 
 
     // 1D statistic
-    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> &x, std::vector <double> &y, std::vector <double> &w, std::vector <double> &sy, std::vector <double> &params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
         this->yc = (*yc);
@@ -284,7 +284,7 @@ namespace TRKLib {
 
 
     //equal weights/unweighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> &x, std::vector <double> &y, std::vector <double> &sy, std::vector <double> &params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
         this->yc = (*yc);
@@ -328,7 +328,7 @@ namespace TRKLib {
 
     //priors:
     //weighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> &x, std::vector <double> &y, std::vector <double> &w, std::vector <double> &sy, std::vector <double> &params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
         this->yc = (*yc);
@@ -371,7 +371,7 @@ namespace TRKLib {
 
 
     //equal weights/unweighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> &x, std::vector <double> &y, std::vector <double> &sy, std::vector <double> &params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
         this->yc = (*yc);
@@ -688,7 +688,7 @@ namespace TRKLib {
             printf("\n\n");
         }
 
-        printf("BEST FIT MODEL PARAMETERS (including slop):\n");
+        printf("BEST FIT MODEL PARAMETERS:\n");
         for (int k = 0; k < params_guess.size(); k++) {
             printf("%.3e ", results.bestFitParams[k]);
         }
@@ -743,7 +743,7 @@ namespace TRKLib {
     // STATISTICS ################################################################################################################
 
     // priors
-    double TRK::Statistics::priors(std::vector <double> &allparams) {
+    double TRK::Statistics::priors(std::vector <double> allparams) {
         double jointPrior = 1.0; //uninformative prior by default
 
         switch (priorsObject.priorType){
@@ -822,7 +822,7 @@ namespace TRKLib {
 
 
     // regression
-    std::vector <double> TRK::Statistics::simpleLinearRegression(std::vector <double> &x, std::vector <double> &y){ // least-squares solution for b, m of model y = mx + b
+    std::vector <double> TRK::Statistics::simpleLinearRegression(std::vector <double> x, std::vector <double> y){ // least-squares solution for b, m of model y = mx + b
         
         double b, m, xbar, ybar, upper_sum = 0.0, lower_sum = 0.0;
         xbar = getAverage(x); ybar = getAverage(y);
@@ -839,7 +839,7 @@ namespace TRKLib {
 
 
     // correlation
-    double TRK::Statistics::pearsonCorrelation(std::vector <double> &x, std::vector <double> &y){
+    double TRK::Statistics::pearsonCorrelation(std::vector <double> x, std::vector <double> y){
         double uppersum = 0.0, lowersum1 = 0.0, lowersum2 = 0.0, x_bar = getAverage(x), y_bar = getAverage(y);
         
         for (int i = 0; i < (int) x.size(); i++){
@@ -851,7 +851,7 @@ namespace TRKLib {
         return uppersum / (std::sqrt(lowersum1) * std::sqrt(lowersum2));
     }
 
-    double TRK::Statistics::spearmanCorrelation(std::vector <double> &x, std::vector <double> &y){
+    double TRK::Statistics::spearmanCorrelation(std::vector <double> x, std::vector <double> y){
         std::vector <double> u, v; // ranks
         u = rankVector(x);
         v = rankVector(y);
@@ -881,7 +881,7 @@ namespace TRKLib {
 
 
     // goodness of fit metrics
-    double TRK::Statistics::regularChiSquared(std::vector <double> &params) {
+    double TRK::Statistics::regularChiSquared(std::vector <double> params) {
         double sum = 0.0;
 
         for (int i = 0; i < trk.N; i++) {
@@ -890,7 +890,7 @@ namespace TRKLib {
         return sum;
     }
 
-    double TRK::Statistics::regularChiSquaredWSlop(std::vector <double> &allparams, double s) {
+    double TRK::Statistics::regularChiSquaredWSlop(std::vector <double> allparams, double s) {
         double sum = 0.0;
         
         double sigma = allparams[(int) allparams.size() - 1];
@@ -908,7 +908,7 @@ namespace TRKLib {
         return sum;
     }
 
-    double TRK::Statistics::modifiedChiSquared(std::vector <double> &allparams, double s)
+    double TRK::Statistics::modifiedChiSquared(std::vector <double> allparams, double s)
     {
         std::vector <double> SigXVec, SigYVec;
         std::vector <double> all_x_t(trk.N, 0.0);
@@ -1037,14 +1037,14 @@ namespace TRKLib {
 
 
     // likelihoods and posteriors
-    double TRK::Statistics::singlePointLnL(std::vector <double> &params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s) {
+    double TRK::Statistics::singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s) {
         double m_tn = trk.dyc(x_tn, params);
         double y_tn = trk.yc(x_tn, params);
         
         return std::pow(y_n - y_tn - m_tn * (x_n - x_tn), 2.0) / (std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) - std::log((std::pow(m_tn, 2.0)*Sig_xn2 + Sig_yn2) / (std::pow(m_tn*Sig_xn2, 2.0) + std::pow(s*Sig_yn2, 2.0)));
     }
 
-    double TRK::Statistics::likelihood(std::vector <double> &allparams) {
+    double TRK::Statistics::likelihood(std::vector <double> allparams) {
         std::vector <double> SigXVec, SigYVec;
         std::vector <double> all_x_t(trk.N, 0.0);
         double L = 1.0;
@@ -1141,7 +1141,7 @@ namespace TRKLib {
         return L; // returns log L = logL1 + logL2 + ... given L = L1*L2*L3... if trk.mcmc.useLogPosterior == true
     }
 
-    double TRK::Statistics::likelihood1D(std::vector <double> &allparams) {
+    double TRK::Statistics::likelihood1D(std::vector <double> allparams) {
     //    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
         
         double L = 1.0;
@@ -1174,7 +1174,7 @@ namespace TRKLib {
 
 
     // likelihoods and posteriors with asymmetric uncertainties
-    double TRK::Statistics::modifiedChiSquaredAsym(std::vector <double> &allparams, double s)
+    double TRK::Statistics::modifiedChiSquaredAsym(std::vector <double> allparams, double s)
     {
         std::vector <double> all_x_t(trk.N, 0.0);
 
@@ -1282,7 +1282,7 @@ namespace TRKLib {
         return -2.0 * sum;
     }
 
-    double TRK::Statistics::likelihoodAsym(std::vector <double> &allparams) {
+    double TRK::Statistics::likelihoodAsym(std::vector <double> allparams) {
         std::vector <double> all_x_t(trk.N, 0.0);
         double L = 1.0;
         if (trk.mcmc.useLogPosterior){
@@ -1371,7 +1371,7 @@ namespace TRKLib {
 
 
     // statistics (in the literal sense)
-    double TRK::Statistics::stDevUnweighted(std::vector <double> &x) {
+    double TRK::Statistics::stDevUnweighted(std::vector <double> x) {
         double uppersum = 0.0;
 
         for (int i = 0; i < x.size(); i++) {
@@ -1389,7 +1389,7 @@ namespace TRKLib {
         return std::sqrt(sum / (x.size() - 1.0));
     }
 
-    double TRK::Statistics::getAverage(std::vector <double> &x) {
+    double TRK::Statistics::getAverage(std::vector <double> x) {
         double top = 0.0;
         unsigned long N = x.size();
 
@@ -1400,7 +1400,7 @@ namespace TRKLib {
         return top / N;
     }
 
-    double TRK::Statistics::getAverage(std::vector <double> &x, std::vector <double> &w) {
+    double TRK::Statistics::getAverage(std::vector <double> x, std::vector <double> w) {
         double top = 0.0;
         double bottom = 0.0;
         unsigned long N = x.size();
@@ -1413,7 +1413,7 @@ namespace TRKLib {
         return top / bottom;
     }
 
-    double TRK::Statistics::getMode(int trueCount, std::vector <double> &w, std::vector <double> &y)
+    double TRK::Statistics::getMode(int trueCount, std::vector <double> w, std::vector <double> y)
     {
         int k, lowerLimit = 0, upperLimit = trueCount - 1, lowerLimitIn = -1, upperLimitIn = -1, size;
         int finalLower = 0;
@@ -1507,7 +1507,7 @@ namespace TRKLib {
         return getMedian((int)newWeights.size(), newWeights, newValues);
     }
 
-    double TRK::Statistics::getPeakCoord(std::vector <double> &x, std::vector <double> &w){
+    double TRK::Statistics::getPeakCoord(std::vector <double> x, std::vector <double> w){
         double xPeak;
         std::vector <double> hist, edges;
         
@@ -1534,7 +1534,7 @@ namespace TRKLib {
 
 
     // histograms
-    std::vector <std::vector <double> > TRK::Statistics::getHistogram(std::vector <double> &data) {
+    std::vector <std::vector <double> > TRK::Statistics::getHistogram(std::vector <double> data) {
         unsigned long dataSize = data.size();
 
         int bincount = std::round(std::sqrt(data.size()));
@@ -1579,7 +1579,7 @@ namespace TRKLib {
         return { hist, edges };
     }
 
-    std::vector <std::vector <double> > TRK::Statistics::getHistogram(std::vector <double> &data, std::vector <double> &weights) {
+    std::vector <std::vector <double> > TRK::Statistics::getHistogram(std::vector <double> data, std::vector <double> weights) {
         unsigned long dataSize = data.size();
         
         int bincount = std::round(std::sqrt(data.size()));
@@ -1626,7 +1626,7 @@ namespace TRKLib {
     // OPTIMIZATION ##############################################################################################################
 
     // general downhill simplex/ nelder mead method (ND case)
-    std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(std::vector <double> &)> func, std::vector <double> &guess, double tolerance, bool show_steps){
+    std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters){
         double tol = tolerance;
 
         unsigned long n = (int) guess.size(); // dimensionality
@@ -1841,8 +1841,8 @@ namespace TRKLib {
                 break;
             }
             
-            if (it >= max_simplex_iters){
-                printf("Downhill simplex exceeded %i iterations; halting...\n", max_simplex_iters);
+            if (it >= max_iters){
+                printf("Downhill simplex exceeded %i iterations; halting...\n", max_iters);
                 break;
             }
             
@@ -1857,13 +1857,13 @@ namespace TRKLib {
         
     }
 
-    double TRK::Optimization::downhillSimplex_1DWrapper(std::function <double(std::vector <double> &)> func, std::vector <double> guess, double tolerance, bool show_steps){
+    double TRK::Optimization::downhillSimplex_1DWrapper(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters){
         
-        return downhillSimplex(func, guess, tolerance, show_steps)[0];
+        return downhillSimplex(func, guess, tolerance, show_steps, max_iters)[0];
     }
 
     // downhill simplex/ nelder mead method customized for fitting
-    std::vector <double> TRK::Optimization::downhillSimplex_Fit(double(TRK::Statistics::*f)(std::vector <double> &, double), std::vector <double> &allparams_guess, double s, bool show_steps) {
+    std::vector <double> TRK::Optimization::downhillSimplex_Fit(double(TRK::Statistics::*f)(std::vector <double> , double), std::vector <double> allparams_guess, double s, bool show_steps) {
 
         double tol = simplexTol;
 
@@ -2102,7 +2102,7 @@ namespace TRKLib {
 
 
     // downhill simplex tools
-    std::vector <double> TRK::Optimization::findCentroid(std::vector <std::vector <double> > &nvertices) {
+    std::vector <double> TRK::Optimization::findCentroid(std::vector < std::vector <double> > nvertices) {
         unsigned long n = nvertices.size();
 
         std::vector <double> centroid;
@@ -2118,7 +2118,7 @@ namespace TRKLib {
         return centroid;
     }
 
-    std::vector <double> TRK::Optimization::pegToZeroSlop(std::vector <double> &vertex){
+    std::vector <double> TRK::Optimization::pegToZeroSlop(std::vector <double> vertex){
         double pegToZeroTol = trk.scaleOptimization.pegToZeroTol;
         if (trk.settings.do1DFit){
             if (std::abs(vertex[trk.M]) <= pegToZeroTol) {
@@ -2145,7 +2145,7 @@ namespace TRKLib {
         return vertex;
     }
 
-    std::vector <double> TRK::Optimization::avoidNegativeSlop(std::vector <double> &vertex, unsigned long n) {
+    std::vector <double> TRK::Optimization::avoidNegativeSlop(std::vector <double> vertex, unsigned long n) {
 
         int K = 2;
         
@@ -2163,7 +2163,7 @@ namespace TRKLib {
         return vertex;
     }
 
-    double TRK::Optimization::evalWPriors(double(TRK::Statistics::*f)(std::vector <double> &, double), std::vector <double> &vertex, double s) {
+    double TRK::Optimization::evalWPriors(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> vertex, double s) {
         if (trk.statistics.hasPriors) {
             switch (trk.statistics.priorsObject.priorType) {
                 case CUSTOM:
@@ -2675,7 +2675,7 @@ namespace TRKLib {
         return c;
     }
 
-    double TRK::ScaleOptimization::innerSlopX_Simplex(std::vector <double> &ss, std::vector <double> &allparams_guess) {
+    double TRK::ScaleOptimization::innerSlopX_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
         trk.allparams_s = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, allparams_guess, ss[0], showSimplexSteps);
 
         if (verbose){
@@ -2700,7 +2700,7 @@ namespace TRKLib {
         return trk.allparams_s[trk.M];
     }
 
-    double TRK::ScaleOptimization::innerSlopY_Simplex(std::vector <double> &ss, std::vector <double> &allparams_guess) {
+    double TRK::ScaleOptimization::innerSlopY_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
         //s = ss[0];
 
         
@@ -2843,7 +2843,7 @@ namespace TRKLib {
         return s1;
     }
 
-    double TRK::ScaleOptimization::innerR2_Simplex(std::vector <double> &ss, std::vector <double> &allparams_guess) {
+    double TRK::ScaleOptimization::innerR2_Simplex(std::vector <double> ss, std::vector <double> allparams_guess) {
         //s = ss[0];
 
         whichExtrema = S;
@@ -2864,7 +2864,7 @@ namespace TRKLib {
         return R2as - R2sb;
     }
 
-    double TRK::ScaleOptimization::innerR2_iter_Simplex(std::vector <double> &ss, std::vector <double> &allparams_guess, double s0) {
+    double TRK::ScaleOptimization::innerR2_iter_Simplex(std::vector <double> ss, std::vector <double> allparams_guess, double s0) {
         //s = ss[0];
 
         whichExtrema = S;
@@ -2925,7 +2925,7 @@ namespace TRKLib {
         return R2;
     }
 
-    double TRK::ScaleOptimization::R2TRK_prime_as0(double s0, std::vector <double> &x_t_s1, std::vector <double> &params_s1) {
+    double TRK::ScaleOptimization::R2TRK_prime_as0(double s0, std::vector <double> x_t_s1, std::vector <double> params_s1) {
         double R2 = 1.0 / trk.N;
 
         double sum = 0.0;
@@ -2945,7 +2945,7 @@ namespace TRKLib {
         return R2;
     }
 
-    double TRK::ScaleOptimization::R2TRK_prime_s0b(double s0, std::vector <double> &x_t_s1, std::vector <double> &params_s1) {
+    double TRK::ScaleOptimization::R2TRK_prime_s0b(double s0, std::vector <double> x_t_s1, std::vector <double> params_s1) {
         double R2 = 1.0 / trk.N;
 
         double sum = 0.0;
@@ -2972,7 +2972,7 @@ namespace TRKLib {
     // TANGENT POINT METHODS #####################################################################################################
 
     // root finders
-    double TRK::TangentPointMethods::newtonRaphson(std::vector <double> &params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess) {
+    double TRK::TangentPointMethods::newtonRaphson(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess) {
         double x0 = xguess;
         int itercount = 0;
 
@@ -2998,7 +2998,7 @@ namespace TRKLib {
         return x1;
     }
 
-    double TRK::TangentPointMethods::twoPointNR(std::vector <double> &params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1)
+    double TRK::TangentPointMethods::twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1)
     {
         double tol = 1e-9;
         double xkm1 = xguess;
@@ -3087,7 +3087,7 @@ namespace TRKLib {
 
 
     // tangent point choosing
-    std::vector <double> TRK::TangentPointMethods::tangentsFinder(std::vector <double> &params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg) {
+    std::vector <double> TRK::TangentPointMethods::tangentsFinder(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xg) {
         
         std::vector <double> result;
 
@@ -3220,7 +3220,7 @@ namespace TRKLib {
         return result;
     }
 
-    double TRK::TangentPointMethods::findBestTangent(std::vector <double> &params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> &x_tn_vec, double s) {
+    double TRK::TangentPointMethods::findBestTangent(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, std::vector <double> x_tn_vec, double s) {
         std::vector <double> posts;
         long minindex;
 
@@ -3264,7 +3264,7 @@ namespace TRKLib {
         return goodroots;
     }
 
-    std::vector <double> TRK::TangentPointMethods::approxQuadraticRoots(std::vector <double> &params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1) {
+    std::vector <double> TRK::TangentPointMethods::approxQuadraticRoots(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xr1) {
         //using board derivation notation:
         double b = trk.yc(xr1, params) - trk.dyc(xr1, params) * xr1 + (trk.ddyc(xr1, params) / 2.0) * std::pow(xr1, 2.0); //coefficients of quadratic approximation from taylor expansion
         double m = trk.dyc(xr1, params) - trk.ddyc(xr1, params) * xr1;
@@ -3347,9 +3347,9 @@ namespace TRKLib {
             std::cout << "\nSampling Posterior...\n";
         }
         
-        std::vector <bool> fixed_allparams_flags_default(trk.bigM, true);
-
-        auto allparam_samples = samplePosterior(R, burncount, allparams_sigmas_guess, fixed_allparams_flags_default);
+        std::vector <bool> fixed_allparams_flags_default(trk.bigM, false); // none fixed
+        
+        std::vector <std::vector <double> > allparam_samples = samplePosterior(R, burncount, allparams_sigmas_guess, fixed_allparams_flags_default);
 
         if (trk.settings.outputDistributionToFile) {
 
@@ -3495,7 +3495,7 @@ namespace TRKLib {
         return allparam_uncertainties; //for each parameter including slope, there is a vector containing 1 vector of +sigmas, 1 vector of -sigmas. This vector contains all of those 2-vectors.
     }
 
-    void TRK::MCMC::getFullallparams(std::vector <double> &X, std::vector <bool> &fixed_allparams_flags){
+    std::vector <double> TRK::MCMC::getFullallparams(std::vector <double> X, std::vector <bool> fixed_allparams_flags){
         // takes vector of params from MCMC sampler and adds values from fixed params
         
         if (X.size() < trk.bigM){
@@ -3507,21 +3507,21 @@ namespace TRKLib {
                     count++;
                 }
             }
-            X = X_full;
-            return;
+//            X = X_full;
+            return X_full;
             
         } else { // all params free
-            return;
+            return X;
         }
     }
 
 
     // sampling (general)
-    double TRK::MCMC::metHastRatio(std::vector <double> X_trial, std::vector <double> X_i, std::vector <bool> &fixed_allparams_flags){
+    double TRK::MCMC::metHastRatio(std::vector <double> X_trial, std::vector <double> X_i, std::vector <bool> fixed_allparams_flags){
         double log_a;
         
-        getFullallparams(X_trial, fixed_allparams_flags);
-        getFullallparams(X_i, fixed_allparams_flags);
+        X_trial = getFullallparams(X_trial, fixed_allparams_flags);
+        X_i = getFullallparams(X_i, fixed_allparams_flags);
 
         if (trk.statistics.hasPriors) {
             log_a = (trk.statistics.*trk.statistics.selectedLikelihood)(X_trial) - (trk.statistics.*trk.statistics.selectedLikelihood)(X_i) + std::log(trk.statistics.priors(X_trial)) - std::log(trk.statistics.priors(X_i));
@@ -3535,7 +3535,7 @@ namespace TRKLib {
         return log_a; // returns log post / log post if useLogPosterior == true
     }
 
-    std::vector <double> TRK::MCMC::getMCMCStartingPoint(std::vector <bool> &fixed_allparams_flags){
+    std::vector <double> TRK::MCMC::getMCMCStartingPoint(std::vector <bool> fixed_allparams_flags){
         std::vector <double> starting_point;
         
         for (int j = 0; j < (int) fixed_allparams_flags.size(); j++){ // if a param is fixed, the correpond element is true
@@ -3545,7 +3545,7 @@ namespace TRKLib {
         return starting_point;
     }
 
-    std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burncount, std::vector <double> &sigmas_guess, std::vector <bool> &fixed_allparams_flags) {
+    std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burncount, std::vector <double> sigmas_guess, std::vector <bool> fixed_allparams_flags) {
         
         useLogPosterior = true;
 
@@ -3681,6 +3681,13 @@ namespace TRKLib {
                             // all walkers excluding X:
                             YY = all_walkers;
                             YY.erase(YY.begin() + k);
+                            
+                            
+//                            if (sample_count >= 40000){
+//                                std::cout << std::endl;
+//                            }
+                            
+                            
                             
                             std::vector <double> res = updateAIESWalker(X, YY, fixed_allparams_flags);
                             
@@ -3829,7 +3836,7 @@ namespace TRKLib {
             result_final.push_back(result[i + burncount]);
         }
 
-        result_final = checkSlopSignMCMC(result_final);
+        result_final = checkSlopSignMCMC(result_final, (int) n, fixed_allparams_flags);
         
         useLogPosterior = false;
 
@@ -3838,7 +3845,7 @@ namespace TRKLib {
 
 
     // Affine Invariant Ensemble Sampler (AIES)
-    std::vector <double> TRK::MCMC::updateAIESWalker(std::vector <double> &X, std::vector <std::vector <double> > &YY, std::vector <bool> &fixed_allparams_flags){ // X is the walker to be updated with index k, YY is the set of walkers that the complementary walker for X is randomly chosen from, i.e. X should not be in YY
+    std::vector <double> TRK::MCMC::updateAIESWalker(std::vector <double> X, std::vector <std::vector <double> > YY, std::vector <bool> fixed_allparams_flags){ // X is the walker to be updated with index k, YY is the set of walkers that the complementary walker for X is randomly chosen from, i.e. X should not be in YY
         int n = (int) X.size();
         
         double a = 2.0; //stretch variable pdf parameter
@@ -3941,32 +3948,37 @@ namespace TRKLib {
 
 
     // tools
-    std::vector <std::vector <double >> TRK::MCMC::checkSlopSignMCMC(std::vector <std::vector <double >> result_final) {
+    std::vector <std::vector <double >> TRK::MCMC::checkSlopSignMCMC(std::vector <std::vector <double >> result_final, int n, std::vector <bool> fixed_allparams_flags) {
 
-        std::vector <std::vector <double >> result_final_fixed;
-        std::vector <double> inner;
-
-        for (int i = 0; i < result_final.size(); i++) {
-            inner.clear();
-
-            for (int j = 0; j < trk.M; j++) {
-                inner.push_back(result_final[i][j]);
-            }
+        if (n < trk.bigM){
+            return result_final;
             
-            inner.push_back(std::abs(result_final[i][trk.M]));
-            
-            if (!trk.settings.do1DFit){
+        } else {
+            std::vector <std::vector <double >> result_final_fixed;
+            std::vector <double> inner;
+
+            for (int i = 0; i < result_final.size(); i++) {
+                inner.clear();
+
+                for (int j = 0; j < trk.M; j++) {
+                    inner.push_back(result_final[i][j]);
+                }
+                
+                inner.push_back(std::abs(result_final[i][trk.M]));
+                
+                if (!trk.settings.do1DFit){
+                    inner.push_back(std::abs(result_final[i][trk.M+1]));
+                }
                 inner.push_back(std::abs(result_final[i][trk.M+1]));
+
+                result_final_fixed.push_back(inner);
             }
-            inner.push_back(std::abs(result_final[i][trk.M+1]));
 
-            result_final_fixed.push_back(inner);
+            return result_final_fixed;
         }
-
-        return result_final_fixed;
     }
 
-    std::vector <double> TRK::MCMC::pegToNonZeroDelta(std::vector <double> &vertex, std::vector <double> &lastvertex) {
+    std::vector <double> TRK::MCMC::pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex) {
 
         std::vector <double> vertexfixed = vertex;
 
@@ -4033,7 +4045,7 @@ namespace TRKLib {
 
 
     // combinations
-    void TRK::CorrelationRemoval::getCombos(std::vector <std::vector <double> > &total, int k, int offset) { //ND case in x
+    void TRK::CorrelationRemoval::getCombos(std::vector < std::vector <double> > total, int k, int offset) { //ND case in x
 
         if (k == trk.M) {
             NDcombos.clear();
@@ -4049,7 +4061,7 @@ namespace TRKLib {
         }
     }
 
-    std::vector < std::vector <std::vector <double > > > TRK::CorrelationRemoval::directCombos(std::vector < std::vector <double> > &params_sample, int comboCount){
+    std::vector < std::vector <std::vector <double > > > TRK::CorrelationRemoval::directCombos(std::vector < std::vector <double> > params_sample, int comboCount){
         std::vector < std::vector <std::vector <double > > > combos;
         combos.clear();
         
@@ -4149,7 +4161,7 @@ namespace TRKLib {
         return;
     }
 
-    std::vector <double> TRK::CorrelationRemoval::refitAnalytic(std::vector <double> &new_pivots){ // refit with new pivot point; only intercepts changed
+    std::vector <double> TRK::CorrelationRemoval::refitAnalytic(std::vector <double> new_pivots){ // refit with new pivot point; only intercepts changed
         std::vector <double> allparams_better = trk.allparams_guess, allparams_old = trk.allparams_guess;
 
         double intercept_new, intercept_old, slope;
@@ -4166,7 +4178,7 @@ namespace TRKLib {
         return allparams_better;
     }
 
-    void TRK::CorrelationRemoval::refitWithNewPivots(std::vector <double> &new_pivots){
+    void TRK::CorrelationRemoval::refitWithNewPivots(std::vector <double> new_pivots){
         std::vector <double> allparams_better = refitAnalytic(new_pivots); // determine the best fit
         
         if (refit_with_simplex){
@@ -4223,7 +4235,8 @@ namespace TRKLib {
                 printf("\nSampling for pivot points...\n");
             }
             
-            std::vector <bool> fixed_allparams_flags_default(trk.bigM, true);
+            std::vector <bool> fixed_allparams_flags_default(trk.bigM, false); // none fixed
+            
             allparam_samples = trk.mcmc.samplePosterior(sample_R, sample_burnIn, trk.mcmc.allparams_sigmas_guess, fixed_allparams_flags_default); //allparam_samples is { {allparams0}, {allparams1}, ... }
         
             pivot_samples = std::vector <std::vector <double> >(P, std::vector<double>());
@@ -4361,7 +4374,7 @@ namespace TRKLib {
         return;
     }
 
-    double TRK::CorrelationRemoval::pivotFunc(std::vector <double> &params1, std::vector <double> &params2, int p) {
+    double TRK::CorrelationRemoval::pivotFunc(std::vector <double> params1, std::vector <double> params2, int p) {
         double a01 = pivot_intercept_functions[p](params1);
         double a11 = pivot_slope_functions[p](params1);
 
@@ -4371,7 +4384,7 @@ namespace TRKLib {
         return (a02 - a01) / (a11 - a12);
     }
 
-    double TRK::CorrelationRemoval::weightPivot(std::vector <double> &params1, std::vector <double> &params2, std::vector <double> &old_pivots_sample, double newPivot, int p) {
+    double TRK::CorrelationRemoval::weightPivot(std::vector <double> params1, std::vector <double> params2, std::vector <double> old_pivots_sample, double newPivot, int p) {
         std::vector <double> squares(old_pivots_sample.size(), 0.0);
         double w;
 
@@ -4392,7 +4405,7 @@ namespace TRKLib {
         return w;
     }
 
-    std::vector <double> TRK::CorrelationRemoval::removeOutlierPivots(std::vector <double> &pivots){
+    std::vector <double> TRK::CorrelationRemoval::removeOutlierPivots(std::vector <double> pivots){
         std::vector <double> newpivots;
         double pivot;
         
@@ -4440,7 +4453,8 @@ namespace TRKLib {
                 printf("\nSampling for pivot points...\n");
             }
 
-            std::vector <bool> fixed_allparams_flags_default(trk.bigM, true);
+            std::vector <bool> fixed_allparams_flags_default(trk.bigM, false); // none fixed
+            
             allparam_samples = trk.mcmc.samplePosterior(sample_R, sample_burnIn, trk.mcmc.allparams_sigmas_guess, fixed_allparams_flags_default); //allparam_samples is { {allparams0}, {allparams1}, ... }
             
             for (int j = 0; j < allparam_samples.size(); j++) {
@@ -4532,16 +4546,20 @@ namespace TRKLib {
             findPivotBrackets();
         }
         
-        switch (trk.settings.ParallelizationBackEnd){ // search for multiple pivot points simultaneously
-            case CPP11:
-                optimizePivots_Correlation_CPP11();
-                break;
-            case OPENMP:
-                optimizePivots_Correlation_Default();
-                break;
-            default:
-                optimizePivots_Correlation_Default();
-                break;
+        if (parallelize){
+            switch (trk.settings.ParallelizationBackEnd){ // search for multiple pivot points simultaneously
+                case CPP11:
+                    optimizePivots_Correlation_CPP11();
+                    break;
+                case OPENMP:
+                    optimizePivots_Correlation_Default(); // calls omp pragma within this
+                    break;
+                default:
+                    optimizePivots_Correlation_Default();
+                    break;
+            }
+        } else {
+            optimizePivots_Correlation_Default();
         }
         
         return;
@@ -4559,11 +4577,11 @@ namespace TRKLib {
             switch (thisPivotMethod){
                 case PEARSON_SIMPLEX : {
                     // function to be minimized:
-                    std::function <double(std::vector <double> &)> correlation_func_simplex = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
+                    std::function <double(std::vector <double> )> correlation_func_simplex = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
                     
                     std::vector <double> guess = {pivots[p]};
                     
-                    futureVec[p] = std::async(std::launch::async, &TRK::Optimization::downhillSimplex_1DWrapper, trk.optimization, correlation_func_simplex, guess, correlation_tol, showSimplexSteps);
+                    futureVec[p] = std::async(std::launch::async, &TRK::Optimization::downhillSimplex_1DWrapper, trk.optimization, correlation_func_simplex, guess, correlation_tol, showSimplexSteps, max_corr_simplex_iters);
                     break;
                 }
                 case PEARSON_GSS : {
@@ -4607,7 +4625,9 @@ namespace TRKLib {
     }
 
     void TRK::CorrelationRemoval::optimizePivots_Correlation_Default(){
-        #pragma omp parallel for num_threads(maxThreads)
+        if (trk.settings.ParallelizationBackEnd == OPENMP && parallelize){
+            #pragma omp parallel for num_threads(maxThreads)
+        }
         for (int p = 0; p < P; p++){ // each pivot can be optimized independently (the value of the others pivots shouldn't affect it
             if (verbose){
                 printf("Optimizing pivot %i...\n\n", p + 1);
@@ -4624,10 +4644,10 @@ namespace TRKLib {
                 }
                 case PEARSON_SIMPLEX : {
                     // function to be minimized:
-                    std::function <double(std::vector <double> &)> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
+                    std::function <double(std::vector <double> )> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
                     
                     std::vector <double> pivot_vec = {pivots[p]};
-                    pivots[p] = trk.optimization.downhillSimplex(correlation_func, pivot_vec, correlation_tol, showSimplexSteps)[0];
+                    pivots[p] = trk.optimization.downhillSimplex(correlation_func, pivot_vec, correlation_tol, showSimplexSteps, max_corr_simplex_iters)[0];
                     break;
                 }
                 default : {
@@ -4638,7 +4658,7 @@ namespace TRKLib {
         return;
     }
 
-    void TRK::CorrelationRemoval::writeCorrelationOptimizationSampling(std::vector <double> &b_samples, std::vector <double> &m_samples, int p)
+    void TRK::CorrelationRemoval::writeCorrelationOptimizationSampling(std::vector <double> b_samples, std::vector <double> m_samples, int p)
     {
         if (writePivots){
             // write b vs m distribution to file
@@ -4667,7 +4687,7 @@ namespace TRKLib {
         return;
     }
 
-    void TRK::CorrelationRemoval::rejectLinearParamOutliers(std::vector <double> &b_samples, std::vector <double> &m_samples){
+    void TRK::CorrelationRemoval::rejectLinearParamOutliers(std::vector <double> b_samples, std::vector <double> m_samples){
 //        if (verbose) {printf("Performing RCR on slope and intercept sample...\n");}
         
         using namespace RCRLib;
@@ -4683,7 +4703,7 @@ namespace TRKLib {
         b_samples.size() >= m_samples.size() ? b_samples.resize(m_samples.size()) : m_samples.resize(b_samples.size());
         
 //        if (verbose) {printf("fraction of (%f, %f) (b, m) samples rejected by RCR.\n", (double) rcr_b.result.rejectedY.size() / rcr_b.result.originalY.size(), (double) rcr_m.result.rejectedY.size() / rcr_m.result.originalY.size() );}
-//        
+//
         return;
     }
 
@@ -4739,7 +4759,7 @@ namespace TRKLib {
         
         std::vector <bool> fixed_allparams_flags = getFixedLinearParams(p); // (potentially) sample with only the relavant linear params free
         
-        std::vector < std::vector <double> > allparam_samples = trk.mcmc.samplePosterior(sample_R, sample_burnIn, trk.mcmc.allparams_sigmas_guess,  fixed_allparams_flags);
+        std::vector < std::vector <double> > allparam_samples = trk.mcmc.samplePosterior(sample_R, sample_burnIn, trk.mcmc.allparams_sigmas_guess, fixed_allparams_flags);
         
         getLinearParamSamples(allparam_samples, b_samples, m_samples, p);
         
@@ -4777,7 +4797,7 @@ namespace TRKLib {
         return abs_rxy; // returns maximally correlated if NaN
     }
 
-    double TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper(std::vector <double> &new_pivot, int p){
+    double TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper(std::vector <double> new_pivot, int p){
         return getAbsCorrFromNewPivot(new_pivot[0], p);
     }
 
@@ -4928,7 +4948,7 @@ namespace TRKLib {
 
 
     // likelihoods/posteriors
-    double TRK::Asymmetric::dunDxAsym(double mtn, std::vector <double> &Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind, double s){
+    double TRK::Asymmetric::dunDxAsym(double mtn, std::vector <double> Sigs2, int quadSig_xn2Ind, int quadSig_yn2Ind, double s){
         double quadSigX2 = Sigs2[quadSig_xn2Ind]; //the correct Sig2 values for the specific quadrant
         double quadSigY2 = Sigs2[quadSig_yn2Ind];
 
@@ -4939,12 +4959,12 @@ namespace TRKLib {
         return (std::sqrt(PI)/2.0) * (1.0 + std::erf(z));
     }
 
-    double TRK::Asymmetric::zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_shifted, double yn_shifted, std::vector <double> &shifts, double x_tn, double y_tn, double m_tn){ //equation B-6 of thesis
+    double TRK::Asymmetric::zAsym(double x, double quadSig_xn2, double quadSig_yn2, double xn_shifted, double yn_shifted, std::vector <double> shifts, double x_tn, double y_tn, double m_tn){ //equation B-6 of thesis
         
         return (quadSig_yn2 * (x - xn_shifted) + std::pow(m_tn, 2.0) * quadSig_xn2 * (x - x_tn - (yn_shifted - y_tn)/m_tn)) / (std::sqrt(quadSig_xn2) * std::sqrt(quadSig_yn2) * std::sqrt(std::pow(m_tn, 2.0) * quadSig_xn2 + quadSig_yn2));
     }
 
-    double TRK::Asymmetric::pnAsym(std::vector <double> &params, double xn_shifted, double yn_shifted, std::vector <double> &Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> &shifts, double s, double wn){
+    double TRK::Asymmetric::pnAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn){
         
         // INITIALIZATIONS
         
@@ -5016,14 +5036,14 @@ namespace TRKLib {
         
     }
 
-    double TRK::Asymmetric::singlePointLnLAsym(std::vector <double> &params, double xn_shifted, double yn_shifted, std::vector <double> &Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> &shifts, double s, double wn){
+    double TRK::Asymmetric::singlePointLnLAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, double x_tn, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn){
         
         return -2.0 * std::log(pnAsym(params, xn_shifted, yn_shifted, Sigs2, x_tn, quadSig_xn2Ind, quadSig_yn2Ind, shifts, s, wn));
     }
 
 
     // tangent points
-    double TRK::Asymmetric::findBestTangentAsym(std::vector <double> &params, double xn_shifted, double yn_shifted, std::vector <double> &Sigs2, std::vector <double> &x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> &shifts, double s, double wn) {
+    double TRK::Asymmetric::findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn) {
         std::vector <double> posts;
         long minindex;
 
@@ -5037,7 +5057,7 @@ namespace TRKLib {
         return x_tn_vec[minindex];
     }
 
-    std::vector <double> TRK::Asymmetric::getAsymShifts(std::vector <double> &allparams, int n){
+    std::vector <double> TRK::Asymmetric::getAsymShifts(std::vector <double> allparams, int n){
         double deltayn = 0.0;
         double deltaxn = 0.0;
         
@@ -5183,7 +5203,7 @@ namespace TRKLib {
         return {deltaxn, deltayn};
     }
 
-    std::vector <double> TRK::Asymmetric::getAsymSigs2(std::vector <double> &allparams, int n){
+    std::vector <double> TRK::Asymmetric::getAsymSigs2(std::vector <double> allparams, int n){
         std::vector <double> Sigs2(4, 0.0);
         std::vector <double> slops = {allparams[trk.M], allparams[trk.M+1]};
         std::vector <double> EBs = {trk.sx[n], trk.sy[n]};
@@ -5356,7 +5376,7 @@ namespace TRKLib {
 
 
     // statistics
-    std::vector <double> minMax(std::vector <double> &vec) {
+    std::vector <double> minMax(std::vector <double> vec) {
 
         // Finding the smallest of all the numbers
         double min = *std::min_element(std::begin(vec), std::end(vec));
@@ -5365,13 +5385,13 @@ namespace TRKLib {
         return { min, max };
     }
 
-    std::vector <int> argMinMax(std::vector <double> &x){
+    std::vector <int> argMinMax(std::vector <double> x){
         int argMin = (int)std::distance(x.begin(), std::min_element(x.begin(), x.end()));
         int argMax = (int)std::distance(x.begin(), std::max_element(x.begin(), x.end()));
         return {argMin, argMax};
     }
 
-    std::vector <int> getSortedIndices(std::vector <double> &x)
+    std::vector <int> getSortedIndices(std::vector <double> x)
     {
         std::vector<int> y(x.size());
         std::size_t n(0);
@@ -5385,7 +5405,7 @@ namespace TRKLib {
     }
 
     // numerical methods/optimization
-    double twoPointNR(double(*y)(double, std::vector <double>), double(*dy)(double, std::vector <double>), double(*ddy)(double, std::vector <double>), std::vector <double> &params, double xguess, double xguessp1)
+    double twoPointNR(double(*y)(double, std::vector <double>), double(*dy)(double, std::vector <double>), double(*ddy)(double, std::vector <double>), std::vector <double> params, double xguess, double xguessp1)
     {
         double tol = 1e-9;
         double xkm1 = xguess;
