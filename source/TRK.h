@@ -287,6 +287,7 @@ namespace TRKLib {
                 private:
                     // settings
                     samplingMethod thisSamplingMethod = AIES;
+                    bool do_mcmc = false; // just for determining whether findAIESstartingWidths() needs to be run or not
                     bool useLogPosterior = false;
                     bool currentlyOptimizingProposal = false;
                     bool parallelizeAIES = false;
@@ -295,6 +296,8 @@ namespace TRKLib {
                     
                     // uncertainty estimation
                     void calculateUncertainties();
+                    void combineLinearAndNonLinearSamples(std::vector <std::vector <double> > &allparam_samples, std::vector < std::vector < std::vector <double> > > &all_linearparam_samples, std::vector < std::vector <double> > &nonlinear_allparam_samples, std::vector <std::vector <bool> > &fixed_allparams_flags_linear, std::vector <bool> &fixed_allparams_flags_nonlinear);
+                    std::vector <std::vector <double> > sampleForUncertainties();
                     std::vector <double> allParamsFinalDeltas;
                     std::vector <std::vector <std::vector <double> > > lowerBar(std::vector <std::vector <double> > allparam_samples);
                     
@@ -306,9 +309,15 @@ namespace TRKLib {
                     
                     // Affine Invariant Ensemble Sampler (AIES)
                     bool printAIESWalkerEvolution = false;
+                    bool initializeAIESWalkersNaively = false;
+                    std::vector <double> AIES_param_width_estimates;
                     int amt_walkers = 2; // number of walkers is amt_walkers * (number of parameters sampled)
                     double AIES_a = 2.0;
+                    int starting_width_estimate_samplesize = 5000;
                     double AIES_initial_scaling = 0.1;
+                
+                    void findAIESstartingWidths();
+                    void initializeAIESWalkers(std::vector <std::vector <double> > &all_walkers, std::vector <double> &starting_point, std::vector <bool> &fixed_allparams_flags, int L, int n);
                     std::vector <double> updateAIESWalker(std::vector <double> X, std::vector <std::vector <double> > YY, std::vector <bool> fixed_allparams_flags);
                     std::vector <double> parallelUpdateAIESWalkers(std::vector <std::vector <double> > XX, std::vector <std::vector <double> > YY, int k, std::vector <bool> fixed_allparams_flags);
                     
@@ -321,6 +330,7 @@ namespace TRKLib {
                     double rnorm(double mu, double sig);
                     double runiform(double a, double b);
                     double rstretch(double a);
+                    bool rbool();
 
                     // tools
                     std::vector <double> pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex);
@@ -348,7 +358,7 @@ namespace TRKLib {
                     
                 
                     // settings
-                    int maxPivotIter = 100; // Maximum number of iterations for the pivot point finder. 5 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
+                    int maxPivotIter = 5; // Maximum number of iterations for the pivot point finder. 5 is usually sufficient, as successive iterations seem to only jump around (may not be true for linearIZED models, not just linear, however)
                     bool findPivotPoints = false;
                     bool verbose = false; // show pivot point finding steps
                 
@@ -360,10 +370,12 @@ namespace TRKLib {
                     bool showSimplexSteps = false;
                     bool refit_with_simplex = false;
                     bool RCR_samples = false;
-                    bool sampleOnlyLinearParams = true;
+                    bool sampleOnlyLinearParams_pivots = true;
+                    bool sampleLinearParams_seperately = false;
                 
                 private:
                     // core
+                    std::vector <double> final_pivots; // temporary container for iteratively updating pivots
                     void findPivots();
                 
                     // settings
@@ -615,6 +627,18 @@ namespace TRKLib {
     };
 
     //global functions
+    void get_where_boolean(std::vector <bool> &vec, bool value, std::vector <int> &indices){
+        // finds which indices of some boolean vec have the inputted value
+        indices.clear();
+        
+        for (int i = 0; i < vec.size(); i++){
+            if (vec[i] == value){
+                indices.push_back(i);
+            }
+        }
+        
+        return;
+    }
 
     template <class vec>
     vec slice(vec v, int begin, int end) {
@@ -762,6 +786,16 @@ namespace TRKLib {
     //        std::cout << median << std::endl;
         }
         return median;
+    }
+
+    template <class vec>
+    void printVector(vec &y)
+    {
+        for (int i = 0; i < (int) y.size(); i++){
+            std::cout << y[i] << " ";
+        }
+        std::cout << std::endl;
+        return;
     }
 
     // numerical methods/optimization

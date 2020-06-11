@@ -462,9 +462,13 @@ namespace TRKLib {
     // CORE ALGORITHMS ###########################################################################################################
 
     void TRK::performTRKFit() {//finds optimum scale AND performs TRK fit + uncertainty
+        mcmc.do_mcmc = true;
+        
         checkVerbose();
         
         asymmetric.checkAsym();
+        
+        mcmc.findAIESstartingWidths(); // only if sampling will be used, either for uncertainty computation or pivot points
         
         optimization.getBetterGuess(); // once before pivot point optimization, once after
         
@@ -482,9 +486,13 @@ namespace TRKLib {
     }
 
     void TRK::performTRKFit(double scale) {//perform fit on some provided scale (for example, if they already know optimum scale, they can just start with this) and calculates uncertainties
+        mcmc.do_mcmc = true;
+        
         checkVerbose();
         
         asymmetric.checkAsym();
+        
+        mcmc.findAIESstartingWidths(); // only if sampling will be used, either for uncertainty computation or pivot points
         
         scaleOptimization.s = scale;
         results.optimumScale = scale;
@@ -524,6 +532,8 @@ namespace TRKLib {
         
         asymmetric.checkAsym();
         
+        mcmc.findAIESstartingWidths(); // only if sampling will be used, either for uncertainty computation or pivot points
+        
         optimization.getBetterGuess();
         
         correlationRemoval.getPivotGuess();
@@ -559,6 +569,8 @@ namespace TRKLib {
         checkVerbose();
         
         asymmetric.checkAsym();
+        
+        mcmc.findAIESstartingWidths(); // only if sampling will be used, either for uncertainty computation or pivot points
         
         scaleOptimization.s = scale;
         
@@ -2248,6 +2260,9 @@ namespace TRKLib {
             }
         }
         
+        printf("Better parameter guess found to be:\n");
+        printVector(trk.allparams_guess);
+        
         return;
     }
 
@@ -3334,6 +3349,78 @@ namespace TRKLib {
     // MCMC/SAMPLING #############################################################################################################
 
     // uncertainty estimation
+    void TRK::MCMC::combineLinearAndNonLinearSamples(std::vector <std::vector <double> > &allparam_samples, std::vector < std::vector < std::vector <double> > > &all_linearparam_samples, std::vector < std::vector <double> > &nonlinear_allparam_samples, std::vector <std::vector <bool> > &fixed_allparams_flags_linear, std::vector <bool> &fixed_allparams_flags_nonlinear){
+        
+        // pth vector of fixed_allparams_flags_linear is a vector of bools that are false for the corresponding linear params
+        
+        // fill up linear param samples
+        for (int p = 0; p < trk.correlationRemoval.P; p++){ // indexes pivot point/ pairs of linear params
+            std::vector <int> linear_param_indices;
+            for (int i = 0; i < R; i++){ // for each individual sample
+                
+                get_where_boolean(fixed_allparams_flags_linear[p], false, linear_param_indices); // see which indices the linear params have in the total model param vector
+                for (int l = 0; l < 2; l++){
+                    allparam_samples[i][linear_param_indices[l]] = all_linearparam_samples[p][i][l];
+                }
+            }
+        }
+        
+        // fill up remaining non-linear samples
+        for (int i = 0; i < R; i++){ // for each individual sample
+            
+        }
+            
+        return;
+    }
+
+    std::vector < std::vector <double> > TRK::MCMC::sampleForUncertainties()
+    {
+        std::vector <std::vector <double> > allparam_samples;
+        
+        if (trk.mcmc.verbose){
+            std::cout << "\nSampling Posterior...\n";
+        }
+        
+        if (trk.correlationRemoval.sampleLinearParams_seperately && trk.correlationRemoval.findPivotPoints) {
+            std::vector <std::vector <double> > allparam_samples(R, std::vector <double>(trk.bigM, 0.0));
+            
+            bool old_sampleOnlyLinearParams_pivots_setting = trk.correlationRemoval.sampleOnlyLinearParams_pivots;
+            trk.correlationRemoval.sampleOnlyLinearParams_pivots = true; // needs to be on for getFixedLinearParams() to work as expected
+            
+            std::vector < std::vector < std::vector <double> > > all_linearparam_samples;
+            
+            std::vector <bool> fixed_allparams_flags_nonlinear(trk.bigM, false); // for sampling with only the linear params fixed
+            
+            std::vector <std::vector <bool> > fixed_allparams_flags_linear;
+            
+            for (int p = 0; p < trk.correlationRemoval.P; p++){ // sample each set of linear parameters separately
+                std::vector <bool> fixed_allparams_flags = trk.correlationRemoval.getFixedLinearParams(p); // sample with only the relavant linear params free
+                fixed_allparams_flags_linear.push_back(fixed_allparams_flags); // true if fixed, false if free
+                
+                std::vector < std::vector <double> > linearparam_samples = trk.mcmc.samplePosterior(R, burncount, allparams_sigmas_guess, fixed_allparams_flags);
+                
+                all_linearparam_samples.push_back(linearparam_samples);
+                
+//                trk.correlationRemoval.getLinearParamSamples(allparam_samples, b_samples, m_samples, p);
+                
+                fixed_allparams_flags_nonlinear[trk.correlationRemoval.intercept_indices[p]] = true; // initializing for sampling only NON-linear params subsequently
+                fixed_allparams_flags_nonlinear[trk.correlationRemoval.slope_indices[p]] = true;
+            }
+            trk.correlationRemoval.sampleOnlyLinearParams_pivots = old_sampleOnlyLinearParams_pivots_setting;
+            
+            // then sample the remaining parameters
+            std::vector < std::vector <double> > nonlinear_allparam_samples = samplePosterior(R, burncount, allparams_sigmas_guess, fixed_allparams_flags_nonlinear);
+            
+            
+        } else {
+            std::vector <bool> fixed_allparams_flags_default(trk.bigM, false); // none fixed
+            
+            allparam_samples = samplePosterior(R, burncount, allparams_sigmas_guess, fixed_allparams_flags_default);
+        }
+        
+        return allparam_samples;
+    }
+
     void TRK::MCMC::calculateUncertainties() {
         
     //    useLogPosterior = false;
@@ -3343,13 +3430,7 @@ namespace TRKLib {
 
         std::vector <std::vector <std::vector <double> > > allparam_uncertainties;
         
-        if (trk.mcmc.verbose){
-            std::cout << "\nSampling Posterior...\n";
-        }
-        
-        std::vector <bool> fixed_allparams_flags_default(trk.bigM, false); // none fixed
-        
-        std::vector <std::vector <double> > allparam_samples = samplePosterior(R, burncount, allparams_sigmas_guess, fixed_allparams_flags_default);
+        std::vector <std::vector <double> > allparam_samples = sampleForUncertainties();
 
         if (trk.settings.outputDistributionToFile) {
 
@@ -3522,15 +3603,22 @@ namespace TRKLib {
         
         X_trial = getFullallparams(X_trial, fixed_allparams_flags);
         X_i = getFullallparams(X_i, fixed_allparams_flags);
+        
+        double logL_trial = (trk.statistics.*trk.statistics.selectedLikelihood)(X_trial);
+        double logL_i = (trk.statistics.*trk.statistics.selectedLikelihood)(X_i);
 
         if (trk.statistics.hasPriors) {
-            log_a = (trk.statistics.*trk.statistics.selectedLikelihood)(X_trial) - (trk.statistics.*trk.statistics.selectedLikelihood)(X_i) + std::log(trk.statistics.priors(X_trial)) - std::log(trk.statistics.priors(X_i));
+            double logp_trial = std::log(trk.statistics.priors(X_trial));
+            double logp_i = std::log(trk.statistics.priors(X_i));
+            
+            log_a = logL_trial - logL_i + logp_trial - logp_i;
                 // these likelihoods return log likelihood given useLogPosterior = true; the computation is done WITHIN the function.
         }
         else {
-            log_a = (trk.statistics.*trk.statistics.selectedLikelihood)(X_trial) - (trk.statistics.*trk.statistics.selectedLikelihood)(X_i);
+            log_a = logL_trial - logL_i;
                 // this returns the log likelihood given useLogPosterior = true; the computation is done WITHIN the function.
         }
+//        std::cout << std::pow(10.0, log_a) << std::endl;
         
         return log_a; // returns log post / log post if useLogPosterior == true
     }
@@ -3543,6 +3631,61 @@ namespace TRKLib {
         }
         
         return starting_point;
+    }
+
+    void TRK::MCMC::findAIESstartingWidths(){
+        if (trk.correlationRemoval.findPivotPoints || do_mcmc){
+            AIES_param_width_estimates.clear();
+            
+            // default values
+        
+            for (int j = 0; j < trk.bigM; j++){
+                AIES_param_width_estimates.push_back(std::abs(trk.allparams_guess[j] != 0 ? trk.allparams_guess[j] * AIES_initial_scaling : 0.1));
+            }
+            
+            if (!initializeAIESWalkersNaively){
+        
+                std::vector <bool> fixed_allparams_flags_default(trk.bigM, false); // none fixed
+                
+                std::vector < std::vector <double> > allparam_samples = trk.mcmc.samplePosterior(starting_width_estimate_samplesize, burncount, trk.mcmc.allparams_sigmas_guess, fixed_allparams_flags_default);
+                
+                for (int j = 0; j < trk.bigM; j++){
+                    std::vector <double> param_sample;
+                    for (int i = 0; i < allparam_samples.size(); i++) {
+                        param_sample.push_back(allparam_samples[i][j]);
+                    }
+                    
+                    AIES_param_width_estimates[j] = (trk.statistics.stDevUnweighted(param_sample));
+                }
+                
+                if (verbose){
+                    printf("Estimated param uncertainties for AIES:\n");
+                    printVector(AIES_param_width_estimates);
+                }
+            }
+        }
+        
+        return;
+    };
+
+    void TRK::MCMC::initializeAIESWalkers(std::vector <std::vector <double> > &all_walkers, std::vector <double> &starting_point, std::vector <bool> &fixed_allparams_flags, int L, int n){
+              
+        for (int k = 0; k < L; k++){ // k: walkers; j: all params
+            int i = 0; // i: free params
+            for (int j = 0; j < (int) fixed_allparams_flags.size(); j++){ // if a param is fixed, the correpond element is true
+                if (!fixed_allparams_flags[j]) {
+//                    double direction = rbool() ? 1.0 : -1.0;
+//                    all_walkers[k][i] = starting_point[i] + direction * AIES_param_width_estimates[j];
+//                    i++;
+                    
+                    all_walkers[k][i] = rnorm(starting_point[i], 1e-3 * AIES_param_width_estimates[j]);
+                    i++;
+                }
+            }
+        }
+        
+        
+        return;
     }
 
     std::vector <std::vector <double >> TRK::MCMC::samplePosterior(int R, int burncount, std::vector <double> sigmas_guess, std::vector <bool> fixed_allparams_flags) {
@@ -3569,11 +3712,7 @@ namespace TRKLib {
                 std::vector <std::vector <double> > all_walkers(L, std::vector <double> (n, 0.0));
                 std::vector <std::vector <double> > YY;
                 
-                for (int j = 0; j < L; j++){
-                    for (int i = 0; i < n; i++){
-                        all_walkers[j][i] = rnorm(starting_point[i], starting_point[i] != 0 ? starting_point[i]*AIES_initial_scaling : 0.1);
-                    }
-                }
+                initializeAIESWalkers(all_walkers, starting_point, fixed_allparams_flags, L, (int) n);
                 
                 std::vector <double> X, Y, X_trial;
                 // sample
@@ -3694,10 +3833,17 @@ namespace TRKLib {
                             if (res.size() > n) { // rejected; add initial point to sample
                                 res.pop_back();
                                 result.push_back(X);
+                                
+//                                double logL = (trk.statistics.*trk.statistics.selectedLikelihood)(X);
+//                                std::cout << -2*logL << std::endl;
                             }
                             else { // accepted; add new point to sample
                                 all_walkers[k] = res;
                                 result.push_back(res);
+                                
+//                                double logL = (trk.statistics.*trk.statistics.selectedLikelihood)(res);
+//                                std::cout << -2*logL << std::endl;
+                                
                                 accept_count++;
                                
                             }
@@ -3946,6 +4092,13 @@ namespace TRKLib {
         return x;
     }
 
+    bool TRK::MCMC::rbool(){
+        auto gen = std::bind(std::uniform_int_distribution<>(0,1),std::default_random_engine());
+        bool b = gen();
+
+        return b;
+    }
+
 
     // tools
     std::vector <std::vector <double >> TRK::MCMC::checkSlopSignMCMC(std::vector <std::vector <double >> result_final, int n, std::vector <bool> fixed_allparams_flags) {
@@ -4113,6 +4266,8 @@ namespace TRKLib {
     void TRK::CorrelationRemoval::getPivotGuess(){
         if (findPivotPoints){
             P = (int) pivot_intercept_functions.size();
+            
+            final_pivots = std::vector <double>(P, 0.0);
             
             findLinearParamIndices();
             
@@ -4562,6 +4717,8 @@ namespace TRKLib {
             optimizePivots_Correlation_Default();
         }
         
+        pivots = final_pivots;
+        
         return;
     }
 
@@ -4609,7 +4766,7 @@ namespace TRKLib {
                 for (int i = completedThreads; i < counter; i++)
                 {
                     result = futureVec[i].get();
-                    pivots[p] = result;
+                    final_pivots[p] = result;
                 }
                 completedThreads += liveThreads;
                 liveThreads = 0;
@@ -4618,7 +4775,7 @@ namespace TRKLib {
         for (int p = completedThreads; p < P; p++)
         {
             result = futureVec[p].get();
-            pivots[p] = result;
+            final_pivots[p] = result;
         }
         
         return;
@@ -4633,13 +4790,19 @@ namespace TRKLib {
                 printf("Optimizing pivot %i...\n\n", p + 1);
             }
             
+//            if (p != 2){
+//                continue;
+//            }
+
+//            trk.optimization.getBetterGuess();
+            
             
             switch (thisPivotMethod){
                 case PEARSON_GSS : {
                     // function to be minimized:
                     std::function <double(double)> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot, this, std::placeholders::_1, p);
                     
-                    pivots[p] = trk.optimization.goldenSectionSearch(correlation_func, min_pivots_brackets[p], max_pivots_brackets[p], correlation_tol);
+                    final_pivots[p] = trk.optimization.goldenSectionSearch(correlation_func, min_pivots_brackets[p], max_pivots_brackets[p], correlation_tol);
                     break;
                 }
                 case PEARSON_SIMPLEX : {
@@ -4647,7 +4810,7 @@ namespace TRKLib {
                     std::function <double(std::vector <double> )> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
                     
                     std::vector <double> pivot_vec = {pivots[p]};
-                    pivots[p] = trk.optimization.downhillSimplex(correlation_func, pivot_vec, correlation_tol, showSimplexSteps, max_corr_simplex_iters)[0];
+                    final_pivots[p] = trk.optimization.downhillSimplex(correlation_func, pivot_vec, correlation_tol, showSimplexSteps, max_corr_simplex_iters)[0];
                     break;
                 }
                 default : {
@@ -4710,7 +4873,7 @@ namespace TRKLib {
     std::vector <bool> TRK::CorrelationRemoval::getFixedLinearParams(int p){
         std::vector <bool> fixed_allparams_flags(trk.bigM, false); // everything free by default
         
-        if (sampleOnlyLinearParams) {
+        if (sampleOnlyLinearParams_pivots) {
             fixed_allparams_flags = std::vector <bool> (trk.bigM, true); // everything but slope and intercept fixed
             
             fixed_allparams_flags[intercept_indices[p]] = false;
@@ -4721,7 +4884,7 @@ namespace TRKLib {
     }
 
     void TRK::CorrelationRemoval::getLinearParamSamples(std::vector < std::vector <double> > &allparam_samples, std::vector <double> &b_samples, std::vector <double> &m_samples, int p){
-        if (sampleOnlyLinearParams) { // if so than, the sampled params are just the intercept and slope for this pivot point (need to find which is which, however)
+        if (sampleOnlyLinearParams_pivots) { // if so than, the sampled params are just the intercept and slope for this pivot point (need to find which is which, however)
             int intercept_index = 0; // intercept first by default
             if (intercept_indices[p] > slope_indices[p]) { intercept_index = 1; }; // intercept second
             
