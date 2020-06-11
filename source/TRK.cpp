@@ -1845,15 +1845,15 @@ namespace TRKLib {
                 evals.push_back(func(vertices[i]));
             }
 
-            if (n > 1 && trk.statistics.stDevUnweighted(evals) < tol) {
+            if (n > 1 && trk.statistics.stDevUnweighted(evals) < tol) { // n-dimensional
                 break;
             }
             
-            if (n == 1 && std::abs(vertices[1][0] - vertices[0][0]) < tol) {
+            if (n == 1 && std::abs(vertices[1][0] - vertices[0][0]) < tol) { // 1 dimensional
                 break;
             }
             
-            if (it >= max_iters){
+            if (it >= max_iters){ // iteration check
                 printf("Downhill simplex exceeded %i iterations; halting...\n", max_iters);
                 break;
             }
@@ -3349,28 +3349,35 @@ namespace TRKLib {
     // MCMC/SAMPLING #############################################################################################################
 
     // uncertainty estimation
-    void TRK::MCMC::combineLinearAndNonLinearSamples(std::vector <std::vector <double> > &allparam_samples, std::vector < std::vector < std::vector <double> > > &all_linearparam_samples, std::vector < std::vector <double> > &nonlinear_allparam_samples, std::vector <std::vector <bool> > &fixed_allparams_flags_linear, std::vector <bool> &fixed_allparams_flags_nonlinear){
+    std::vector <std::vector <double> > TRK::MCMC::combineLinearAndNonLinearSamples(std::vector < std::vector < std::vector <double> > > &all_linearparam_samples, std::vector < std::vector <double> > &nonlinear_allparam_samples, std::vector <std::vector <bool> > &fixed_allparams_flags_linear, std::vector <bool> &fixed_allparams_flags_nonlinear){
+        
+        std::vector <std::vector <double> > allparam_samples(R, std::vector <double>(trk.bigM, 0.0));
         
         // pth vector of fixed_allparams_flags_linear is a vector of bools that are false for the corresponding linear params
         
         // fill up linear param samples
         for (int p = 0; p < trk.correlationRemoval.P; p++){ // indexes pivot point/ pairs of linear params
             std::vector <int> linear_param_indices;
+            get_where_boolean(fixed_allparams_flags_linear[p], false, linear_param_indices); // see which indices the linear params have in the total model param vector
+            
             for (int i = 0; i < R; i++){ // for each individual sample
-                
-                get_where_boolean(fixed_allparams_flags_linear[p], false, linear_param_indices); // see which indices the linear params have in the total model param vector
                 for (int l = 0; l < 2; l++){
                     allparam_samples[i][linear_param_indices[l]] = all_linearparam_samples[p][i][l];
                 }
             }
         }
         
-        // fill up remaining non-linear samples
+        // fill up remaining non-linear samples (elements of fixed_allparams_flags_nonlinear are false if non-linear)
         for (int i = 0; i < R; i++){ // for each individual sample
+            std::vector <int> nonlinear_param_indices;
+            get_where_boolean(fixed_allparams_flags_nonlinear, false, nonlinear_param_indices); // see which indices the nonlinear params have in the total model param vector
             
+            for (int nl = 0; nl < (int) nonlinear_param_indices.size(); nl++){
+                allparam_samples[i][nonlinear_param_indices[nl]] = nonlinear_allparam_samples[i][nl];
+            }
         }
             
-        return;
+        return allparam_samples;
     }
 
     std::vector < std::vector <double> > TRK::MCMC::sampleForUncertainties()
@@ -3381,8 +3388,8 @@ namespace TRKLib {
             std::cout << "\nSampling Posterior...\n";
         }
         
-        if (trk.correlationRemoval.sampleLinearParams_seperately && trk.correlationRemoval.findPivotPoints) {
-            std::vector <std::vector <double> > allparam_samples(R, std::vector <double>(trk.bigM, 0.0));
+        if (trk.correlationRemoval.sampleLinearParams_seperately && trk.correlationRemoval.P > 0) { // sample linear params seperately
+//            std::vector <std::vector <double> > allparam_samples(R, std::vector <double>(trk.bigM, 0.0));
             
             bool old_sampleOnlyLinearParams_pivots_setting = trk.correlationRemoval.sampleOnlyLinearParams_pivots;
             trk.correlationRemoval.sampleOnlyLinearParams_pivots = true; // needs to be on for getFixedLinearParams() to work as expected
@@ -3391,7 +3398,7 @@ namespace TRKLib {
             
             std::vector <bool> fixed_allparams_flags_nonlinear(trk.bigM, false); // for sampling with only the linear params fixed
             
-            std::vector <std::vector <bool> > fixed_allparams_flags_linear;
+            std::vector < std::vector <bool> > fixed_allparams_flags_linear;
             
             for (int p = 0; p < trk.correlationRemoval.P; p++){ // sample each set of linear parameters separately
                 std::vector <bool> fixed_allparams_flags = trk.correlationRemoval.getFixedLinearParams(p); // sample with only the relavant linear params free
@@ -3401,23 +3408,25 @@ namespace TRKLib {
                 
                 all_linearparam_samples.push_back(linearparam_samples);
                 
-//                trk.correlationRemoval.getLinearParamSamples(allparam_samples, b_samples, m_samples, p);
-                
                 fixed_allparams_flags_nonlinear[trk.correlationRemoval.intercept_indices[p]] = true; // initializing for sampling only NON-linear params subsequently
                 fixed_allparams_flags_nonlinear[trk.correlationRemoval.slope_indices[p]] = true;
             }
+            
             trk.correlationRemoval.sampleOnlyLinearParams_pivots = old_sampleOnlyLinearParams_pivots_setting;
             
             // then sample the remaining parameters
             std::vector < std::vector <double> > nonlinear_allparam_samples = samplePosterior(R, burncount, allparams_sigmas_guess, fixed_allparams_flags_nonlinear);
             
             
+            // finally, combine them all
+            allparam_samples = combineLinearAndNonLinearSamples(all_linearparam_samples, nonlinear_allparam_samples, fixed_allparams_flags_linear, fixed_allparams_flags_nonlinear);
         } else {
             std::vector <bool> fixed_allparams_flags_default(trk.bigM, false); // none fixed
             
             allparam_samples = samplePosterior(R, burncount, allparams_sigmas_guess, fixed_allparams_flags_default);
         }
         
+
         return allparam_samples;
     }
 
@@ -4312,6 +4321,8 @@ namespace TRKLib {
             
         } else {
             P = (int) pivots.size();
+            
+            findLinearParamIndices();
         }
         return;
     }
@@ -5531,6 +5542,20 @@ namespace TRKLib {
 
 
     // GLOBAL FUNCTIONS/TOOLS ####################################################################################################
+
+    // misc tools
+    void get_where_boolean(std::vector <bool> &vec, bool value, std::vector <int> &indices){
+        // finds which indices of some boolean vec have the inputted value
+        indices.clear();
+        
+        for (int i = 0; i < vec.size(); i++){
+            if (vec[i] == value){
+                indices.push_back(i);
+            }
+        }
+        return;
+    }
+
 
     // mcmc/sampling
     double noPrior(double param) {

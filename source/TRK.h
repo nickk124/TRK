@@ -296,7 +296,7 @@ namespace TRKLib {
                     
                     // uncertainty estimation
                     void calculateUncertainties();
-                    void combineLinearAndNonLinearSamples(std::vector <std::vector <double> > &allparam_samples, std::vector < std::vector < std::vector <double> > > &all_linearparam_samples, std::vector < std::vector <double> > &nonlinear_allparam_samples, std::vector <std::vector <bool> > &fixed_allparams_flags_linear, std::vector <bool> &fixed_allparams_flags_nonlinear);
+                    std::vector <std::vector <double> > combineLinearAndNonLinearSamples(std::vector < std::vector < std::vector <double> > > &all_linearparam_samples, std::vector < std::vector <double> > &nonlinear_allparam_samples, std::vector <std::vector <bool> > &fixed_allparams_flags_linear, std::vector <bool> &fixed_allparams_flags_nonlinear);
                     std::vector <std::vector <double> > sampleForUncertainties();
                     std::vector <double> allParamsFinalDeltas;
                     std::vector <std::vector <std::vector <double> > > lowerBar(std::vector <std::vector <double> > allparam_samples);
@@ -371,7 +371,7 @@ namespace TRKLib {
                     bool refit_with_simplex = false;
                     bool RCR_samples = false;
                     bool sampleOnlyLinearParams_pivots = true;
-                    bool sampleLinearParams_seperately = false;
+                    bool sampleLinearParams_seperately = true; // requires supplying slope and intercept functions
                 
                 private:
                     // core
@@ -627,18 +627,7 @@ namespace TRKLib {
     };
 
     //global functions
-    void get_where_boolean(std::vector <bool> &vec, bool value, std::vector <int> &indices){
-        // finds which indices of some boolean vec have the inputted value
-        indices.clear();
-        
-        for (int i = 0; i < vec.size(); i++){
-            if (vec[i] == value){
-                indices.push_back(i);
-            }
-        }
-        
-        return;
-    }
+    void get_where_boolean(std::vector <bool> &vec, bool value, std::vector <int> &indices); // finds which indices of some boolean vec have the inputted value
 
     template <class vec>
     vec slice(vec v, int begin, int end) {
