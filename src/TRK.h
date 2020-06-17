@@ -416,7 +416,7 @@ namespace TRKLib {
                     std::vector <int> slope_indices;
                     void getPivotGuess();
                     void findLinearParamIndices();
-                    void refitWithNewPivots(double new_pivot, int p);
+                    std::vector <double> refitWithNewPivots(double new_pivot, int p); // computes better guess for the parameters, given pth new pivot (only the pth intercept should change)
                     std::vector <double> refitAnalytic(double new_pivot, int p);
                 
                 

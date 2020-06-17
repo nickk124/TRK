@@ -4353,7 +4353,7 @@ namespace TRKLib {
         return allparams_better;
     }
 
-    void TRK::CorrelationRemoval::refitWithNewPivots(double new_pivot, int p){
+    std::vector <double> TRK::CorrelationRemoval::refitWithNewPivots(double new_pivot, int p){
         std::vector <double> allparams_better = refitAnalytic(new_pivot, p); // determine the best fit
         
         if (refit_with_simplex){
@@ -4361,21 +4361,30 @@ namespace TRKLib {
         }
         
         if (trk.correlationRemoval.verbose_refit){
-            printf("re-fit for new pivot point(s); old / new params:\n");
+            if (refit_with_simplex){
+                printf("re-fit for new pivot point(s); old / new params:\n");
 
-            for (int j = 0; j < (int)allparams_better.size(); j++){
-                printf("%.3e %.3e\n", trk.allparams_guess[j], allparams_better[j]);
+                for (int j = 0; j < (int)allparams_better.size(); j++){
+                    printf("%.3e %.3e\n", trk.allparams_guess[j], allparams_better[j]);
+                }
+                
+                double fitness_old = (trk.statistics.*trk.statistics.selectedChiSq)(trk.allparams_guess, trk.scaleOptimization.s);
+                double fitness_new = (trk.statistics.*trk.statistics.selectedChiSq)(allparams_better, trk.scaleOptimization.s);
+                
+                printf("old/new fitness: %f / %f\n", fitness_old, fitness_new);
+            } else {
+                printf("re-fit for new pivot point(s); old / new intercept %i:\n", p + 1);
+
+                printf("%.3e %.3e\n", trk.allparams_guess[intercept_indices[p]], allparams_better[intercept_indices[p]]);
+                
+                double fitness_old = (trk.statistics.*trk.statistics.selectedChiSq)(trk.allparams_guess, trk.scaleOptimization.s);
+                double fitness_new = (trk.statistics.*trk.statistics.selectedChiSq)(allparams_better, trk.scaleOptimization.s);
+                
+                printf("old/new fitness: %f / %f\n", fitness_old, fitness_new);
             }
-            
-            double fitness_old = (trk.statistics.*trk.statistics.selectedChiSq)(trk.allparams_guess, trk.scaleOptimization.s);
-            double fitness_new = (trk.statistics.*trk.statistics.selectedChiSq)(allparams_better, trk.scaleOptimization.s);
-            
-            printf("old/new fitness: %f / %f\n", fitness_old, fitness_new);
         }
         
-        
-        trk.allparams_guess = allparams_better;
-        return;
+        return allparams_better;
     }
 
 
@@ -4541,7 +4550,7 @@ namespace TRKLib {
             
             if (refit_newPivot){
                 for (int p = 0; p < P; p++){
-                    refitWithNewPivots(finalPivots[p], p);
+                    trk.allparams_guess = refitWithNewPivots(finalPivots[p], p);
                 }
             };
             
@@ -4708,7 +4717,7 @@ namespace TRKLib {
             
             if (refit_newPivot){
                 for (int p = 0; p < P; p++){
-                    refitWithNewPivots(finalPivots[p], p);
+                    trk.allparams_guess = refitWithNewPivots(finalPivots[p], p);
                 }
             };
             
@@ -4745,7 +4754,13 @@ namespace TRKLib {
             optimizePivots_Correlation_Default();
         }
         
-        pivots = final_pivots;
+        if (refit_newPivot){ // modify the parameters guess (intercepts) based off new pivots
+            for (int p = 0; p < P; p++){
+                trk.allparams_guess = refitWithNewPivots(final_pivots[p], p);
+            }
+        };
+        
+        pivots = final_pivots; // store final pivots
         
         return;
     }
@@ -4942,7 +4957,11 @@ namespace TRKLib {
         
         printf("\n\n\nold pivot %i, new pivot %i = %f\t%f\n", p + 1, p + 1, pivots[p], new_pivot);
         
-        if (refit_newPivot){refitWithNewPivots(new_pivot, p);}; // find better starting place for sampling given new pivot
+        std::vector <double> initial_allparams_guess = trk.allparams_guess;
+        
+        if (refit_newPivot){ // find better starting place for sampling given new pivot
+            trk.allparams_guess = refitWithNewPivots(new_pivot, p);
+        };
         
         pivots[p] = new_pivot; // set pivot to new value, and sample parameter space with it
         
@@ -4985,7 +5004,8 @@ namespace TRKLib {
         
         writeCorrelationOptimizationSampling(b_samples, m_samples, p);
         
-        pivots = original_pivots; //reset pivots to previous values
+        pivots = original_pivots; //reset pivot(s) and intercepts to previous values
+        trk.allparams_guess = initial_allparams_guess;
         
         return abs_rxy; // returns maximally correlated if NaN
     }
