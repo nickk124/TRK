@@ -149,7 +149,7 @@ namespace TRKLib {
                     ~Optimization();
                 
                     // settings
-                    double simplexTol = 1e-5;  // downhill simplex fitting tolerance
+                    double simplexTol = 1e-3;  // downhill simplex fitting tolerance
                     int max_simplex_iters = 10000;   // default value for maximum number of iterations for downhill simplex
                     bool showFittingSteps = false;
                     
@@ -416,8 +416,8 @@ namespace TRKLib {
                     std::vector <int> slope_indices;
                     void getPivotGuess();
                     void findLinearParamIndices();
-                    void refitWithNewPivots(std::vector <double> new_pivots);
-                    std::vector <double> refitAnalytic(std::vector <double> new_pivots);
+                    void refitWithNewPivots(double new_pivot, int p);
+                    std::vector <double> refitAnalytic(double new_pivot, int p);
                 
                 
                     // find pivots by generating a distribution
@@ -530,7 +530,7 @@ namespace TRKLib {
                     ~COVID19();
                 
                     // general
-                    bool covid19fit = false;
+                    bool print_custom_output = true;
                     static double y12;
                     static bool logModel;
                     static double s;
@@ -538,6 +538,11 @@ namespace TRKLib {
                     static double tmed;
                     static std::vector <double> fixed_params;
                     static std::vector <double> fixed_pivots;
+                
+                    void printCustomResults();
+                
+                    
+                
             };
         
         public:

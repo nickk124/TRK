@@ -31,3 +31,7 @@ pch.cpp
 pch.h
 diagnostics
 covid19.xlsx
+/**/.vs/
+src/exampleModels.cpp
+src/exampleModels.h
+src/**/TRK/

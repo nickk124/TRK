@@ -745,6 +745,11 @@ namespace TRKLib {
         
         printf("\nFITNESS:\nchisquared = %.3e\n\n", results.chisquared);
         
+        
+        if (covid19.print_custom_output){
+           covid19.printCustomResults();
+        }
+        
         return;
     }
 
@@ -1843,6 +1848,10 @@ namespace TRKLib {
             std::vector <double> evals;
             for (int i = 0; i < n + 1; i++) {
                 evals.push_back(func(vertices[i]));
+            }
+            
+            if (show_steps){
+                printf("stdev(fitnesses) = %f\n", trk.statistics.stDevUnweighted(evals));
             }
 
             if (n > 1 && trk.statistics.stDevUnweighted(evals) < tol) { // n-dimensional
@@ -4327,25 +4336,25 @@ namespace TRKLib {
         return;
     }
 
-    std::vector <double> TRK::CorrelationRemoval::refitAnalytic(std::vector <double> new_pivots){ // refit with new pivot point; only intercepts changed
+    std::vector <double> TRK::CorrelationRemoval::refitAnalytic(double new_pivot, int p){ // refit with new pivot point; only intercepts changed
         std::vector <double> allparams_better = trk.allparams_guess, allparams_old = trk.allparams_guess;
 
         double intercept_new, intercept_old, slope;
 
-        for (int p = 0; p < P; p++){
-            intercept_old = pivot_intercept_functions[p](allparams_old);
-            slope = pivot_slope_functions[p](allparams_old);
+        printf("\n\n\n(inner refit analytic) old pivot %i, new pivot %i = %f\t%f\n", p + 1, p + 1, pivots[p], new_pivot);
+        
+        intercept_old = pivot_intercept_functions[p](allparams_old);
+        slope = pivot_slope_functions[p](allparams_old);
 
-            intercept_new = intercept_old + slope * (new_pivots[p] - pivots[p]);
-            
-            allparams_better[intercept_indices[p]] = intercept_new;
-        }
-
+        intercept_new = intercept_old + slope * (new_pivot - pivots[p]);
+        
+        allparams_better[intercept_indices[p]] = intercept_new;
+        
         return allparams_better;
     }
 
-    void TRK::CorrelationRemoval::refitWithNewPivots(std::vector <double> new_pivots){
-        std::vector <double> allparams_better = refitAnalytic(new_pivots); // determine the best fit
+    void TRK::CorrelationRemoval::refitWithNewPivots(double new_pivot, int p){
+        std::vector <double> allparams_better = refitAnalytic(new_pivot, p); // determine the best fit
         
         if (refit_with_simplex){
             allparams_better = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, allparams_better, trk.scaleOptimization.s, trk.optimization.showFittingSteps);
@@ -4530,7 +4539,11 @@ namespace TRKLib {
                 break;
             }
             
-            if (refit_newPivot){refitWithNewPivots(finalPivots);};
+            if (refit_newPivot){
+                for (int p = 0; p < P; p++){
+                    refitWithNewPivots(finalPivots[p], p);
+                }
+            };
             
             // iterate
             
@@ -4693,7 +4706,11 @@ namespace TRKLib {
                 break;
             }
             
-            if (refit_newPivot){refitWithNewPivots(finalPivots);};
+            if (refit_newPivot){
+                for (int p = 0; p < P; p++){
+                    refitWithNewPivots(finalPivots[p], p);
+                }
+            };
             
             // iterate
             
@@ -4923,9 +4940,11 @@ namespace TRKLib {
         std::vector <double> b_samples, m_samples, original_pivots = pivots;
         double rxy, abs_rxy; // correlation between slope and intercept
         
-        pivots[p] = new_pivot; // set pivot to new value, and sample parameter space with it
+        printf("\n\n\nold pivot %i, new pivot %i = %f\t%f\n", p + 1, p + 1, pivots[p], new_pivot);
         
-        if (refit_newPivot){refitWithNewPivots(pivots);}; // find better starting place for sampling
+        if (refit_newPivot){refitWithNewPivots(new_pivot, p);}; // find better starting place for sampling given new pivot
+        
+        pivots[p] = new_pivot; // set pivot to new value, and sample parameter space with it
         
         if (trk.correlationRemoval.verbose && trk.mcmc.verbose){
             printf("\nSampling for pivot points...\n");
@@ -5540,7 +5559,67 @@ namespace TRKLib {
     // ###########################################################################################################################
 
 
+    // COVID19 MODELING ##########################################################################################################
 
+    void TRK::COVID19::printCustomResults(){
+        
+        int S = 3; // number of smoothing params
+        
+        printf("\n\n\nFinal COVID-19 custom fit:\n\n\n");
+        
+        // pivots and median point
+        for (int p = 0; p < trk.correlationRemoval.P; p++){
+            printf("%.3e ", trk.results.pivots[p]);
+        }
+        printf("%.3e\n", trk.covid19.tmed);
+        
+        // linear params
+        for (int p = 0; p < trk.correlationRemoval.P; p++){
+            printf("%.3e ", trk.results.bestFitParams[trk.correlationRemoval.intercept_indices[p]]);
+            printf("%.3e ", trk.results.bestFitParams[trk.correlationRemoval.slope_indices[p]]);
+        }
+        printf("\n");
+        
+        // smoothing params, slop and chi2
+        for (int s = 0; s < S; s++){
+            printf("%.3e ", trk.results.bestFitParams[trk.correlationRemoval.slope_indices[trk.correlationRemoval.P - 1] + s + 1]);
+        }
+        printf("%.3e %.3e\n", trk.results.slop_y, trk.results.chisquared);
+        
+        // polynomial params
+        int D = (int) (trk.results.bestFitParams.size() - trk.correlationRemoval.P*2 - S) / 3; // polynomial order
+        for (int m = 0; m < 3; m++){
+            for (int d = 0; d < D; d++){
+                printf("%.3e ", trk.results.bestFitParams[trk.correlationRemoval.P*2 + S + d + m * D]);
+            }
+        }
+        printf("\n");
+        
+        // linear param uncertainties
+//        for (int p = 0; p < trk.correlationRemoval.P; p++){
+//            for (int k = 0; k < 2; k++) { // intercept, and then slope
+//                for (int j = 0; j < 2; j++) { // - and + sigmas
+//                    for (int i = 0; i < 3; i++) { // 1, 2 and 3 sigmas
+//                        printf("%.3e ", trk.results.bestFit_123Sigmas[2*p + k][j][i]);
+//                    }
+//                    printf("\t");
+//                }
+//                std::cout << std::endl;
+//            }
+//        }
+        for (int j = 0; j < 2; j++) { // - and + sigmas
+            for (int p = 0; p < trk.correlationRemoval.P; p++){
+                printf("%.3e ", trk.results.bestFit_123Sigmas[trk.correlationRemoval.intercept_indices[p]][j][0]);
+                printf("%.3e ", trk.results.bestFit_123Sigmas[trk.correlationRemoval.slope_indices[p]][j][0]);
+            }
+            printf("\n");
+        }
+    }
+
+    
+    // ###########################################################################################################################
+
+    
     // GLOBAL FUNCTIONS/TOOLS ####################################################################################################
 
     // misc tools
