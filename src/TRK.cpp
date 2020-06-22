@@ -5596,7 +5596,10 @@ namespace TRKLib {
         // linear params
         for (int p = 0; p < trk.correlationRemoval.P; p++){
             printf("%.3e ", trk.results.bestFitParams[trk.correlationRemoval.intercept_indices[p]]);
-            printf("%.3e ", trk.results.bestFitParams[trk.correlationRemoval.slope_indices[p]]);
+            printf("%.3e", trk.results.bestFitParams[trk.correlationRemoval.slope_indices[p]]);
+            if (p < trk.correlationRemoval.P - 1){
+                printf(" ");
+            }
         }
         printf("\n");
         
@@ -5610,7 +5613,10 @@ namespace TRKLib {
         int D = (int) (trk.results.bestFitParams.size() - trk.correlationRemoval.P*2 - S) / 3; // polynomial order
         for (int m = 0; m < 3; m++){
             for (int d = 0; d < D; d++){
-                printf("%.3e ", trk.results.bestFitParams[trk.correlationRemoval.P*2 + S + d + m * D]);
+                printf("%.3e", trk.results.bestFitParams[trk.correlationRemoval.P*2 + S + d + m * D]);
+                if (m < 2 || d < D - 1){
+                    printf(" ");
+                }
             }
         }
         printf("\n");
@@ -5630,7 +5636,10 @@ namespace TRKLib {
         for (int j = 0; j < 2; j++) { // - and + sigmas
             for (int p = 0; p < trk.correlationRemoval.P; p++){
                 printf("%.3e ", trk.results.bestFit_123Sigmas[trk.correlationRemoval.intercept_indices[p]][j][0]);
-                printf("%.3e ", trk.results.bestFit_123Sigmas[trk.correlationRemoval.slope_indices[p]][j][0]);
+                printf("%.3e", trk.results.bestFit_123Sigmas[trk.correlationRemoval.slope_indices[p]][j][0]);
+                if (p < trk.correlationRemoval.P - 1){
+                    printf(" ");
+                }
             }
             printf("\n");
         }
