@@ -10,8 +10,9 @@ namespace TRKLib {
     // STATIC VARIABLES ##########################################################################################################
 
     std::vector <double> TRK::CorrelationRemoval::pivots = {};
-    double TRK::COVID19::y12 = 2.55;
     bool TRK::COVID19::logModel = false;
+    int TRK::COVID19::S = 3;
+    double TRK::COVID19::y12 = 2.55;
     double TRK::COVID19::s = 1.0;
     double TRK::COVID19::t_split = 45.5;
     double TRK::COVID19::tmed = 1.0;
@@ -3576,8 +3577,14 @@ namespace TRKLib {
                 }
 
                 unsigned long K = indicesIn.size();
-                leftBound = (edges[indicesIn[0]] + edges[indicesIn[0] + 1]) / 2.0;
-                rightBound = (edges[indicesIn[K - 1]] + edges[indicesIn[K - 1] + 1]) / 2.0;
+                if (K > 0){
+                    leftBound = (edges[indicesIn[0]] + edges[indicesIn[0] + 1]) / 2.0;
+                    rightBound = (edges[indicesIn[K - 1]] + edges[indicesIn[K - 1] + 1]) / 2.0;
+                } else {
+                    // if the histogram computation messed (due to poorly-defined sampling)
+                    leftBound = -DBL_MAX;
+                    rightBound = DBL_MAX;
+                }
 
                 minusSig = leftBound - mean;
                 plusSig = rightBound - mean;
@@ -4341,7 +4348,9 @@ namespace TRKLib {
 
         double intercept_new, intercept_old, slope;
 
-        printf("\n\n\n(inner refit analytic) old pivot %i, new pivot %i = %f\t%f\n", p + 1, p + 1, pivots[p], new_pivot);
+        if (verbose_refit) {
+            printf("\n\n\n(inner refit analytic) old pivot %i, new pivot %i = %f\t%f\n", p + 1, p + 1, pivots[p], new_pivot);
+        }
         
         intercept_old = pivot_intercept_functions[p](allparams_old);
         slope = pivot_slope_functions[p](allparams_old);
@@ -4955,7 +4964,9 @@ namespace TRKLib {
         std::vector <double> b_samples, m_samples, original_pivots = pivots;
         double rxy, abs_rxy; // correlation between slope and intercept
         
-        printf("\n\n\nold pivot %i, new pivot %i = %f\t%f\n", p + 1, p + 1, pivots[p], new_pivot);
+        if (verbose){
+            printf("\n\n\nold pivot %i, new pivot %i = %f\t%f\n", p + 1, p + 1, pivots[p], new_pivot);
+        }
         
         std::vector <double> initial_allparams_guess = trk.allparams_guess;
         
@@ -5582,8 +5593,6 @@ namespace TRKLib {
     // COVID19 MODELING ##########################################################################################################
 
     void TRK::COVID19::printCustomResults(){
-        
-        int S = 3; // number of smoothing params
         
         printf("\n\n\nFinal COVID-19 custom fit:\n\n\n");
         

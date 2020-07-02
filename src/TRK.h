@@ -382,7 +382,7 @@ namespace TRKLib {
                     pivotPointFindingMethod thisPivotMethod = PEARSON_SIMPLEX;
                     whichCorrelation whichCorrelationUsed = SPEARMAN;
                 
-                    bool parallelize = false;
+                    bool parallelize = false; // doesn't seem to work properly at the moment if true
                 
                     bool refit_newPivot = true;
                 
@@ -536,6 +536,7 @@ namespace TRKLib {
                     static double s;
                     static double t_split;
                     static double tmed;
+                    static int S; // number of smoothing params
                     static std::vector <double> fixed_params;
                     static std::vector <double> fixed_pivots;
                 
