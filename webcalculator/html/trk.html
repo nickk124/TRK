@@ -3,7 +3,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"> <!--new-->
 <head>
     <script type="text/javascript">
-<!--
   // These variables are used by the web2py_ajax_init function in web2py_ajax.js (which is loaded below).
   var w2p_ajax_confirm_message = "Are you sure you want to delete this object?";
   var w2p_ajax_date_format = "%Y-%m-%d";
@@ -53,6 +52,9 @@
         <h1 style="font-size:3.5em;">TRK Regression Calculator</h1>
         <br>
 
+        <i>Note: this page is still in beta, to be published with our upcoming paper: Trotter, Reichart and Konz, 2020.</i>
+        <br>
+        <br>
         <h1 style="font-size:2.5em;">Input Data</h1>
         <div id="StepOne">
             <div id="ButtonSection">
@@ -141,7 +143,7 @@
                             <button id="SelectedFunction" class="dropbtn">(Select Function Here)</button>
                             <div class="dropdown-content" style="width:180%; overflow:visible;">
                                 <button id="Linear" class="Button Function" onclick="displayChosenFunction(this); displayPivotSection(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>)</button>
-                                <br>
+                                <!-- <br>
                                 <button id="Quadratic" class="Button Function" onclick="displayChosenFunction(this); displayPivotSection(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>) + a<sub>2</sub>(x-<span style="text-decoration:overline">x</span>)<sup>2</sup></button>
                                 <br>
                                 <button id="Cubic" class="Button Function" onclick="displayChosenFunction(this); displayPivotSection(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>) + a<sub>2</sub>(x-<span style="text-decoration:overline">x</span>)<sup>2</sup> + a<sub>3</sub>(x-<span style="text-decoration:overline">x</span>)<sup>3</sup></button>
@@ -150,12 +152,25 @@
                                 <br>
                                 <button id="Exponential" class="Button Function" onclick="displayChosenFunction(this); displayPivotSection(this);">y(x) = a<sub>0</sub>10<sup>a<sub>1</sub>(x-<span style="text-decoration:overline">x</span>)</sup></button>
                                 <br>
-                                <button id="Logarithmic" class="Button Function" onclick="displayChosenFunction(this); display(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>log<sub>10</sub>(x/10<sup><span style="text-decoration:overline">log<sub>10</sub>x</span></sup> )</button>
+                                <button id="Logarithmic" class="Button Function" onclick="displayChosenFunction(this); display(this);">y(x) = a<sub>0</sub> + a<sub>1</sub>log<sub>10</sub>(x/10<sup><span style="text-decoration:overline">log<sub>10</sub>x</span></sup> )</button> -->
                             </div>
                         </div>
                         <br>
                         <br>
-                        <i style="padding-top:10px">Here, select a function to model y(x). Depending on the chosen function, either <span style="text-decoration:overline">x</span> or <span style="text-decoration:overline">log<sub>10</sub> x</span> is the "pivot point" depending on which model function is selected. </i>
+                        <i style="padding-top:10px">Here, select a function to model y(x). We currently only offer linear models on this online calculator, as due to the complex nature of the TRK algorithm, nonlinear models require too great a computational strength for a web calculator; in that case, we suggest deferring to the <a href="/rcr/calculator/downloads">source code</a>. Here, <span style="text-decoration:overline">x</span> is the "pivot point" of the model.</i>
+                        <br>
+                        <br>
+                        <i style="padding-top:10px">In the box to the right, enter your guess for the model function parameters a<sub>0</sub> , a<sub>1</sub>, a<sub>2</sub> , etc. For example, in the linear model case, a<sub>0</sub> corresponds to the y-intercept, and a<sub>1</sub> to the slope. </i>
+                        <br>
+                        <br/>
+                        <i style="padding-top:10px">Finally, enter guesses for the slop (extrinsic scatter of the data) along the x axis<br>and the y axis, as the last two lines (If unsure, guesses of about 1 are a safe bet) of this box.</i>
+                        <br>
+                        <br>
+                        <i style="padding-top:10px">For large datasets and/or for non-listed custom functions, <br>it is recommended to use the C++ source code (documentation included) <a href="/rcr/calculator/downloads">here</a>.</i>
+                        <br>
+                        <br>
+
+                        <!-- <i style="padding-top:10px">Here, select a function to model y(x). Currently  Depending on the chosen function, either <span style="text-decoration:overline">x</span> or <span style="text-decoration:overline">log<sub>10</sub> x</span> is the "pivot point" depending on which model function is selected. </i>
                         <br>
                         <br>
                         <i style="padding-top:10px">In the box to the right, enter your guess for the model function parameters a<sub>0</sub> , a<sub>1</sub> , a<sub>2</sub> , etc. For example, in the linear model case, a<sub>0</sub> corresponds to the y-intercept, and a<sub>1</sub> to the slope. </i>
@@ -166,7 +181,7 @@
                         <br>
                         <i style="padding-top:10px">For large datasets and/or for non-listed custom functions, <br>it is recommended to use the C++ source code (documentation included) <a href="/rcr/calculator/downloads">here</a>.</i>
                         <br>
-                        <br>
+                        <br> -->
                     </div>
                 </div>
                 <div id="RejectionMethod" style="float:left; width:30%; padding-right:10px">

@@ -685,66 +685,68 @@ namespace TRKLib {
     }
 
     void TRK::showResults(bool didScaleOp, bool didMCMC){
-        printf("\n\nTRK RESULTS:\n\n");
-        
-        if (didScaleOp && !settings.do1DFit){
-            printf("SCALES:\nOptimum scale: %.3e \n", results.optimumScale);
-            printf("Minimum scale: %.3e \n", results.minimumScale);
-            printf("Maximum scale: %.3e \n\n", results.maximumScale);
-        }
-        
-        if (correlationRemoval.P > 0){
-            printf("PIVOT POINTS:\n");
-            for (int p = 0; p < correlationRemoval.P; p++){
-                printf("Pivot Point %i = %.3e\n", p, results.pivots[p]);
+        if (settings.printResults){
+            printf("\n\nTRK RESULTS:\n\n");
+            
+            if (didScaleOp && !settings.do1DFit){
+                printf("SCALES:\nOptimum scale: %.3e \n", results.optimumScale);
+                printf("Minimum scale: %.3e \n", results.minimumScale);
+                printf("Maximum scale: %.3e \n\n", results.maximumScale);
             }
-            printf("\n\n");
-        }
-
-        printf("BEST FIT MODEL PARAMETERS:\n");
-        for (int k = 0; k < params_guess.size(); k++) {
-            printf("%.3e ", results.bestFitParams[k]);
-        }
-        printf("\n\nBEST FIT SLOP (EXTRINSIC SCATTER) PARAMETERS:\n");
-        if (settings.do1DFit){
-            printf("y-slop =  %.3e", results.slop_y);
-        } else {
-            printf("x-slop =  %.3e y-slop = %.3e", results.slop_x, results.slop_y);
-        }
-        std::cout << std::endl;
-        
-        if (didMCMC){
-            printf("\nUNCERTAINTIES: (- 1 2 3, + 1 2 3): \n");
-            for (int k = 0; k < params_guess.size(); k++) { //kth param
-                for (int j = 0; j < 2; j++) { // - and + sigmas
-                    for (int i = 0; i < 3; i++) { // 1, 2 and 3 sigmas
-                        printf("%.3e ", results.bestFit_123Sigmas[k][j][i]);
-                    }
-                    printf("\t");
+            
+            if (correlationRemoval.P > 0){
+                printf("PIVOT POINTS:\n");
+                for (int p = 0; p < correlationRemoval.P; p++){
+                    printf("Pivot Point %i = %.3e\n", p, results.pivots[p]);
                 }
-                std::cout << std::endl;
+                printf("\n\n");
             }
 
-            printf("\nSLOP UNCERTAINTIES: (- 1 2 3, + 1 2 3): \n");
-            if (!settings.do1DFit){
+            printf("BEST FIT MODEL PARAMETERS:\n");
+            for (int k = 0; k < params_guess.size(); k++) {
+                printf("%.3e ", results.bestFitParams[k]);
+            }
+            printf("\n\nBEST FIT SLOP (EXTRINSIC SCATTER) PARAMETERS:\n");
+            if (settings.do1DFit){
+                printf("y-slop =  %.3e", results.slop_y);
+            } else {
+                printf("x-slop =  %.3e y-slop = %.3e", results.slop_x, results.slop_y);
+            }
+            std::cout << std::endl;
+            
+            if (didMCMC){
+                printf("\nUNCERTAINTIES: (- 1 2 3, + 1 2 3): \n");
+                for (int k = 0; k < params_guess.size(); k++) { //kth param
+                    for (int j = 0; j < 2; j++) { // - and + sigmas
+                        for (int i = 0; i < 3; i++) { // 1, 2 and 3 sigmas
+                            printf("%.3e ", results.bestFit_123Sigmas[k][j][i]);
+                        }
+                        printf("\t");
+                    }
+                    std::cout << std::endl;
+                }
+
+                printf("\nSLOP UNCERTAINTIES: (- 1 2 3, + 1 2 3): \n");
+                if (!settings.do1DFit){
+                    for (int j = 0; j < 2; j++) {
+                        for (int i = 0; i < 3; i++) {
+                            printf("%.3e ", results.slopX_123Sigmas[j][i]);
+                        }
+                        printf("\t");
+                    }
+                    std::cout << std::endl;
+                }
                 for (int j = 0; j < 2; j++) {
                     for (int i = 0; i < 3; i++) {
-                        printf("%.3e ", results.slopX_123Sigmas[j][i]);
+                        printf("%.3e ", results.slopY_123Sigmas[j][i]);
                     }
                     printf("\t");
                 }
-                std::cout << std::endl;
+                std::cout << std::endl << std::endl;
             }
-            for (int j = 0; j < 2; j++) {
-                for (int i = 0; i < 3; i++) {
-                    printf("%.3e ", results.slopY_123Sigmas[j][i]);
-                }
-                printf("\t");
-            }
-            std::cout << std::endl << std::endl;
+            
+            printf("\nFITNESS:\nchisquared = %.3e\n\n", results.chisquared);
         }
-        
-        printf("\nFITNESS:\nchisquared = %.3e\n\n", results.chisquared);
         
         
         if (covid19.print_custom_output){
@@ -1864,7 +1866,9 @@ namespace TRKLib {
             }
             
             if (it >= max_iters){ // iteration check
-                printf("Downhill simplex exceeded %i iterations; halting...\n", max_iters);
+                if (trk.settings.verbose){
+                    printf("Downhill simplex exceeded %i iterations; halting...\n", max_iters);
+                }
                 break;
             }
             
@@ -2270,8 +2274,10 @@ namespace TRKLib {
             }
         }
         
-        printf("Better parameter guess found to be:\n");
-        printVector(trk.allparams_guess);
+        if (trk.settings.verbose){
+            printf("Better parameter guess found to be:\n");
+            printVector(trk.allparams_guess);
+        }
         
         return;
     }
@@ -2364,7 +2370,9 @@ namespace TRKLib {
         s = 1.0; //initially begin with s = 1
         
         if (trk.settings.do1DFit){
-            printf("1D fit: no need for scale optimization.\n");
+            if (trk.settings.verbose){
+                printf("1D fit: no need for scale optimization.\n");
+            }
             return;
         }
 
@@ -4179,7 +4187,9 @@ namespace TRKLib {
     // core
     void TRK::CorrelationRemoval::findPivots() {
         if (findPivotPoints) {
-            printf("Finding pivot point(s)...\n\n");
+            if (verbose){
+                printf("Finding pivot point(s)...\n\n");
+            }
             
             switch (thisPivotMethod){
                 case DIST:
@@ -5164,7 +5174,9 @@ namespace TRKLib {
         if (trk.settings.do1DFit){
             trk.statistics.selectedChiSq = &TRK::Statistics::regularChiSquaredWSlop;
             trk.statistics.selectedLikelihood = &TRK::Statistics::likelihood1D;
-            printf("Running 1D fit.\n");
+            if (trk.settings.verbose){
+                printf("Running 1D fit.\n");
+            }
         }
         
         return;
@@ -5594,7 +5606,7 @@ namespace TRKLib {
 
     void TRK::COVID19::printCustomResults(){
         
-        printf("\n\n\nFinal COVID-19 custom fit:\n\n\n");
+//        printf("\n\n\nFinal COVID-19 custom fit:\n\n\n");
         
         // pivots and median point
         for (int p = 0; p < trk.correlationRemoval.P; p++){
@@ -5650,6 +5662,10 @@ namespace TRKLib {
                     printf(" ");
                 }
             }
+            printf("\n");
+        }
+        
+        for (int j = 0 ; j < 8; j++){
             printf("\n");
         }
     }
@@ -5775,7 +5791,7 @@ namespace TRKLib {
 
     // testing purposes only
     clock_t startTimer() {
-        std::cout << "starting timer... \n";
+//        std::cout << "starting timer... \n";
 
         clock_t t_i = clock();
         return t_i;
@@ -5785,7 +5801,7 @@ namespace TRKLib {
         clock_t t_f = clock() - t_i;
         double sec_elapsed = ((float)t_f) / CLOCKS_PER_SEC;
 
-        printf("%0.3f seconds elapsed \n", sec_elapsed);
+//        printf("%0.3f seconds elapsed \n", sec_elapsed);
         return sec_elapsed;
     }
 

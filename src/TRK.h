@@ -370,8 +370,8 @@ namespace TRKLib {
                     bool showSimplexSteps = false;
                     bool refit_with_simplex = false;
                     bool RCR_samples = false;
-                    bool sampleOnlyLinearParams_pivots = true;
-                    bool sampleLinearParams_seperately = true; // requires supplying slope and intercept functions
+                    bool sampleOnlyLinearParams_pivots = true; // for pivot point analysis only
+                    bool sampleLinearParams_seperately = false; // for final uncertainty estimation
                 
                 private:
                     // core
@@ -508,7 +508,7 @@ namespace TRKLib {
                     int maxThreads = 16; // maximum threads for parallel processing
                 
                     // output settings
-                    bool printResults = true;
+                    bool printResults = false;
                     bool outputDistributionToFile = false; // outputs MCMC-sampled parameter distribution to a text file (must specify path below)
                     std::string outputPath;
                     bool verbose = false; // turns on maximum verbosity for all portions of code (see e.g. MCMC.verbose and CorrelationRemoval.verbose for more specific settings)
