@@ -309,7 +309,7 @@ namespace TRKLib {
                     
                     // Affine Invariant Ensemble Sampler (AIES)
                     bool printAIESWalkerEvolution = false;
-                    bool initializeAIESWalkersNaively = false;
+                    bool initializeAIESWalkersNaively = true;
                     std::vector <double> AIES_param_width_estimates;
                     int amt_walkers = 2; // number of walkers is amt_walkers * (number of parameters sampled)
                     double AIES_a = 2.0;
@@ -371,7 +371,7 @@ namespace TRKLib {
                     bool refit_with_simplex = false;
                     bool RCR_samples = false;
                     bool sampleOnlyLinearParams_pivots = true; // for pivot point analysis only
-                    bool sampleLinearParams_seperately = false; // for final uncertainty estimation
+                    bool sampleLinearParams_seperately = true; // for final uncertainty estimation
                 
                 private:
                     // core

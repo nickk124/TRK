@@ -2109,7 +2109,9 @@ namespace TRKLib {
             }
             
             if (it >= max_simplex_iters){
-                printf("Downhill simplex exceeded %i iterations; halting...\n", max_simplex_iters);
+                if (trk.settings.verbose){
+                    printf("Downhill simplex exceeded %i iterations; halting...\n", max_simplex_iters);
+                }
                 break;
             }
             
@@ -4133,35 +4135,42 @@ namespace TRKLib {
     }
 
 
-    // tools
-    std::vector <std::vector <double >> TRK::MCMC::checkSlopSignMCMC(std::vector <std::vector <double >> result_final, int n, std::vector <bool> fixed_allparams_flags) {
-
-        if (n < trk.bigM){
-            return result_final;
+    std::vector <std::vector <double >> TRK::MCMC::checkSlopSignMCMC(std::vector <std::vector <double >> result_final, int n, std::vector <bool> fixed_allparams_flags) { // true if fixed
+        int num_slop = 0;
+        
+        if (!fixed_allparams_flags[fixed_allparams_flags.size() - 1]) {
+            num_slop++;
             
-        } else {
-            std::vector <std::vector <double >> result_final_fixed;
-            std::vector <double> inner;
-
-            for (int i = 0; i < result_final.size(); i++) {
-                inner.clear();
-
-                for (int j = 0; j < trk.M; j++) {
-                    inner.push_back(result_final[i][j]);
-                }
-                
-                inner.push_back(std::abs(result_final[i][trk.M]));
-                
-                if (!trk.settings.do1DFit){
-                    inner.push_back(std::abs(result_final[i][trk.M+1]));
-                }
-                inner.push_back(std::abs(result_final[i][trk.M+1]));
-
-                result_final_fixed.push_back(inner);
-            }
-
-            return result_final_fixed;
+        };
+        
+        if (!trk.settings.do1DFit){
+            if (!fixed_allparams_flags[fixed_allparams_flags.size() - 2]) {num_slop++;};
         }
+
+        std::vector <std::vector <double >> result_final_fixed;
+        std::vector <double> inner;
+
+        for (int i = 0; i < result_final.size(); i++) {
+            inner.clear();
+
+            for (int j = 0; j < n - num_slop; j++) { // free non-slop params
+                inner.push_back(result_final[i][j]);
+            }
+            
+            if (!trk.settings.do1DFit){
+                inner.push_back(std::abs(result_final[i][n ])); // x slop
+            }
+            
+            inner.push_back(std::abs(result_final[i][trk.M+1])); // y slop
+            
+            for (int k = 0; k < num_slop; k++) { // free slop params
+                inner.push_back(std::abs(result_final[i][n - num_slop + k]));
+            }
+            
+            result_final_fixed.push_back(inner);
+        }
+
+        return result_final_fixed;
     }
 
     std::vector <double> TRK::MCMC::pegToNonZeroDelta(std::vector <double> vertex, std::vector <double> lastvertex) {
@@ -5642,7 +5651,7 @@ namespace TRKLib {
         }
         printf("\n");
         
-        // linear param uncertainties
+        
 //        for (int p = 0; p < trk.correlationRemoval.P; p++){
 //            for (int k = 0; k < 2; k++) { // intercept, and then slope
 //                for (int j = 0; j < 2; j++) { // - and + sigmas
@@ -5654,6 +5663,8 @@ namespace TRKLib {
 //                std::cout << std::endl;
 //            }
 //        }
+        // linear param uncertainties
+        
         for (int j = 0; j < 2; j++) { // - and + sigmas
             for (int p = 0; p < trk.correlationRemoval.P; p++){
                 printf("%.3e ", trk.results.bestFit_123Sigmas[trk.correlationRemoval.intercept_indices[p]][j][0]);
