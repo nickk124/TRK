@@ -26,7 +26,7 @@ namespace TRKLib {
     // PRIORS ####################################################################################################################
 
     // Constructors
-    Priors::Priors(priorTypes priorType, std::vector < std::vector <double> > params) { //Gaussian or bounded priors only
+Priors::Priors(enum priorType priorType, std::vector < std::vector <double> > params) { //Gaussian or bounded priors only
         this->priorType = priorType;
         if (priorType == GAUSSIAN) {
             this->gaussianParams = params;
@@ -36,13 +36,13 @@ namespace TRKLib {
         }
     };
 
-    Priors::Priors(priorTypes priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds) { //mixed
+Priors::Priors(enum priorType priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds) { //mixed
         this->priorType = priorType;
         this->paramBounds = paramBounds;
         this->gaussianParams = gaussianParams;
     };
 
-    Priors::Priors(priorTypes priorType, std::vector <double(*)(double)> priorsPDFs) { //custom priors
+Priors::Priors(enum priorType priorType, std::vector <std::function <double(double)> > priorsPDFs) { //custom priors
         this->priorType = priorType;
         this->priorsPDFs = priorsPDFs;
     };
@@ -59,10 +59,10 @@ namespace TRKLib {
 
     // CONSTRUCTORS ##############################################################################################################
 
-    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
-        this->yc = (*yc);
-        this->dyc = (*dyc);
-        this->ddyc = (*ddyc);
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+        this->yc = yc;
+        this->dyc = dyc;
+        this->ddyc = ddyc;
 
         this->x = x;
         this->y = y;
@@ -103,10 +103,10 @@ namespace TRKLib {
 
 
     //equal weights/unweighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
-        this->yc = (*yc);
-        this->dyc = (*dyc);
-        this->ddyc = (*ddyc);
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+        this->yc = yc;
+        this->dyc = dyc;
+        this->ddyc = ddyc;
 
         this->x = x;
         this->y = y;
@@ -150,10 +150,10 @@ namespace TRKLib {
 
     //priors:
     //weighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
-        this->yc = (*yc);
-        this->dyc = (*dyc);
-        this->ddyc = (*ddyc);
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+        this->yc = yc;
+        this->dyc = dyc;
+        this->ddyc = ddyc;
 
         this->x = x;
         this->y = y;
@@ -196,10 +196,10 @@ namespace TRKLib {
 
 
     //equal weights/unweighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
-        this->yc = (*yc);
-        this->dyc = (*dyc);
-        this->ddyc = (*ddyc);
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+        this->yc = yc;
+        this->dyc = dyc;
+        this->ddyc = ddyc;
 
         this->x = x;
         this->y = y;
@@ -244,10 +244,10 @@ namespace TRKLib {
 
 
     // 1D statistic
-    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
-        this->yc = (*yc);
+        this->yc = yc;
 
         this->x = x;
         this->y = y;
@@ -285,10 +285,10 @@ namespace TRKLib {
 
 
     //equal weights/unweighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
-        this->yc = (*yc);
+        this->yc = yc;
 
         this->x = x;
         this->y = y;
@@ -329,10 +329,10 @@ namespace TRKLib {
 
     //priors:
     //weighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
-        this->yc = (*yc);
+        this->yc = yc;
 
         this->x = x;
         this->y = y;
@@ -372,10 +372,10 @@ namespace TRKLib {
 
 
     //equal weights/unweighted
-    TRK::TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
-        this->yc = (*yc);
+        this->yc = yc;
 
         this->x = x;
         this->y = y;
@@ -905,7 +905,7 @@ namespace TRKLib {
         double sum = 0.0;
 
         for (int i = 0; i < trk.N; i++) {
-            sum += trk.w[i] * std::pow(trk.y[i] - (*trk.yc)(trk.x[i], params), 2.0);
+            sum += trk.w[i] * std::pow(trk.y[i] - trk.yc(trk.x[i], params), 2.0);
         }
         return sum;
     }
@@ -922,7 +922,7 @@ namespace TRKLib {
         }
 
         for (int i = 0; i < trk.N; i++) {
-            sum += trk.w[i]* std::pow((*trk.yc)(trk.x[i], params) - trk.y[i], 2)/(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0)) + 2.0*std::log(std::pow(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0), trk.w[i]/2.0));
+            sum += trk.w[i]* std::pow(trk.yc(trk.x[i], params) - trk.y[i], 2)/(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0)) + 2.0*std::log(std::pow(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0), trk.w[i]/2.0));
         }
         
         return sum;
@@ -1181,7 +1181,7 @@ namespace TRKLib {
         double l;
 
         for (int i = 0; i < trk.N; i++) {
-            l = std::exp(-0.5 * trk.w[i]* std::pow(((*trk.yc)(trk.x[i], params) - trk.y[i])/std::sqrt(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0)), 2.0)) / std::pow(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0), trk.w[i]/2.0);
+            l = std::exp(-0.5 * trk.w[i]* std::pow((trk.yc(trk.x[i], params) - trk.y[i])/std::sqrt(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0)), 2.0)) / std::pow(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0), trk.w[i]/2.0);
             if (trk.mcmc.useLogPosterior){
                 L += std::log(l);
             } else {

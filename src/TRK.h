@@ -19,35 +19,29 @@ See license at https://github.com/nickk124/TRK
 #include <thread>
 #include <sstream>
 
-
-
 namespace TRKLib {
     const double PI = 3.1415926535897932384626434;
     const std::vector <double> SIGMAS = { 0.682639, 0.954500, 0.997300 };
     double const invphi = (std::sqrt(5.0) - 1.0) / 2.0;     // 1 / phi
     double const invphi2 = (3.0 - std::sqrt(5.0)) / 2.0;    // 1 / phi^2
 
-    enum whichScaleExtrema{ S, SLOP_X, SLOP_Y, ANY};
-
-    enum priorTypes {CUSTOM, CUSTOM_JOINT, GAUSSIAN, CONSTRAINED, MIXED};
-
-    enum ParallelizationBackEnd {CPP11, OPENMP, NONE};
+    enum priorType {CUSTOM, CUSTOM_JOINT, GAUSSIAN, CONSTRAINED, MIXED};
 
     class Priors
     {
     public:
         //constructors:
-        Priors(priorTypes priorType, std::vector < std::vector <double> > params); //Only Gaussian or only bounded/constrained
-        Priors(priorTypes priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds); //mixed
-        Priors(priorTypes priorType, std::vector <double(*)(double)> priorsPDFs); // custom
-        Priors(priorTypes priorType, double(*jointPriorsPDF)(std::vector <double> ));// custom joint
+        Priors(priorType priorType, std::vector < std::vector <double> > params); //Only Gaussian or only bounded/constrained
+        Priors(priorType priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds); //mixed
+        Priors(priorType priorType, std::vector < std::function <double(double)> > priorsPDFs); // custom
+        Priors(priorType priorType, std::function <double(std::vector <double>)> jointPriorsPDF);// custom joint
         Priors();
 
-        priorTypes priorType;
+        priorType priorType;
         std::vector < std::vector <double> > gaussianParams; // a vector that contains a vector of mu and sigma for the guassian prior of each param. If no prior, then just use NANs for one or both mu and sigma
         std::vector < std::vector <double> > paramBounds; // a vector that contains vectors of the bounds of each param. If not bounded, use NANs, and if there's only one bound, use NAN for the other "bound".
-        std::vector <double(*)(double)> priorsPDFs; // a vector that contains (pointers to) the custom prior probability distribution functions for each parameter. If no prior (uninformative) for a parameter, use the function noPrior()
-        double (*jointPriorsPDF)(std::vector <double> ); // a pointer to a function that is the joint prior probability, i.e. it takes an argument of a vector of the model params (including slop, last), and returns the joint prior.
+        std::vector < std::function <double(double)> > priorsPDFs; // a vector that contains the custom prior probability distribution functions for each parameter. If no prior (uninformative) for a parameter, use the function noPrior()
+        std::function <double(std::vector <double>)> jointPriorsPDF; // a function that is the joint prior probability, i.e. it takes an argument of a vector of the model params (including slop, last), and returns the joint prior.
     };
 
     struct Results
@@ -75,6 +69,10 @@ namespace TRKLib {
     class TRK // main class
     {
         public:
+            // ENUMS
+            enum whichScaleExtrema{ S, SLOP_X, SLOP_Y, ANY};
+            enum ParallelizationBackEnd {CPP11, OPENMP, NONE};
+        
             // NESTED CLASSES
             class Statistics
             {
@@ -353,8 +351,8 @@ namespace TRKLib {
                 
                     // general
                     static std::vector <double> pivots; // pivot point(s) themselves; to be fixed pre-fitting if desired
-                    std::vector <double(*)(std::vector <double>)> pivot_intercept_functions; // vector of functions that return intercept parameters(s) of corresponding pivot points
-                    std::vector <double(*)(std::vector <double>)> pivot_slope_functions; // same, but for slope parameter(s)
+                    std::vector <std::function <double(std::vector <double>)> > pivot_intercept_functions; // vector of functions that return intercept parameters(s) of corresponding pivot points
+                    std::vector <std::function <double(std::vector <double>)> > pivot_slope_functions; // same, but for slope parameter(s)
                     
                 
                     // settings
@@ -549,23 +547,23 @@ namespace TRKLib {
         public:
             // CONSTRUCTORS
             // weighted
-            TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess);
+            TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess);
             // unweighted
-            TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess);
+            TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess);
             // with priors, weighted
-            TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
+            TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
             // with priors, unweighted
-            TRK(double(*yc)(double, std::vector <double>), double(*dyc)(double, std::vector <double>), double(*ddyc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
+            TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject);
         
         
             // 1D statistic (weighted)
-            TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
+            TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
             // equal weights/unweighted
-            TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
+            TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess);
             // with priors (weighted)
-            TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
+            TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
             // equal weights/unweighted with priors
-            TRK(double(*yc)(double, std::vector <double>), std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
+            TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject);
         
 
             // default constructor and destructor;
@@ -621,9 +619,9 @@ namespace TRKLib {
         
             
             //function pointers
-            double (*yc)(double, std::vector <double>);
-            double (*dyc)(double, std::vector <double>);
-            double (*ddyc)(double, std::vector <double>);
+            std::function <double(double, std::vector <double>)> yc;
+            std::function <double(double, std::vector <double>)> dyc;
+            std::function <double(double, std::vector <double>)> ddyc;
         
 
             // OTHER TOOLS
@@ -794,7 +792,7 @@ namespace TRKLib {
     }
 
     // numerical methods/optimization
-    double twoPointNR(double(*y)(double, std::vector <double>), double(*dy)(double, std::vector <double>), double(*ddy)(double, std::vector <double>), std::vector <double> params, double xguess, double xguessp1);
+    double twoPointNR(std::function <double(double, std::vector <double>)> y, std::function <double(double, std::vector <double>)> dy, std::function <double(double, std::vector <double>)> ddy, std::vector <double> params, double xguess, double xguessp1);
     std::vector <double> cubicSolver(double A, double B, double C, double D);
 
     // for testing only
