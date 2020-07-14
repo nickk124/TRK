@@ -1,33 +1,15 @@
-*.suo
-*.json
-*.sqlite
-/.vs/config/applicationhost.config
-/.vs/TRK/v15/Browse.VC.db
-/.vs/TRK/v15/Browse.VC.opendb
-#*.pdf
-*.ipch
-/TRK
-/.vs/
-/source/TRK
-/.vscode
-/swigcpp11/*.h
-/swigcpp11/*.cpp
-/swigcpp11/*.i
-/swigcpp17/*.h
-/swigcpp17/*.cpp
-/swigcpp17/*.i
-.DS_Store
-testdata/newData.xlsx
-*.zip
-testdata/topsecretdata.csv
+# development
+**/.vs/
+**/.vscode/
+src/**/TRK/
 
-# for my own testing
+# testing
+diagnostics
+
 TRKtesting.cpp
 pch.cpp
 pch.h
-diagnostics
-covid19.xlsx
-/**/.vs/
-src/exampleModels.cpp
-src/exampleModels.h
-src/**/TRK/
+
+
+testdata/newData.xlsx
+testdata/topsecretdata.csv
