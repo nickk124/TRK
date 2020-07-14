@@ -87,6 +87,10 @@ double rvc2Slope2(std::vector <double> params);
 
 // COVID-19 MODELS
 static bool covid_fitInLogSpace = false;
+
+// 1-segment
+double covid19_1BLPO(double t, std::vector <double> params);
+
 // broken-linear (power law form)
 double covid19_BL(double t, std::vector <double> params);
 double covid19_BL_Intercept1(std::vector <double> params);
@@ -127,6 +131,11 @@ double covid19_polynomial(double t, double t0, std::vector <double> p);
 double covid19_BL_oscil_poly(double t, std::vector <double> params);
 double covid19_BL_oscil_poly_fixed(double t, std::vector <double> params);
 double covid19_BL_oscil_poly_fixedoscil(double t, std::vector <double> params);
+
+// 2-broken line model (most recent)
+double covid19_2BLPO(double t, std::vector <double> params);
+// remove weekly cycle
+double covid19_2BLPO_fixed(double t, std::vector <double> params);
 
 // 3 Broken Line model with Polynomial Oscillation frequency
 double covid19_3BLPO(double t, std::vector <double> params);

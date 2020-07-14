@@ -459,6 +459,46 @@ double covid19_PW_Slope2(std::vector <double> params){
     return params[2];
 }
 
+double covid19_1BLPO(double t, std::vector <double> params){
+    double b1 = params[0];
+    double m1 = params[1];
+    
+    double y1 = b1 + m1*(t - TRK::CorrelationRemoval::pivots[0]);
+
+    std::vector <double> A_coefs, t0_coefs, c_coefs;
+    
+    int offset = 2;
+    int D = (int) (params.size() - offset) / 3; // polynomial order
+    for (int d = 0; d < D; d++){
+        A_coefs.push_back(params[offset + d]);
+        t0_coefs.push_back(params[offset + D + d]);
+        c_coefs.push_back(params[offset + 2*D + d]);
+    }
+    
+    double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::COVID19::tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::COVID19::tmed, c_coefs);
+    double a2 = 3.0/7.0 * (1 - c);
+    double a3 = a2 * -2.0 / 21.0;
+    
+    double line = y1;
+    
+    double h, p, g, f;
+    h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
+    p = c * std::fmod(t - t0, 7) + a2 * std::pow(std::fmod(t - t0, 7), 2.0) + a3 * std::pow(std::fmod(t - t0, 7), 3.0);
+    g = std::cos(2.0 * PI * p / 7.0);
+    f = 1.0 + A * g * h;
+    
+    
+    double ret = line*f;
+    
+    if (TRK::COVID19::logModel){
+        ret = std::log10(line) + std::log10(f);
+    }
+    
+    return ret;
+}
+
 // oscillating model to account for weekend variability
 double covid19_BL_oscil(double t, std::vector <double> params) {
     double b1 = params[0];
@@ -837,6 +877,90 @@ double covid19_BL_oscil_poly_fixedoscil(double t, std::vector <double> params) {
     double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
     double t0 = covid19_polynomial(t, TRK::COVID19::tmed, t0_coefs);
     double c = covid19_polynomial(t, TRK::COVID19::tmed, c_coefs);
+    double a2 = 3.0/7.0 * (1 - c);
+    double a3 = a2 * -2.0 / 21.0;
+    
+    double line = (1/s) * std::log(std::exp(s*y1) + std::exp(s*y2));
+    
+    double h, p, g, f;
+    h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
+    p = c * std::fmod(t - t0, 7) + a2 * std::pow(std::fmod(t - t0, 7), 2.0) + a3 * std::pow(std::fmod(t - t0, 7), 3.0);
+    g = std::cos(2.0 * PI * p / 7.0);
+    f = 1.0 + A * g * h;
+    
+    
+    double ret = line*f;
+    
+    if (TRK::COVID19::logModel){
+        ret = std::log10(line) + std::log10(f);
+    }
+    
+    return ret;
+}
+
+// 2-broken line model (most recent)
+double covid19_2BLPO(double t, std::vector <double> params){
+    double b1 = params[0];
+    double m1 = params[1];
+
+    double b2 = params[2];
+    double m2 = params[3];
+    
+    double s = params[4];
+    
+    double y1 = b1 + m1*(t - TRK::CorrelationRemoval::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::CorrelationRemoval::pivots[1]);
+
+    std::vector <double> A_coefs, t0_coefs, c_coefs;
+    
+    int offset = 5;
+    int D = (int) (params.size() - offset) / 3; // polynomial order
+    for (int d = 0; d < D; d++){
+        A_coefs.push_back(params[offset + d]);
+        t0_coefs.push_back(params[offset + D + d]);
+        c_coefs.push_back(params[offset + 2*D + d]);
+    }
+    
+    double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::COVID19::tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::COVID19::tmed, c_coefs);
+    double a2 = 3.0/7.0 * (1 - c);
+    double a3 = a2 * -2.0 / 21.0;
+    
+    double line = (1/s) * std::log(std::exp(s*y1) + std::exp(s*y2));
+    
+    double h, p, g, f;
+    h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
+    p = c * std::fmod(t - t0, 7) + a2 * std::pow(std::fmod(t - t0, 7), 2.0) + a3 * std::pow(std::fmod(t - t0, 7), 3.0);
+    g = std::cos(2.0 * PI * p / 7.0);
+    f = 1.0 + A * g * h;
+    
+    
+    double ret = line*f;
+    
+    if (TRK::COVID19::logModel){
+        ret = std::log10(line) + std::log10(f);
+    }
+    
+    return ret;
+}
+
+// remove weekly cycle
+double covid19_2BLPO_fixed(double t, std::vector <double> params){
+    double b1 = params[0];
+    double m1 = params[1];
+
+    double b2 = params[2];
+    double m2 = params[3];
+    
+    double s = params[4];
+    
+    double y1 = b1 + m1*(t - TRK::CorrelationRemoval::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::CorrelationRemoval::pivots[1]);
+    
+    double A = 0.0;
+    double t0 = 3.0;
+    double c = 1.0;
     double a2 = 3.0/7.0 * (1 - c);
     double a3 = a2 * -2.0 / 21.0;
     

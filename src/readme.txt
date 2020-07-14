@@ -1,1 +1,1 @@
-Source code + example models
+Source code

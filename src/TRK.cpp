@@ -3065,42 +3065,44 @@ namespace TRKLib {
 
             //bisection?
             
-            if (yk * ykm1 < 0) { //checks if xk and xkm1 can be used as bisection brackets
+            if (let_use_bisection){
+                if (yk * ykm1 < 0) { //checks if xk and xkm1 can be used as bisection brackets
 
-                double c, f_c, f_left;
-                double left = 0.0;
-                double right = 1.0;
-                double tol_brackets = 1e-9;
+                    double c, f_c, f_left;
+                    double left = 0.0;
+                    double right = 1.0;
+                    double tol_brackets = 1e-9;
 
-                if (xk < xkm1) {
-                    left = xk;
-                    right = xkm1;
-                }
-                else if (xkm1 < xk) {
-                    left = xkm1;
-                    right = xk;
-                }
-
-                while (true) {
-                    c = (left + right) / 2;
-
-                    f_c = (trk.yc(c, params) - y_n) * trk.dyc(c, params) * Sig_xn2 + (c - x_n) * Sig_yn2;
-
-                    if (std::abs((left - right) / 2.0) <= tol_brackets) { //secondary convergence criterion (bracket width)
-                        break;
+                    if (xk < xkm1) {
+                        left = xk;
+                        right = xkm1;
+                    }
+                    else if (xkm1 < xk) {
+                        left = xkm1;
+                        right = xk;
                     }
 
-                    f_left = (trk.yc(left, params) - y_n) * trk.dyc(left, params) * Sig_xn2 + (left - x_n) * Sig_yn2;
+                    while (true) {
+                        c = (left + right) / 2;
 
-                    if (f_c * f_left > 0){ //same sign
-                        left = c;
+                        f_c = (trk.yc(c, params) - y_n) * trk.dyc(c, params) * Sig_xn2 + (c - x_n) * Sig_yn2;
+
+                        if (std::abs((left - right) / 2.0) <= tol_brackets) { //secondary convergence criterion (bracket width)
+                            break;
+                        }
+
+                        f_left = (trk.yc(left, params) - y_n) * trk.dyc(left, params) * Sig_xn2 + (left - x_n) * Sig_yn2;
+
+                        if (f_c * f_left > 0){ //same sign
+                            left = c;
+                        }
+                        else if (f_c * f_left < 0) {
+                            right = c;
+                        }
                     }
-                    else if (f_c * f_left < 0) {
-                        right = c;
-                    }
+
+                    return c;
                 }
-
-                return c;
             }
             
             xkm1 = xk;
@@ -4924,18 +4926,20 @@ namespace TRKLib {
     void TRK::CorrelationRemoval::rejectLinearParamOutliers(std::vector <double> b_samples, std::vector <double> m_samples){
 //        if (verbose) {printf("Performing RCR on slope and intercept sample...\n");}
         
-        using namespace RCRLib;
-        RCR rcr_b = RCR(LS_MODE_DL);
-        RCR rcr_m = RCR(LS_MODE_DL);
+        printf("deprecated...\n");
         
-        rcr_b.performBulkRejection(b_samples);
-        rcr_m.performBulkRejection(m_samples);
-        
-        b_samples = rcr_b.result.cleanY;
-        m_samples = rcr_m.result.cleanY;
-        
-        b_samples.size() >= m_samples.size() ? b_samples.resize(m_samples.size()) : m_samples.resize(b_samples.size());
-        
+//        using namespace RCRLib;
+//        RCR rcr_b = RCR(LS_MODE_DL);
+//        RCR rcr_m = RCR(LS_MODE_DL);
+//
+//        rcr_b.performBulkRejection(b_samples);
+//        rcr_m.performBulkRejection(m_samples);
+//
+//        b_samples = rcr_b.result.cleanY;
+//        m_samples = rcr_m.result.cleanY;
+//
+//        b_samples.size() >= m_samples.size() ? b_samples.resize(m_samples.size()) : m_samples.resize(b_samples.size());
+
 //        if (verbose) {printf("fraction of (%f, %f) (b, m) samples rejected by RCR.\n", (double) rcr_b.result.rejectedY.size() / rcr_b.result.originalY.size(), (double) rcr_m.result.rejectedY.size() / rcr_m.result.originalY.size() );}
 //
         return;

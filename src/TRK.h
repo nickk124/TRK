@@ -20,7 +20,6 @@ See license at https://github.com/nickk124/TRK
 #include <sstream>
 
 
-#include "RCR.h"
 
 namespace TRKLib {
     const double PI = 3.1415926535897932384626434;
@@ -81,49 +80,49 @@ namespace TRKLib {
             {
                 friend TRK;
                 TRK &trk; // parent class
-            
+
                 public:
                     // constructors/destructor
                     Statistics(TRK &trk);
                     ~Statistics();
-                
+
                 private:
                     // function pointers
                     double (Statistics::*selectedChiSq)(std::vector <double>, double) = &Statistics::modifiedChiSquared;
                     double (Statistics::*selectedLikelihood)(std::vector <double>) = &Statistics::likelihood;
-                
+
                     // priors
                     bool hasPriors;
                     Priors priorsObject;
                     double priors(std::vector <double> allparams);
-                
+
                     // regression
                     std::vector <double> simpleLinearRegression(std::vector <double> x, std::vector <double> y);
-                
+
                     // correlation
                     double pearsonCorrelation(std::vector <double> x, std::vector <double> y);
                     double spearmanCorrelation(std::vector <double> x, std::vector <double> y);
-                
-                
+
+
                     // goodness of fit metrics
                     double regularChiSquared(std::vector <double> params);
                     double regularChiSquaredWSlop(std::vector <double> allparams, double s);
                     double modifiedChiSquared(std::vector <double> allparams, double s);
-                
+
                     // probability distributions
                     double normal(double x, double mu, double sig);
                     double cmNorm(double z); //cumulative unit normal
                     double stretch_pdf(double z);
-                    
+
                     // likelihoods and posteriors
                     double likelihood1D(std::vector <double> allparams);
                     double singlePointLnL(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double x_tn, double s);
                     double likelihood(std::vector <double> allparams);
-                
+
                     // likelihoods and posteriors with asymmetric uncertainties
                     double modifiedChiSquaredAsym(std::vector <double> allparams, double s);
                     double likelihoodAsym(std::vector <double> allparams);
-                
+
                     // statistics (in the literal sense)
                     double stDevUnweighted(std::vector <double> x);
                     double getAverage(std::vector <double> x, std::vector <double> w);
@@ -132,12 +131,12 @@ namespace TRKLib {
                     double getPeakCoord(std::vector <double> x, std::vector <double> w);
                     double min(double a, double b);
                     double max(double a, double b);
-                
+
                     // histograms
                     std::vector <std::vector <double> > getHistogram(std::vector <double> data);
                     std::vector <std::vector <double> > getHistogram(std::vector <double> data, std::vector <double> weights);
             };
-        
+        public:
             class Optimization
             {
                 friend TRK; // need TRK instances to be able to access private members of this
@@ -162,7 +161,7 @@ namespace TRKLib {
                     std::vector <double> downhillSimplex(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters);
                     double downhillSimplex_1DWrapper(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters);
                     // downhill simplex method customized for minimizing goodness of fit
-                    std::vector <double> downhillSimplex_Fit(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s, bool show_steps);
+                    std::vector <double> downhillSimplex_Fit(double(Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s, bool show_steps);
                     
                     // downhill simplex tools
                     double evalWPriors(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
@@ -249,6 +248,7 @@ namespace TRKLib {
                 private:
                     // settings
                     double root_bound = 10;
+                    bool let_use_bisection = true; // switch to bisection during NR iteration if possible
                     
                     // root finders
                     double twoPointNR(std::vector <double> params, double x_n, double y_n, double Sig_xn2, double Sig_yn2, double xguess, double xguessp1);
@@ -281,7 +281,7 @@ namespace TRKLib {
                 
                     // settings
                     int R = 50000; // MCMC sample size (excluding burn-in)
-                    int burncount = 5000; // MCMC "burn in" count
+                    int burncount = 1000; // MCMC "burn in" count . . . currently set to 1000 insteead of 50000 because burnin shouldn't be needed if using simplex best fit as guess
                     bool verbose = false; // print MCMC steps
                 
                 private:
