@@ -13,4 +13,4 @@ pch.h
 testdata/newData.xlsx
 testdata/topsecretdata.csv
 
-src/rcr.cpython-37m-darwin.so
+src/trk.cpython-37m-darwin.so

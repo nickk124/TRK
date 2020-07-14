@@ -6,7 +6,7 @@
 This file houses all of the TRK functionality that needs to be exposed to Python.
 
 build cmd: (only tested on mac atm):
-    c++ -O3 -Wall -shared -std=c++11 -undefined dynamic_lookup `python3 -m pybind11 --includes` TRK_python.cpp TRK.cpp -o rcr`python3-config --extension-suffix`
+    c++ -O3 -Wall -shared -std=c++11 -undefined dynamic_lookup `python3 -m pybind11 --includes` TRK_python.cpp TRK.cpp -o trk`python3-config --extension-suffix`
 */
 #include "TRK.h"
 #include <pybind11/pybind11.h> // pybind header files are within ./pybind11/include/pybind11/
@@ -58,10 +58,10 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
         )mydelimiter")
         
         // constructors
-        .def(py::init< priorType, std::vector <std::function <double(double)> > > ()) // custom priors
-        .def(py::init< priorType, std::function <double(std::vector <double>)> >()) // custom joint priors
         .def(py::init< priorType, std::vector < std::vector <double> > >()) // only Gaussian or only bounded/hard constraints
         .def(py::init< priorType, std::vector < std::vector <double> >, std::vector < std::vector <double> > >()) // mixed priors
+        .def(py::init< priorType, std::vector < std::function <double(double)> > > ()) // custom priors
+        .def(py::init< priorType, std::function <double(std::vector <double>)> >()) // custom joint priors
         .def(py::init<>())
 
         // members

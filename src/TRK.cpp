@@ -26,7 +26,7 @@ namespace TRKLib {
     // PRIORS ####################################################################################################################
 
     // Constructors
-Priors::Priors(enum priorType priorType, std::vector < std::vector <double> > params) { //Gaussian or bounded priors only
+    Priors::Priors(enum priorType priorType, std::vector < std::vector <double> > params) { //Gaussian or bounded priors only
         this->priorType = priorType;
         if (priorType == GAUSSIAN) {
             this->gaussianParams = params;
@@ -36,22 +36,25 @@ Priors::Priors(enum priorType priorType, std::vector < std::vector <double> > pa
         }
     };
 
-Priors::Priors(enum priorType priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds) { //mixed
+    Priors::Priors(enum priorType priorType, std::vector < std::vector <double> > gaussianParams, std::vector < std::vector <double> > paramBounds) { //mixed
         this->priorType = priorType;
         this->paramBounds = paramBounds;
         this->gaussianParams = gaussianParams;
     };
 
-Priors::Priors(enum priorType priorType, std::vector <std::function <double(double)> > priorsPDFs) { //custom priors
+    Priors::Priors(enum priorType priorType, std::vector <std::function <double(double)> > priorsPDFs) { //custom priors
         this->priorType = priorType;
         this->priorsPDFs = priorsPDFs;
     };
 
+    Priors::Priors(enum priorType priorType, std::function <double(std::vector <double>)> jointPriorsPDF) { //custom priors
+        this->priorType = priorType;
+        this->jointPriorsPDF = jointPriorsPDF;
+    };
+
 
     //default constructor
-    Priors::Priors() {
-
-    };
+    Priors::Priors() {};
 
     // ###########################################################################################################################
 
@@ -59,7 +62,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
 
     // CONSTRUCTORS ##############################################################################################################
 
-    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : statistics(*this), optimization(*this), scaleOptimization(*this), tangentPointMethods(*this),  mcmc(*this), correlationRemoval(*this), asymmetric(*this), settings(*this), covid19(*this) {
         this->yc = yc;
         this->dyc = dyc;
         this->ddyc = ddyc;
@@ -103,7 +106,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
 
 
     //equal weights/unweighted
-    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess) : statistics(*this), optimization(*this), scaleOptimization(*this), tangentPointMethods(*this),  mcmc(*this), correlationRemoval(*this), asymmetric(*this), settings(*this), covid19(*this) {
         this->yc = yc;
         this->dyc = dyc;
         this->ddyc = ddyc;
@@ -150,7 +153,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
 
     //priors:
     //weighted
-    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : statistics(*this), optimization(*this), scaleOptimization(*this), tangentPointMethods(*this),  mcmc(*this), correlationRemoval(*this), asymmetric(*this), settings(*this), covid19(*this) {
         this->yc = yc;
         this->dyc = dyc;
         this->ddyc = ddyc;
@@ -196,7 +199,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
 
 
     //equal weights/unweighted
-    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::function <double(double, std::vector <double>)> dyc, std::function <double(double, std::vector <double>)> ddyc, std::vector <double> x, std::vector <double> y, std::vector <double> sx, std::vector <double> sy, std::vector <double> params_guess, double slop_x_guess, double slop_y_guess, Priors priorsObject) : statistics(*this), optimization(*this), scaleOptimization(*this), tangentPointMethods(*this),  mcmc(*this), correlationRemoval(*this), asymmetric(*this), settings(*this), covid19(*this) {
         this->yc = yc;
         this->dyc = dyc;
         this->ddyc = ddyc;
@@ -244,7 +247,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
 
 
     // 1D statistic
-    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : statistics(*this), optimization(*this), scaleOptimization(*this), tangentPointMethods(*this),  mcmc(*this), correlationRemoval(*this), asymmetric(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
         this->yc = yc;
@@ -285,7 +288,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
 
 
     //equal weights/unweighted
-    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess) : statistics(*this), optimization(*this), scaleOptimization(*this), tangentPointMethods(*this),  mcmc(*this), correlationRemoval(*this), asymmetric(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
         this->yc = yc;
@@ -329,7 +332,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
 
     //priors:
     //weighted
-    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> w, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : statistics(*this), optimization(*this), scaleOptimization(*this), tangentPointMethods(*this),  mcmc(*this), correlationRemoval(*this), asymmetric(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
         this->yc = yc;
@@ -372,7 +375,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
 
 
     //equal weights/unweighted
-    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK(std::function <double(double, std::vector <double>)> yc, std::vector <double> x, std::vector <double> y, std::vector <double> sy, std::vector <double> params_guess, double slop_y_guess, Priors priorsObject) : statistics(*this), optimization(*this), scaleOptimization(*this), tangentPointMethods(*this),  mcmc(*this), correlationRemoval(*this), asymmetric(*this), settings(*this), covid19(*this) {
         this->settings.do1DFit = true;
         
         this->yc = yc;
@@ -417,7 +420,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
 
 
     // default
-    TRK::TRK() : optimization(*this), asymmetric(*this), scaleOptimization(*this), tangentPointMethods(*this), statistics(*this), mcmc(*this), correlationRemoval(*this), settings(*this), covid19(*this) {
+    TRK::TRK() : statistics(*this), optimization(*this), scaleOptimization(*this), tangentPointMethods(*this),  mcmc(*this), correlationRemoval(*this), asymmetric(*this), settings(*this), covid19(*this) {
 
     }
 
@@ -4084,7 +4087,7 @@ Priors::Priors(enum priorType priorType, std::vector <std::function <double(doub
         allparams_sigmas_guess.push_back(slop_x_sigma_guess);
         allparams_sigmas_guess.push_back(slop_y_sigma_guess);
 
-        allparams_sigmas_guess = allparams_sigmas_guess;
+//        allparams_sigmas_guess = allparams_sigmas_guess;
         
         return;
     }
