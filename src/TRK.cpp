@@ -748,7 +748,7 @@ namespace TRKLib {
                 std::cout << std::endl << std::endl;
             }
             
-            printf("\nFITNESS:\nchisquared = %.3e\n\n", results.chisquared);
+            printf("\nFITNESS:\nchisquared = %.3e\n\n", results.fitness);
         }
         
         
@@ -2095,7 +2095,7 @@ namespace TRKLib {
             
             if (trk.scaleOptimization.whichExtrema == S or trk.scaleOptimization.whichExtrema == ANY){
                 double fitness = evalWPriors(f, result, trk.scaleOptimization.s);
-                trk.results.chisquared = fitness;
+                trk.results.fitness = fitness;
     //            printf("\n\nfinal fitness = %.3e\n\n", fitness);
             }
             
@@ -5644,7 +5644,7 @@ namespace TRKLib {
         for (int s = 0; s < S; s++){
             printf("%.3e ", trk.results.bestFitParams[trk.correlationRemoval.slope_indices[trk.correlationRemoval.P - 1] + s + 1]);
         }
-        printf("%.3e %.3e\n", trk.results.slop_y, trk.results.chisquared);
+        printf("%.3e %.3e\n", trk.results.slop_y, trk.results.fitness);
         
         // polynomial params
         int D = (int) (trk.results.bestFitParams.size() - trk.correlationRemoval.P*2 - S) / 3; // polynomial order

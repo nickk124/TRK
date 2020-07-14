@@ -50,7 +50,7 @@ namespace TRKLib {
             double slop_x;
             double slop_y;
             double optimumScale, minimumScale, maximumScale;
-            double chisquared; // not exactly chi-squared; really -2ln L
+            double fitness; // not exactly chi-squared; really -2ln L
             std::vector <double> pivots;
             std::vector <double> bestFitParams;
             std::vector < std::vector <double> > slopX_123Sigmas;

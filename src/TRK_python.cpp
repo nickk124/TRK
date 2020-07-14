@@ -32,8 +32,8 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
         .value("MIXED", MIXED, "A mixture of gaussian (normal), hard-constrained, and uninformative (uniform/flat) prior probability density functions.")
         .export_values();
 
-    // CLASSESß
-    // parameter prior probability distribution class
+    // CLASSES
+    // parameter prior probability distributions
     py::class_<Priors>(m, "Priors", R"mydelimiter(
             *class*. Class that encapsulates probabalistic priors to beß applied to model parameters when using model-fitting/functional form RCR (see :ref:`priors` for an example).
 
@@ -77,7 +77,25 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
         .def_readwrite("priorsPDFs", &Priors::priorsPDFs, R"mydelimiter(
             *list/array_like of functions*. An ordered list of custom model parameter priors functions; each function takes in a model parameter as argument and returns the prior probability density function for that parameter (see :ref:`priors` for an example).
         )mydelimiter")
-        .def_readwrite("jointPriorsPDF", &Priors::jointPriorsPDF, R"mydelimiter(
+        .def_readwrite("joint_priors_PDF", &Priors::jointPriorsPDF, R"mydelimiter(
             *function*. A custom joint prior probability function, i.e. it takes an argument of a vector of the model params (including slop, last), and returns the joint prior probability density (float).
         )mydelimiter");
+
+        // fit results
+        py::class_<Results>(m, "Results", "Results from running TRK fit algorithms.")
+            .def_readwrite("slop_x", &Results::slop_x, R"mydelimiter(
+
+            )mydelimiter")
+
+            .def_readwrite("slop_y", &Results::slop_y, R"mydelimiter(
+
+            )mydelimiter")
+
+            .def_readwrite("optimum_scale", &Results::optimumScale, R"mydelimiter(
+
+            )mydelimiter")
+
+            .def_readwrite("minimum_scale", &Results::minimumScale, R"mydelimiter(
+
+            )mydelimiter");
 }
