@@ -4,7 +4,7 @@
 # What is the TRK Statistic?
 Robustly fitting a statistical model to data is a task ubiquitous to practically all data-driven fields, but the more nonlinear, uncertain and/or scattered the dataset is, the more diffcult this task becomes. In the common case of two dimensional models (i.e. one independent variable *x* and one dependent variable *y(x)*), datasets with intrinsic uncertainties, or error bars, along both *x* and *y* prove diffcult to fit to in general, and if the dataset has some extrinsic uncertainty/scatter (i.e., sample variance) that cannot be accounted for solely by the error bars, the difficulty increases still.
 
-Here, we introduce a novel statistic (the Trotter, Reichart, Konz statistic, or TRK) developed that is advantageous towards model-fitting in this "worst-case data" scenario, especially when compared to other methods.
+Here, we introduce a novel statistic (the Trotter, Reichart, Konz statistic, or TRK) developed that is advantageous towards model-fitting in this "worst-case data" scenario, especially when compared to other methods. Models predicted by maximizing the TRK statistic's likelihood function are geometrically equivalent to models that minimize the sum of the squares of the radial distances of each datapoint centroid from the model curve.
 
 ![](example_imgs/statistic_geometry.png)
 *Illustration of the basic geometry of the TRK statistic given a single
