@@ -97,5 +97,25 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
 
             .def_readwrite("minimum_scale", &Results::minimumScale, R"mydelimiter(
 
-            )mydelimiter");
+            )mydelimiter")
+
+            .def_readwrite("maximum_scale", &Results::maximumScale, R"mydelimiter(
+
+            )mydelimiter")
+
+            .def_readwrite("fitness", &Results::fitness, R"mydelimiter(
+
+            )mydelimiter")
+
+            .def_readwrite("pivots", &Results::pivots, R"mydelimiter(
+
+            )mydelimiter")
+
+            .def_readwrite("model_parameters", &Results::bestFitParams, R"mydelimiter(
+
+            )mydelimiter")
+
+
+
+
 }

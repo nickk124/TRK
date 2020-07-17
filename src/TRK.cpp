@@ -3497,18 +3497,30 @@ namespace TRKLib {
             std::cout << "Computing Uncertainties...\n";
         }
 
-        allparam_uncertainties = lowerBar(allparam_samples); //for each parameter including slope, there is a vector containing 1 vector of -sigmas, 1 vector of +sigmas. This vector contains all of those 2-vectors.
+        allparam_uncertainties = lowerBar(allparam_samples);
+        //for each parameter including slop, there is a vector containing 1 vector of -sigmas,
+        // 1 vector of +sigmas. This vector contains all of those 2-vectors.
 
         trk.results.bestFit_123Sigmas.clear();
+        trk.results.bestFitParamUncertainties.clear();
+        
+        std::vector <double> simple_uncertainties;
 
         for (int j = 0; j < trk.M; j++) {
             trk.results.bestFit_123Sigmas.push_back(allparam_uncertainties[j]);
+
+            simple_uncertainties = {allparam_uncertainties[j][0][0], allparam_uncertainties[j][1][0]};
+            trk.results.bestFitParamUncertainties.push_back(simple_uncertainties);
         }
         if (trk.settings.do1DFit){
             trk.results.slopY_123Sigmas = allparam_uncertainties[trk.M];
+            trk.results.slopYUncertainty = {allparam_uncertainties[trk.M][0][0], allparam_uncertainties[trk.M][1][0]};
         } else {
             trk.results.slopX_123Sigmas = allparam_uncertainties[trk.M];
             trk.results.slopY_123Sigmas = allparam_uncertainties[trk.M + 1];
+            
+            trk.results.slopXUncertainty = {allparam_uncertainties[trk.M][0][0], allparam_uncertainties[trk.M][1][0]};
+            trk.results.slopYUncertainty = {allparam_uncertainties[trk.M + 1][0][0], allparam_uncertainties[trk.M + 1][1][0]};
             
             if (trk.asymmetric.hasAsymSlop){
                 trk.results.slopX_minus_123Sigmas = allparam_uncertainties[trk.M];
@@ -4162,11 +4174,11 @@ namespace TRKLib {
                 inner.push_back(result_final[i][j]);
             }
             
-            if (!trk.settings.do1DFit){
-                inner.push_back(std::abs(result_final[i][n ])); // x slop
-            }
-            
-            inner.push_back(std::abs(result_final[i][trk.M+1])); // y slop
+//            if (!trk.settings.do1DFit){
+//                inner.push_back(std::abs(result_final[i][n ])); // x slop
+//            }
+//
+//            inner.push_back(std::abs(result_final[i][trk.M+1])); // y slop
             
             for (int k = 0; k < num_slop; k++) { // free slop params
                 inner.push_back(std::abs(result_final[i][n - num_slop + k]));

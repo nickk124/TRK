@@ -53,12 +53,19 @@ namespace TRKLib {
             double fitness; // not exactly chi-squared; really -2ln L
             std::vector <double> pivots;
             std::vector <double> bestFitParams;
+            std::vector < std::vector < std::vector <double> > > paramDistributionHistograms; // vector: {bins, edges} asdf hello kallen my name is nick
+
+            // full +/- 1,2,3 sigma uncertainties
             std::vector < std::vector <double> > slopX_123Sigmas;
             std::vector < std::vector <double> > slopY_123Sigmas;
             std::vector < std::vector < std::vector <double> > > bestFit_123Sigmas;
-            std::vector < std::vector < std::vector <double> > > paramDistributionHistograms; // vector: {bins, edges}
-        
-            // asymmetric uncertainties
+
+            // simple +/- 1sigma uncertainties: {{-sigma_a0, +sigma_a0}, {-sigma_a1, +sigma_a1}} etc...
+            std::vector <std::vector <double> > bestFitParamUncertainties;
+            std::vector <double> slopXUncertainty;
+            std::vector <double> slopYUncertainty;
+
+            // asymmetric data uncertainties
             double slop_x_minus;
             double slop_y_minus;
             std::vector < std::vector <double> > slopX_minus_123Sigmas;
@@ -72,7 +79,7 @@ namespace TRKLib {
             // ENUMS
             enum whichScaleExtrema{ S, SLOP_X, SLOP_Y, ANY};
             enum ParallelizationBackEnd {CPP11, OPENMP, NONE};
-        
+
             // NESTED CLASSES
             class Statistics
             {
