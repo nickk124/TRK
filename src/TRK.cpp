@@ -4401,6 +4401,7 @@ namespace TRKLib {
     std::vector <double> TRK::CorrelationRemoval::refitWithNewPivots(double new_pivot, int p){
         std::vector <double> allparams_better = refitAnalytic(new_pivot, p); // determine the best fit
         
+
         if (refit_with_simplex){
             allparams_better = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, allparams_better, trk.scaleOptimization.s, trk.optimization.showFittingSteps);
         }

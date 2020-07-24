@@ -1127,7 +1127,7 @@ double covid19_4BLPO(double t, std::vector <double> params){
     double a2 = 3.0/7.0 * (1 - c);
     double a3 = a2 * -2.0 / 21.0;
     
-    double line = (1.0/s23) * std::log(std::exp((s23/s12)*std::log(exp(s12*y1) + std::exp(s12*y2))) +  std::exp((s23/s34)*std::log(exp(s34*y3) + std::exp(s34*y4))));
+    double line = (1.0/s34)*std::log(std::exp((s34/s23)*std::log(std::exp((s23/s12)*std::log(std::exp(s12*y1) + std::exp(s12*y2))) + std::exp(s23*y3))) + std::exp(s34*y4));
     
     double h, p, g, f;
     h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
@@ -1259,7 +1259,7 @@ double covid19_5BLPO(double t, std::vector <double> params){
     double a2 = 3.0/7.0 * (1 - c);
     double a3 = a2 * -2.0 / 21.0;
     
-    double line = (1.0/s45) * std::log(std::exp((s45/s23) * std::log(std::exp((s23/s12) * std::log(std::exp(s12*y1) + std::exp(s12*y2))) + std::exp((s23/s34) * std::log(std::exp(s34*y3) + std::exp(s34*y4))))) + std::exp(s45*y5));
+    double line = (1.0/s45)*std::log(std::exp((s45/s34)*std::log(std::exp((s34/s23)*std::log(std::exp((s23/s12)*std::log(std::exp(s12*y1) + std::exp(s12*y2))) + std::exp(s23*y3))) + std::exp(s34*y4))) + std::exp(s45*y5));
     
     double h, p, g, f;
     h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);

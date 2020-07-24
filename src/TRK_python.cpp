@@ -116,6 +116,8 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
             )mydelimiter")
 
 
+            .def_readwrite("model_parameters", &Results::bestFitParams, R"mydelimiter(
 
+            )mydelimiter")
 
 }
