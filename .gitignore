@@ -16,3 +16,6 @@ testdata/topsecretdata.csv
 src/trk.cpython-37m-darwin.so
 .clang_complete
 .dir-locals.el
+testdata/covidformatter.py
+testdata/covidoutput_out.txt
+testdata/covidoutput.txt

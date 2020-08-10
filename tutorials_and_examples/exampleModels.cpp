@@ -121,7 +121,7 @@ double powerlawSlope(std::vector <double> params){
 }
 
 
-// EXPONENTIAL
+// std::expONENTIAL
 double exponential(double x, std::vector <double> params) {
 	double a0 = params[0];
 	double a1 = params[1];
@@ -380,6 +380,14 @@ double covid19_BL_Intercept5(std::vector <double> params){
 
 double covid19_BL_Slope5(std::vector <double> params){
     return params[9];
+}
+
+double covid19_BL_Intercept6(std::vector <double> params){
+    return params[10];
+}
+
+double covid19_BL_Slope6(std::vector <double> params){
+    return params[11];
 }
 
 // fixed at s=infty
@@ -1244,13 +1252,15 @@ double covid19_5BLPO(double t, std::vector <double> params){
     double y3 = b3 + m3*(t - TRK::CorrelationRemoval::pivots[2]);
     double y4 = b4 + m4*(t - TRK::CorrelationRemoval::pivots[3]);
     double y5 = b5 + m5*(t - TRK::CorrelationRemoval::pivots[4]);
+    
+    int K = 14; // no. of linear + smoothing params
 
     std::vector <double> A_coefs, t0_coefs, c_coefs;
-    int D = (int) (params.size() - 14) / 3; // polynomial order
+    int D = (int) (params.size() - K) / 3; // polynomial order
     for (int d = 0; d < D; d++){
-        A_coefs.push_back(params[14 + d]);
-        t0_coefs.push_back(params[14 + D + d]);
-        c_coefs.push_back(params[14 + 2*D + d]);
+        A_coefs.push_back(params[K + d]);
+        t0_coefs.push_back(params[K + D + d]);
+        c_coefs.push_back(params[K + 2*D + d]);
     }
     
     double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
@@ -1260,6 +1270,75 @@ double covid19_5BLPO(double t, std::vector <double> params){
     double a3 = a2 * -2.0 / 21.0;
     
     double line = (1.0/s45) * std::log(std::exp((s45/s23) * std::log(std::exp((s23/s12) * std::log(std::exp(s12*y1) + std::exp(s12*y2))) + std::exp((s23/s34) * std::log(std::exp(s34*y3) + std::exp(s34*y4))))) + std::exp(s45*y5));
+    
+    
+    double h, p, g, f;
+    h = c + 2.0 * a2 * std::fmod(t - t0, 7) + 3.0 * a3 * std::pow(std::fmod(t - t0, 7), 2.0);
+    p = c * std::fmod(t - t0, 7) + a2 * std::pow(std::fmod(t - t0, 7), 2.0) + a3 * std::pow(std::fmod(t - t0, 7), 3.0);
+    g = std::cos(2.0 * PI * p / 7.0);
+    f = 1.0 + A * g * h;
+    
+    
+    double ret = line*f;
+    
+    if (TRK::COVID19::logModel){
+        ret = std::log10(line) + std::log10(f);
+    }
+    
+    return ret;
+}
+
+// 6-broken line model
+double covid19_6BLPO(double t, std::vector <double> params){
+    double b1 = params[0];
+    double m1 = params[1];
+
+    double b2 = params[2];
+    double m2 = params[3];
+    
+    double b3 = params[4];
+    double m3 = params[5];
+    
+    double b4 = params[6];
+    double m4 = params[7];
+    
+    double b5 = params[8];
+    double m5 = params[9];
+    
+    double b6 = params[10];
+    double m6 = params[11];
+    
+    
+    double s12 = params[12];
+    double s23 = params[13];
+    double s34 = params[14];
+    double s45 = params[15];
+    double s56 = params[16];
+    
+    double y1 = b1 + m1*(t - TRK::CorrelationRemoval::pivots[0]);
+    double y2 = b2 + m2*(t - TRK::CorrelationRemoval::pivots[1]);
+    double y3 = b3 + m3*(t - TRK::CorrelationRemoval::pivots[2]);
+    double y4 = b4 + m4*(t - TRK::CorrelationRemoval::pivots[3]);
+    double y5 = b5 + m5*(t - TRK::CorrelationRemoval::pivots[4]);
+    double y6 = b6 + m6*(t - TRK::CorrelationRemoval::pivots[5]);
+
+    int K = 17; // no. of linear + smoothing params
+
+    std::vector <double> A_coefs, t0_coefs, c_coefs;
+    int D = (int) (params.size() - K) / 3; // polynomial order
+    for (int d = 0; d < D; d++){
+        A_coefs.push_back(params[K + d]);
+        t0_coefs.push_back(params[K + D + d]);
+        c_coefs.push_back(params[K + 2*D + d]);
+    }
+    
+    double A = covid19_polynomial(t, TRK::COVID19::tmed, A_coefs);
+    double t0 = covid19_polynomial(t, TRK::COVID19::tmed, t0_coefs);
+    double c = covid19_polynomial(t, TRK::COVID19::tmed, c_coefs);
+    double a2 = 3.0/7.0 * (1 - c);
+    double a3 = a2 * -2.0 / 21.0;
+    
+    double line = (1.0/s45)*std::log(std::exp(s45/s23*std::log(std::exp(s23/s12*std::log(std::exp(s12*y1) + std::exp(s12*y2))) + std::exp(s23/s34*std::log(std::exp(s34*y3) + std::exp(s34*y4))))) + std::exp(s45/s56*std::log(std::exp(s56*y5) + std::exp(s56*y6))));
     
     
     double h, p, g, f;

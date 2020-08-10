@@ -103,6 +103,8 @@ double covid19_BL_Intercept4(std::vector <double> params);
 double covid19_BL_Slope4(std::vector <double> params);
 double covid19_BL_Intercept5(std::vector <double> params);
 double covid19_BL_Slope5(std::vector <double> params);
+double covid19_BL_Intercept6(std::vector <double> params);
+double covid19_BL_Slope6(std::vector <double> params);
 
 // with fixed s
 double covid19_BL_fixed(double t, std::vector <double> params);
@@ -146,5 +148,6 @@ double covid19_3BLPO_fixed(double t, std::vector <double> params);
 double covid19_4BLPO(double t, std::vector <double> params);
 double covid19_4BLPO_fixed(double t, std::vector <double> params);
 
-// 5 lines...we need to go deeper
+// 5+ lines...we need to go deeper
 double covid19_5BLPO(double t, std::vector <double> params);
+double covid19_6BLPO(double t, std::vector <double> params);
