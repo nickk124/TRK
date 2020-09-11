@@ -2264,9 +2264,12 @@ namespace TRKLib {
             }
         }
         
-        for (int j = 0; j < trk.M; j++){
-            trk.allparams_guess[j] = trk.results.bestFitParams[j];
+        if (trk.results.bestFitParams.size() != 0){
+            for (int j = 0; j < trk.M; j++){
+                trk.allparams_guess[j] = trk.results.bestFitParams[j];
+            }
         }
+        
         if (trk.settings.do1DFit){
             trk.allparams_guess[trk.M] = trk.results.slop_y;
         } else {
@@ -4301,26 +4304,29 @@ namespace TRKLib {
     // guesses
     void TRK::CorrelationRemoval::findLinearParamIndices() // finds the indices of intercepts and slopes in vector of parameters describing model
     {
-        double intercept_check, slope_check;
-        std::vector <double> intercepts, slopes, placeholder;
-        std::vector <int> intercept_inds, slope_inds;
-        for (int i = 0; i < (int) trk.allparams_guess.size(); i++){
-            placeholder.push_back((double) i);
-        }
-        for (int p = 0; p < P; p++){
-            intercepts.push_back(pivot_intercept_functions[p](placeholder));
-            slopes.push_back(pivot_slope_functions[p](placeholder));
-        }
-        for (int p = 0; p < P; p++){
-            intercept_check = intercepts[p];
-            slope_check = slopes[p];
-            for (int i = 0; i < (int) placeholder.size(); i++){
-                if (intercept_check == placeholder[i]) {intercept_inds.push_back(i);};
-                if (slope_check == placeholder[i]) {slope_inds.push_back(i);};
+        if (!mustProvideLinearParamIndices){
+            double intercept_check, slope_check;
+            std::vector <double> intercepts, slopes, placeholder;
+            std::vector <int> intercept_inds, slope_inds;
+            for (int i = 0; i < (int) trk.allparams_guess.size(); i++){
+                placeholder.push_back((double) i);
             }
+            for (int p = 0; p < P; p++){
+                intercepts.push_back(pivot_intercept_functions[p](placeholder));
+                slopes.push_back(pivot_slope_functions[p](placeholder));
+            }
+            for (int p = 0; p < P; p++){
+                intercept_check = intercepts[p];
+                slope_check = slopes[p];
+                for (int i = 0; i < (int) placeholder.size(); i++){
+                    if (intercept_check == placeholder[i]) {intercept_inds.push_back(i);};
+                    if (slope_check == placeholder[i]) {slope_inds.push_back(i);};
+                }
+            }
+            intercept_indices = intercept_inds;
+            slope_indices = slope_inds;
         }
-        intercept_indices = intercept_inds;
-        slope_indices = slope_inds;
+        
         return;
     }
 

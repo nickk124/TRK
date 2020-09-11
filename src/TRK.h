@@ -355,9 +355,12 @@ namespace TRKLib {
                     CorrelationRemoval(TRK &trk);
                     ~CorrelationRemoval();
                 
+                    // guesses
                 
                     // general
                     static std::vector <double> pivots; // pivot point(s) themselves; to be fixed pre-fitting if desired
+                    std::vector <int> intercept_indices; // indices of intercepts and slopes in vector of parameters describing model
+                    std::vector <int> slope_indices;
                     std::vector <std::function <double(std::vector <double>)> > pivot_intercept_functions; // vector of functions that return intercept parameters(s) of corresponding pivot points
                     std::vector <std::function <double(std::vector <double>)> > pivot_slope_functions; // same, but for slope parameter(s)
                     
@@ -398,6 +401,7 @@ namespace TRKLib {
                     bool pivotHalfSampleMode= false;
                     bool pruneOutlierPivots = true;
                     bool pivotPointActive = false;
+                    bool mustProvideLinearParamIndices = true;
                 
                     int P = 0; // number of pivot points
                     int sample_R = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
@@ -417,8 +421,6 @@ namespace TRKLib {
 
                 
                     // guesses
-                    std::vector <int> intercept_indices; // indices of intercepts and slopes in vector of parameters describing model
-                    std::vector <int> slope_indices;
                     void getPivotGuess();
                     void findLinearParamIndices();
                     std::vector <double> refitWithNewPivots(double new_pivot, int p); // computes better guess for the parameters, given pth new pivot (only the pth intercept should change)

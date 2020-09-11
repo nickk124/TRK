@@ -83,6 +83,8 @@ double rvc2Intercept1(std::vector <double> params);
 double rvc2Slope1(std::vector <double> params);
 double rvc2Intercept2(std::vector <double> params);
 double rvc2Slope2(std::vector <double> params);
+std::vector <int> rvc2interceptindices = {0, 2};
+std::vector <int> rvc2slopeindices = {1, 3};
 
 
 // COVID-19 MODELS
