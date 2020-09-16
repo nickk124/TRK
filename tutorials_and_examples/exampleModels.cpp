@@ -316,7 +316,6 @@ double rvc2Slope2(std::vector <double> params){
     return std::tan(params[3]);
 }
 
-
 // COVID-19 MODELS
 
 // broken-linear (power law form)

@@ -1893,8 +1893,8 @@ namespace TRKLib {
 
     // downhill simplex/ nelder mead method customized for fitting
     std::vector <double> TRK::Optimization::downhillSimplex_Fit(double(TRK::Statistics::*f)(std::vector <double> , double), std::vector <double> allparams_guess, double s, bool show_steps) {
-
-        double tol = simplexTol;
+        
+        double prev_fitness = DBL_MAX;
 
         unsigned long n = trk.bigM; //number of model parameters plus two slop parameters
         
@@ -1906,6 +1906,8 @@ namespace TRKLib {
         double chi = 2.0; //expansion
         double gamma = 0.5; //contraction
         double sigma = 0.5; //shrinkage
+        
+        double tol = simplexTol * std::sqrt(n);
         
         // simplex initialization
 
@@ -2082,20 +2084,21 @@ namespace TRKLib {
 
             vertices = bettervertices;
             
+            double fitness = evalWPriors(f, result, trk.scaleOptimization.s);
+            
             if (show_steps){
                 std::cout << "chi-square parameters at s = " << s << " ";
                 for (int i = 0; i < result.size(); i++) {
                     std::cout << result[i] << " ";
                 }
                 
-                double fitness = evalWPriors(f, result, trk.scaleOptimization.s);
                 std::cout << "fitness = " << fitness << "\n";
                 
             }
             
             if (trk.scaleOptimization.whichExtrema == S or trk.scaleOptimization.whichExtrema == ANY){
-                double fitness = evalWPriors(f, result, trk.scaleOptimization.s);
-                trk.results.fitness = fitness;
+                double fitness_res = evalWPriors(f, result, trk.scaleOptimization.s);
+                trk.results.fitness = fitness_res;
     //            printf("\n\nfinal fitness = %.3e\n\n", fitness);
             }
             
@@ -2107,9 +2110,17 @@ namespace TRKLib {
                 evals.push_back(evalWPriors(f, vertices[i], s));
             }
 
-            if (trk.statistics.stDevUnweighted(evals) < tol) {
-                break;
+            if (simplex_terminate_stdev){
+                if (trk.statistics.stDevUnweighted(evals) < tol) {
+                    break;
+                }
+            } else {
+                if (std::abs(fitness - prev_fitness) < tol){
+                    break;
+                }
             }
+            
+            prev_fitness = fitness;
             
             if (it >= max_simplex_iters){
                 if (trk.settings.verbose){
@@ -2156,10 +2167,10 @@ namespace TRKLib {
                 vertex[trk.M] = 0;
             }
         } else {
-            if (std::abs(vertex[trk.M]) <= pegToZeroTol) {
+            if (std::abs(vertex[trk.M]) <= pegToZeroTol){//} && std::abs(vertex[trk.M+1]) > pegToZeroTol) {
                 vertex[trk.M] = 0;
             }
-            if (std::abs(vertex[trk.M+1]) <= pegToZeroTol) {
+            if (std::abs(vertex[trk.M+1]) <= pegToZeroTol){//} && std::abs(vertex[trk.M]) > pegToZeroTol) {
                 vertex[trk.M+1] = 0;
             }
             
@@ -2272,20 +2283,22 @@ namespace TRKLib {
         
         if (trk.settings.do1DFit){
             trk.allparams_guess[trk.M] = trk.results.slop_y;
-        } else {
-            trk.allparams_guess[trk.M] = trk.results.slop_x;
-            trk.allparams_guess[trk.M+1] = trk.results.slop_y;
             
-            if (trk.asymmetric.hasAsymSlop){
-                trk.allparams_guess[trk.M+2] = trk.results.slop_x_minus;
-                trk.allparams_guess[trk.M+3] = trk.results.slop_y_minus;
+            if (trk.settings.verbose){
+                printf("Better parameter guess found to be:\n");
+                printVector(trk.allparams_guess);
             }
-        }
-        
-        if (trk.settings.verbose){
-            printf("Better parameter guess found to be:\n");
-            printVector(trk.allparams_guess);
-        }
+        } // re-fitting is done at beginning of scale optimization for 2D case
+
+        //        else {  // re-fitting is done at beginning of scale optimization for 2D case
+//            trk.allparams_guess[trk.M] = trk.results.slop_x;
+//            trk.allparams_guess[trk.M+1] = trk.results.slop_y;
+//
+//            if (trk.asymmetric.hasAsymSlop){
+//                trk.allparams_guess[trk.M+2] = trk.results.slop_x_minus;
+//                trk.allparams_guess[trk.M+3] = trk.results.slop_y_minus;
+//            }
+//        }
         
         return;
     }
@@ -2526,8 +2539,16 @@ namespace TRKLib {
     }
 
     double TRK::ScaleOptimization::optimize_s_SlopX() {
-
-        iterative_allparams_guess = trk.allparams_guess;
+        
+        iterative_allparams_guess_slopx = trk.allparams_guess;
+        
+        if (fix_a){
+            whichExtremaX = SLOP_X;
+            std::vector <double> a_vec = {a};
+            innerSlopX_Simplex(a_vec, iterative_allparams_guess_slopx); // to get x_t_slopx
+            whichExtremaX = ANY;
+            return a;
+        }
 
         // before doing any standard simplex movement, here it checks whether the simplex is within the zero "plateau", and if so, it moves it to the boundary.
         // for slop x: move to right until it hits the boundary
@@ -2539,7 +2560,7 @@ namespace TRKLib {
         double b = 1.0;
         double trial_s = 1.0;
         std::vector <double> trial_s_vec = {trial_s};
-        double slop_trial_s = innerSlopX_Simplex(trial_s_vec, iterative_allparams_guess);
+        double slop_trial_s = innerSlopX_Simplex(trial_s_vec, iterative_allparams_guess_slopx);
 
         double inc = trial_s * 0.5;
 
@@ -2551,7 +2572,7 @@ namespace TRKLib {
             while (true) {
                 trial_a -= inc;
                 std::vector <double> trial_a_vec = {trial_a};
-                double slop_trial_a = innerSlopX_Simplex(trial_a_vec, iterative_allparams_guess);
+                double slop_trial_a = innerSlopX_Simplex(trial_a_vec, iterative_allparams_guess_slopx);
 
                 if (slop_trial_a == 0) {
                     a = trial_a;
@@ -2572,7 +2593,7 @@ namespace TRKLib {
             while (true) {
                 trial_b += inc;
                 std::vector <double> trial_b_vec = {trial_b};
-                double slop_trial_b = innerSlopX_Simplex(trial_b_vec, iterative_allparams_guess);
+                double slop_trial_b = innerSlopX_Simplex(trial_b_vec, iterative_allparams_guess_slopx);
 
                 if (slop_trial_b > 0) {
                     b = trial_b;
@@ -2595,7 +2616,7 @@ namespace TRKLib {
 
             whichExtremaX = SLOP_X;
             std::vector <double> c_vec = {c};
-            slop_c = innerSlopX_Simplex(c_vec, iterative_allparams_guess);
+            slop_c = innerSlopX_Simplex(c_vec, iterative_allparams_guess_slopx);
             whichExtremaX = ANY;
 
             if (slop_c <= tol_bisect && slop_c > 0) { //convergence criterion
@@ -2618,8 +2639,16 @@ namespace TRKLib {
     }
 
     double TRK::ScaleOptimization::optimize_s_SlopY() {
-
-        iterative_allparams_guess = trk.allparams_guess;
+        
+        iterative_allparams_guess_slopy = trk.allparams_guess;
+        
+        if (fix_b){
+            whichExtremaY = SLOP_Y;
+            std::vector <double> b_vec = {b};
+            innerSlopX_Simplex(b_vec, iterative_allparams_guess_slopy); // to get x_t_slopy
+            whichExtremaY = ANY;
+            return b;
+        }
 
         // before doing any standard simplex movement, here it checks whether the simplex is within the zero "plateau", and if so, it moves it to the boundary.
         // for slop x: move to right until it hits the boundary
@@ -2630,7 +2659,7 @@ namespace TRKLib {
         double b = 1.0;
         double trial_s = slopYScaleGuess;
         std::vector <double> trial_s_vec = {trial_s};
-        double slop_trial_s = innerSlopY_Simplex(trial_s_vec, iterative_allparams_guess);
+        double slop_trial_s = innerSlopY_Simplex(trial_s_vec, iterative_allparams_guess_slopy);
 
         double inc = trial_s * 0.5;
         
@@ -2648,7 +2677,7 @@ namespace TRKLib {
                 }
                 trial_b += inc;
                 std::vector <double> trial_b_vec = {trial_b};
-                double slop_trial_b = innerSlopY_Simplex(trial_b_vec, iterative_allparams_guess);
+                double slop_trial_b = innerSlopY_Simplex(trial_b_vec, iterative_allparams_guess_slopy);
 
                 if (slop_trial_b == 0) {
                     b = trial_b;
@@ -2668,7 +2697,7 @@ namespace TRKLib {
             while (true) {
                 trial_a -= inc;
                 std::vector <double> trial_a_vec = {trial_a};
-                double slop_trial_a = innerSlopY_Simplex(trial_a_vec, iterative_allparams_guess);
+                double slop_trial_a = innerSlopY_Simplex(trial_a_vec, iterative_allparams_guess_slopy);
 
                 if (slop_trial_a > 0) {
                     a = trial_a;
@@ -2692,7 +2721,7 @@ namespace TRKLib {
 
             whichExtremaY = SLOP_Y;
             std::vector <double> c_vec = {c};
-            slop_c = innerSlopY_Simplex(c_vec, iterative_allparams_guess);
+            slop_c = innerSlopY_Simplex(c_vec, iterative_allparams_guess_slopy);
             whichExtremaY = ANY;
 
             if ((slop_c <= tol_bisect && slop_c > 0)) { //convergence criterion
@@ -2869,6 +2898,9 @@ namespace TRKLib {
         double s1 = 0.0;
 
         bool tolcheck = false;
+        
+        int max_iter = 10;
+        int iter = 0;
 
         while (!tolcheck) {
             printf("next s0: %.3e \n", s0);
@@ -2879,6 +2911,12 @@ namespace TRKLib {
             }
             std::printf("new s0: %.3e \n", s1);
             s0 = s1;
+            
+            iter++;
+            
+            if (iter >= max_iter){
+                tolcheck = true;
+            }
         }
 
         return s1;

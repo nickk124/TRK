@@ -159,6 +159,7 @@ namespace TRKLib {
                     
                     // testing
                     bool verbose_GSS = false;
+                    bool simplex_terminate_stdev = true;
                 
                 
                 private:
@@ -195,13 +196,16 @@ namespace TRKLib {
                 
                     // fitting scales
                     double s, a, b;
+//
                 
                     // settings
                     bool verbose = false;
+                    bool fix_a = false;
+                    bool fix_b = false;
+                    bool showSimplexSteps = false;
                 
                 private:
                     // settings
-                    bool showSimplexSteps = false;
                 
                     // fitting scales
                     whichScaleExtrema whichExtrema = ANY;
@@ -216,6 +220,8 @@ namespace TRKLib {
                     double slopYGuess;
                     double slopYScaleGuess = 1.0;
                     std::vector <double> iterative_allparams_guess;
+                    std::vector <double> iterative_allparams_guess_slopx;
+                    std::vector <double> iterative_allparams_guess_slopy;
                 
                     void getBetterSlopYGuess(double slop_y, double s);
                 
@@ -537,7 +543,7 @@ namespace TRKLib {
                     ~COVID19();
                 
                     // general
-                    bool print_custom_output = true;
+                    bool print_custom_output = false;
                     static double y12;
                     static bool logModel;
                     static double s;
