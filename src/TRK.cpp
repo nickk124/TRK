@@ -521,8 +521,12 @@ namespace TRKLib {
         results.slop_y = allparams_s[M + 1];
         
         if (asymmetric.hasAsymSlop){
-            results.slop_x_minus = allparams_s[M + 2];
-            results.slop_y_minus = allparams_s[M + 3];
+            if (settings.do1DFit){
+                results.slop_y_minus = allparams_s[M + 1];
+            } else {
+                results.slop_x_minus = allparams_s[M + 2];
+                results.slop_y_minus = allparams_s[M + 3];
+            }
         }
 
         optimization.getBetterGuess();
@@ -560,8 +564,12 @@ namespace TRKLib {
         results.slop_y = allparams_s[M + 1];
         
         if (asymmetric.hasAsymSlop){
-            results.slop_x_minus = allparams_s[M + 2];
-            results.slop_y_minus = allparams_s[M + 3];
+            if (settings.do1DFit){
+                results.slop_y_minus = allparams_s[M + 1];
+            } else {
+                results.slop_x_minus = allparams_s[M + 2];
+                results.slop_y_minus = allparams_s[M + 3];
+            }
         }
         
         showResults(true, false);
@@ -598,8 +606,12 @@ namespace TRKLib {
         results.slop_y = allparams_s[M + 1];
         
         if (asymmetric.hasAsymSlop){
-            results.slop_x_minus = allparams_s[M + 2];
-            results.slop_y_minus = allparams_s[M + 3];
+            if (settings.do1DFit){
+                results.slop_y_minus = allparams_s[M + 1];
+            } else {
+                results.slop_x_minus = allparams_s[M + 2];
+                results.slop_y_minus = allparams_s[M + 3];
+            }
         }
         
         showResults(false, false);
@@ -1197,6 +1209,66 @@ namespace TRKLib {
 
 
     // likelihoods and posteriors with asymmetric uncertainties
+    // 1D
+    double TRK::Statistics::likelihood1DAsym(std::vector <double> allparams) {
+    //    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
+        
+        double L = 1.0;
+        
+        if (trk.mcmc.useLogPosterior){
+            L = 0.0;
+        }
+        
+        double sigmap = allparams[trk.M];
+        double sigmam = allparams[trk.M + 1];
+        
+        std::vector <double> params;
+
+        for (int i = 0; i < trk.M; i++) {
+            params.push_back(allparams[i]);
+        }
+        
+        double l;
+        double delta_i; // asymmetric shift
+        double Sigmap, Sigmam, prefactor, postfactor, ymodel, Sigmapostfactor; // capital sigma +, - (convolved uncertainties)
+
+        for (int i = 0; i < trk.N; i++) {
+            delta_i = trk.asymmetric.getAsymShift1D(allparams, i);
+            Sigmap = std::sqrt(std::pow(sigmam, 2.0) + std::pow(trk.sy[i], 2.0));
+            Sigmam = std::sqrt(std::pow(sigmap, 2.0) + std::pow(trk.asymmetric.sy_minus[i], 2.0));
+            prefactor = 2.0 / (std::sqrt(2.0 * PI) * std::pow(Sigmap + Sigmam, trk.w[i]));
+            ymodel = trk.yc(trk.x[i], params);
+            
+            Sigmapostfactor = trk.y[i] + delta_i >= ymodel ? Sigmap : Sigmam;
+            postfactor = std::exp(-0.5 * trk.w[i] * std::pow((trk.y[i] + delta_i - ymodel) / Sigmapostfactor, 2.0));
+            
+            l = prefactor * postfactor;
+            
+            if (trk.mcmc.useLogPosterior){
+                L += std::log(l);
+            } else {
+                L *= l;
+            }
+        }
+    //    printf("%.3e\n",L);
+        return L; // returns log L = logL1 + logL2 + ... given L = L1*L2*L3... if useLogPosterior == true
+    }
+
+    double TRK::Statistics::regularChiSquaredWSlopAsym(std::vector <double> allparams, double s) {
+        double chi2;
+        
+        double L = likelihood1DAsym(allparams);
+        
+        if (trk.mcmc.useLogPosterior){
+            chi2 = -2.0 * L;
+        } else {
+            chi2 = -2.0 * std::log(L);
+        }
+        
+        return chi2;
+    }
+
+    // 2D
     double TRK::Statistics::modifiedChiSquaredAsym(std::vector <double> allparams, double s)
     {
         std::vector <double> all_x_t(trk.N, 0.0);
@@ -1899,7 +1971,11 @@ namespace TRKLib {
         unsigned long n = trk.bigM; //number of model parameters plus two slop parameters
         
         if (trk.asymmetric.hasAsymSlop){
-            n += 2;
+            if (trk.settings.do1DFit){
+                n++;
+            } else {
+                n += 2;
+            }
         }
 
         double rho = 1.0; //reflection
@@ -1907,7 +1983,7 @@ namespace TRKLib {
         double gamma = 0.5; //contraction
         double sigma = 0.5; //shrinkage
         
-        double tol = simplexTol * std::sqrt(n);
+        double tol = simplexTol;// * std::sqrt(n);
         
         // simplex initialization
 
@@ -2166,6 +2242,11 @@ namespace TRKLib {
             if (std::abs(vertex[trk.M]) <= pegToZeroTol) {
                 vertex[trk.M] = 0;
             }
+            if (trk.asymmetric.hasAsymSlop){
+                if (std::abs(vertex[trk.M+1]) <= pegToZeroTol) {
+                    vertex[trk.M+1] = 0;
+                }
+            }
         } else {
             if (std::abs(vertex[trk.M]) <= pegToZeroTol){//} && std::abs(vertex[trk.M+1]) > pegToZeroTol) {
                 vertex[trk.M] = 0;
@@ -2271,7 +2352,7 @@ namespace TRKLib {
             trk.results.slop_y = trk.allparams_s[trk.M];
             
             if (trk.asymmetric.hasAsymSlop){
-                printf("NOTE: no current support for asymmetric 1D statistics.\n");
+                trk.results.slop_y_minus = trk.allparams_s[trk.M+1];
             }
         }
         
@@ -2283,6 +2364,10 @@ namespace TRKLib {
         
         if (trk.settings.do1DFit){
             trk.allparams_guess[trk.M] = trk.results.slop_y;
+            
+            if (trk.asymmetric.hasAsymSlop){
+                trk.allparams_guess[trk.M+1] = trk.results.slop_y_minus;
+            }
             
             if (trk.settings.verbose){
                 printf("Better parameter guess found to be:\n");
@@ -2752,7 +2837,7 @@ namespace TRKLib {
             if (trk.asymmetric.hasAsymSlop){
                 printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(slop x optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
             } else {
-                printf("s=%.3e \t slop_x=%.3e \t slop_y=%.3e \t(slop x optimization) model params: ", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
+                printf("s=%f \t slop_x=%.3e \t slop_y=%.3e \t(slop x optimization) model params: ", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
                 for (int j = 0; j < trk.M; j++){
                     printf("%.3e\t", trk.allparams_s[j]);
                 }
@@ -2780,7 +2865,7 @@ namespace TRKLib {
             if (trk.asymmetric.hasAsymSlop){
                 printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(slop y optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
             } else {
-                printf("s=%.3e \t slop_x=%.3e \t slop_y=%.3e \t(slop y optimization) model params: ", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
+                printf("s=%f \t slop_x=%.3e \t slop_y=%.3e \t(slop y optimization) model params: ", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
                 for (int j = 0; j < trk.M; j++){
                     printf("%.3e\t", trk.allparams_s[j]);
                 }
@@ -2806,7 +2891,7 @@ namespace TRKLib {
         left = a;
         right = b;
         std::vector <double> a_vec = {a};
-        f_left = innerR2_Simplex(a_vec, iterative_allparams_guess);
+        f_left = innerR2_Simplex(a_vec, iterative_allparams_guess_slopx);
 
         double c, f_c;
         double tol_bisect = 1e-4;
@@ -2851,7 +2936,7 @@ namespace TRKLib {
 
         double left, right, f_left;
         std::vector <double> a_vec = {a};
-        f_left = innerR2_iter_Simplex(a_vec, iterative_allparams_guess, s0);
+        f_left = innerR2_iter_Simplex(a_vec, iterative_allparams_guess_slopx, s0);
 
         //bisection, now that we have brackets [left,right]
 
@@ -2861,9 +2946,14 @@ namespace TRKLib {
         double c, f_c;
         double tol_bisect = 1e-4;
         double tol_brackets = 1e-3;
+        
+        bool tolcheck = false;
+        
+        int max_iter = 10;
+        int iter = 0;
 
-        while (true) {
-            //printf("brackets: %.3e %.3e \n", left, right);
+        while (!tolcheck) {
+            printf("brackets: %.3e %.3e \n", left, right);
             c = (left + right) / 2;
 
             whichExtrema = S;
@@ -2872,7 +2962,7 @@ namespace TRKLib {
             whichExtrema = ANY;
 
             if (std::abs(f_c) <= tol_bisect) { //convergence criterion
-                break;
+                tolcheck = true;
             }
 
             if (f_c * f_left > 0) {
@@ -2882,9 +2972,11 @@ namespace TRKLib {
             else if (f_c * f_left < 0) {
                 right = c;
             }
+            
+            iter++;
 
-            if (std::abs(left - right) <= tol_brackets) { //secondary convergence criterion (bracket width)
-                break;
+            if (std::abs(left - right) <= tol_brackets || iter >= max_iter) { //secondary convergence criterion (bracket width)
+                tolcheck = true;
             }
         }
 
@@ -2950,16 +3042,16 @@ namespace TRKLib {
         trk.allparams_s = trk.optimization.downhillSimplex_Fit(trk.statistics.selectedChiSq, allparams_guess, ss[0], showSimplexSteps);
         whichExtrema = ANY;
 
-        if (verbose){
-            if (trk.asymmetric.hasAsymSlop){
-                printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(additional R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3]);
-            } else {
-                printf("%.3e \t %.3e \t %.3e \t(additional R2 optimization)\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1]);
-            }
-        }
-
         double R2as = R2TRK_prime_as0(s0, trk.x_t_s, trk.params_s);
         double R2sb = R2TRK_prime_s0b(s0, trk.x_t_s, trk.params_s);
+        
+        if (verbose){
+            if (trk.asymmetric.hasAsymSlop){
+                printf("%.3e \t %.3e \t %.3e \t %.3e \t %.3e \t(additional R2 optimization)\tR2as = %f\tR2sb = %f\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], trk.allparams_s[trk.M + 2], trk.allparams_s[trk.M + 3], R2as, R2sb);
+            } else {
+                printf("%.3e \t %.3e \t %.3e \t(additional R2 optimization)\tR2as = %f\tR2sb = %f\n", ss[0], trk.allparams_s[trk.M], trk.allparams_s[trk.M + 1], R2as, R2sb);
+            }
+        }
 
         return R2as - R2sb;
     }
@@ -3007,7 +3099,8 @@ namespace TRKLib {
     double TRK::ScaleOptimization::R2TRK_prime_as0(double s0, std::vector <double> x_t_s1, std::vector <double> params_s1) {
         double R2 = 1.0 / trk.N;
 
-        double sum = 0.0;
+        double summand, sum = 0.0;
+        int nan_count = 0;
 
         for (int n = 0; n < trk.N; n++) {
             double m_tn_a = trk.dyc(trk.x_t_a[n], trk.params_a);
@@ -3015,11 +3108,21 @@ namespace TRKLib {
 
             double m_tn_s1 = trk.dyc(x_t_s1[n], params_s1);
             double theta_t_s1 = std::atan(m_tn_s1);
+            
+            summand = std::pow(std::tan(PI / 4.0 - std::abs(std::atan(s0*std::tan(theta_t_a)) - std::atan(s0*std::tan(theta_t_s1))) / 2.0), 2.0);
 
-            sum += std::pow(std::tan(PI / 4.0 - std::abs(std::atan(s0*std::tan(theta_t_a)) - std::atan(s0*std::tan(theta_t_s1))) / 2.0), 2.0);
+            if (std::isnan(summand)){
+                nan_count++;
+            } else {
+                sum += summand;
+            }
         }
 
         R2 *= sum;
+        
+        if (std::isnan(R2) && verbose){
+            printf("Error: NaN R2! Summand NaN count: %i\n", nan_count);
+        }
 
         return R2;
     }
@@ -3027,7 +3130,8 @@ namespace TRKLib {
     double TRK::ScaleOptimization::R2TRK_prime_s0b(double s0, std::vector <double> x_t_s1, std::vector <double> params_s1) {
         double R2 = 1.0 / trk.N;
 
-        double sum = 0.0;
+        double summand, sum = 0.0;
+        int nan_count = 0;
 
         for (int n = 0; n < trk.N; n++) {
             double m_tn_b = trk.dyc(trk.x_t_b[n], trk.params_b);
@@ -3036,10 +3140,20 @@ namespace TRKLib {
             double m_tn_s1 = trk.dyc(x_t_s1[n], params_s1);
             double theta_t_s1 = std::atan(m_tn_s1);
 
-            sum += std::pow(std::tan(PI / 4.0 - std::abs(std::atan(s0*std::tan(theta_t_s1)) - std::atan(s0*std::tan(theta_t_b))) / 2.0), 2.0);
+            summand = std::pow(std::tan(PI / 4.0 - std::abs(std::atan(s0*std::tan(theta_t_s1)) - std::atan(s0*std::tan(theta_t_b))) / 2.0), 2.0);
+            
+            if (std::isnan(summand)){
+                nan_count++;
+            } else {
+                sum += summand;
+            }
         }
 
         R2 *= sum;
+        
+        if (std::isnan(R2) && verbose){
+            printf("Error: NaN R2! Summand NaN count: %i\n", nan_count);
+        }
 
         return R2;
     }
@@ -3516,7 +3630,11 @@ namespace TRKLib {
             
             int m = 0;
             if (trk.asymmetric.hasAsymSlop){
-                m = 2;
+                if (trk.settings.do1DFit){
+                    m = 1;
+                } else {
+                    m = 2;
+                }
             }
             
             if (myfile.is_open())
@@ -3556,6 +3674,10 @@ namespace TRKLib {
         if (trk.settings.do1DFit){
             trk.results.slopY_123Sigmas = allparam_uncertainties[trk.M];
             trk.results.slopYUncertainty = {allparam_uncertainties[trk.M][0][0], allparam_uncertainties[trk.M][1][0]};
+            
+            if (trk.asymmetric.hasAsymSlop){
+                trk.results.slopY_minus_123Sigmas = allparam_uncertainties[trk.M + 1];
+            }
         } else {
             trk.results.slopX_123Sigmas = allparam_uncertainties[trk.M];
             trk.results.slopY_123Sigmas = allparam_uncertainties[trk.M + 1];
@@ -3564,8 +3686,8 @@ namespace TRKLib {
             trk.results.slopYUncertainty = {allparam_uncertainties[trk.M + 1][0][0], allparam_uncertainties[trk.M + 1][1][0]};
             
             if (trk.asymmetric.hasAsymSlop){
-                trk.results.slopX_minus_123Sigmas = allparam_uncertainties[trk.M];
-                trk.results.slopY_minus_123Sigmas = allparam_uncertainties[trk.M + 1];
+                trk.results.slopX_minus_123Sigmas = allparam_uncertainties[trk.M + 2];
+                trk.results.slopY_minus_123Sigmas = allparam_uncertainties[trk.M + 3];
             }
         }
 
@@ -3583,7 +3705,11 @@ namespace TRKLib {
         
         int m = 0;
         if (trk.asymmetric.hasAsymSlop){
-            m = 2;
+            if (trk.settings.do1DFit){
+                m = 1;
+            } else {
+                m = 2;
+            }
         }
 
         for (int j = 0; j < trk.bigM + m; j++) { //for each model param plus slop
@@ -4767,7 +4893,11 @@ namespace TRKLib {
                     
                     int m = 0;
                     if (trk.asymmetric.hasAsymSlop){
-                        m = 2;
+                        if (trk.settings.do1DFit){
+                            m = 1;
+                        } else {
+                            m = 2;
+                        }
                     }
                     
                     if (myfile.is_open())
@@ -4965,7 +5095,11 @@ namespace TRKLib {
             
             int m = 0;
             if (trk.asymmetric.hasAsymSlop){
-                m = 2;
+                if (trk.settings.do1DFit){
+                    m = 1;
+                } else {
+                    m = 2;
+                }
             }
             
             if (myfile.is_open())
@@ -5174,82 +5308,115 @@ namespace TRKLib {
     // tools
     void TRK::Asymmetric::checkAsym(){ //checks to see whether any or all of the asymmetric error bar and slop parameters were provided.
         
-        // SLOP
-        
-        bool negXSlop = false;
-        bool negYSlop = false;
-        
-        if (slop_x_minus_guess >= 0){
-            negXSlop = true;
-        }
+        if (trk.settings.do1DFit){
+            // SLOP
+            if (slop_y_minus_guess >= 0){
+                hasAsymSlop = true;
+            } else {
+                slop_y_minus_guess = trk.slop_y_guess;
+            }
+            
+            // ERROR BARS
+            if (sy_minus.size() == trk.N){
+                hasAsymEB = true;
+            } else {
+                sy_minus = trk.sy;
+            }
+        } else {
+            // SLOP
+            
+            bool negXSlop = false;
+            bool negYSlop = false;
+            
+            if (slop_x_minus_guess >= 0){
+                negXSlop = true;
+            }
 
-        if (slop_y_minus_guess >= 0){
-            negYSlop = true;
+            if (slop_y_minus_guess >= 0){
+                negYSlop = true;
+            }
+            
+            if (negXSlop && !negYSlop){
+                hasAsymSlop = true;
+                slop_y_minus_guess = trk.slop_y_guess;
+            }
+            
+            else if (!negXSlop && negYSlop){
+                hasAsymSlop = true;
+                slop_x_minus_guess = trk.slop_x_guess;
+            }
+            
+            else if (negXSlop && negYSlop){
+                hasAsymSlop = true;
+            }
+            
+            
+            // ERROR BARS
+            
+            bool negXEB = false;
+            bool negYEB = false;
+            
+            if (sx_minus.size() == trk.N){
+                negXEB = true;
+            }
+            
+            if (sy_minus.size() == trk.N){
+               negYEB = true;
+            }
+            
+            
+            if (negXEB && !negYEB){
+                hasAsymEB = true;
+                sy_minus = trk.sy;
+            }
+            
+            else if (!negXEB && negYEB){
+                hasAsymEB = true;
+                sx_minus = trk.sx;
+            }
+            
+            else if (negXEB && negYEB){
+                hasAsymEB = true;
+            }
         }
         
-        if (negXSlop && !negYSlop){
-            hasAsymSlop = true;
-            slop_y_minus_guess = trk.slop_y_guess;
-        }
-        
-        else if (!negXSlop && negYSlop){
-            hasAsymSlop = true;
-            slop_x_minus_guess = trk.slop_x_guess;
-        }
-        
-        else if (negXSlop && negYSlop){
-            hasAsymSlop = true;
-        }
-        
-        
-        // ERROR BARS
-        
-        bool negXEB = false;
-        bool negYEB = false;
-        
-        if (sx_minus.size() == trk.N){
-            negXEB = true;
-        }
-        
-        if (sy_minus.size() == trk.N){
-           negYEB = true;
-        }
-        
-        
-        if (negXEB && !negYEB){
-            hasAsymEB = true;
-            sy_minus = trk.sy;
-        }
-        
-        else if (!negXEB && negYEB){
-            hasAsymEB = true;
-            sx_minus = trk.sx;
-        }
-        
-        else if (negXEB && negYEB){
-            hasAsymEB = true;
-        }
+        // likelihood selection
         
         if (hasAsymSlop || hasAsymEB){
-            trk.statistics.selectedChiSq = &TRK::Statistics::modifiedChiSquaredAsym;
-            trk.statistics.selectedLikelihood = &TRK::Statistics::likelihoodAsym;
+            if (trk.settings.do1DFit){
+                trk.statistics.selectedChiSq = &TRK::Statistics::regularChiSquaredWSlopAsym;
+                trk.statistics.selectedLikelihood = &TRK::Statistics::likelihood1DAsym;
+                if (trk.settings.verbose){
+                    printf("Running 1D asymmetric fit.\n");
+                }
+            } else {
+                trk.statistics.selectedChiSq = &TRK::Statistics::modifiedChiSquaredAsym;
+                trk.statistics.selectedLikelihood = &TRK::Statistics::likelihoodAsym;
+            }
+                
+                
+            
+        } else { // symmetric case
+            if (trk.settings.do1DFit){
+                trk.statistics.selectedChiSq = &TRK::Statistics::regularChiSquaredWSlop;
+                trk.statistics.selectedLikelihood = &TRK::Statistics::likelihood1D;
+                if (trk.settings.verbose){
+                    printf("Running 1D symmetric fit.\n");
+                }
+            }
         }
         
         if (verbose){
             printf("Asymmetries: slop: %s\tError bars: %s\n", hasAsymSlop ? "true" : "false", hasAsymEB ? "true" : "false");
         }
         
-        if (hasAsymSlop){
-            trk.allparams_guess.push_back(slop_x_minus_guess);
-            trk.allparams_guess.push_back(slop_y_minus_guess);
-        }
+        // add asymm slops to all params guess
         
-        if (trk.settings.do1DFit){
-            trk.statistics.selectedChiSq = &TRK::Statistics::regularChiSquaredWSlop;
-            trk.statistics.selectedLikelihood = &TRK::Statistics::likelihood1D;
-            if (trk.settings.verbose){
-                printf("Running 1D fit.\n");
+        if (hasAsymSlop){
+            if (!trk.settings.do1DFit){
+                trk.allparams_guess.push_back(slop_x_minus_guess);
             }
+            trk.allparams_guess.push_back(slop_y_minus_guess);
         }
         
         return;
@@ -5511,6 +5678,84 @@ namespace TRKLib {
         
         return {deltaxn, deltayn};
     }
+
+    double TRK::Asymmetric::getAsymShift1D(std::vector <double> allparams, int n){
+        double delta_n = 0.0;
+        
+        std::vector <double> slops = {allparams[trk.M]}; // +, -
+        std::vector <double> EBs = {trk.sy[n]};
+        
+        if (hasAsymSlop && !hasAsymEB){
+            slops.push_back(allparams[trk.M+1]);
+            EBs = concat(EBs, EBs);
+        } else if (!hasAsymSlop && hasAsymEB){
+            slops = concat(slops, slops);
+            EBs.push_back(sy_minus[n]);
+        } else if (hasAsymSlop && hasAsymEB){
+            slops.push_back(allparams[trk.M+1]);
+            EBs.push_back(trk.asymmetric.sy_minus[n]);
+        }
+        
+        // SHIFT
+        std::vector <double> sigma_vec = slops;
+        std::vector <double> sigman_vec = EBs;
+        
+        double sigmaL = minMax(sigma_vec)[1];
+        double sigmaS = minMax(sigma_vec)[0];
+        double sigmanL = minMax(sigman_vec)[1];
+        double sigmanS = minMax(sigman_vec)[0];
+        
+        std::vector <double> sigmaMax_vec = {sigmaL, sigmanL};
+        double sigmaMax = minMax(sigmaMax_vec)[1];
+        
+        
+        double xi = sigmaS/sigmaL + sigmanS / sigmanL;
+        double eta = sigmanL < sigmaL ? sigmanS/sigmanL - sigmaS/sigmaL : sigmaS/sigmaL - sigmanS/sigmanL;
+        double r = minMax(sigmaMax_vec)[0] / minMax(sigmaMax_vec)[1];
+        
+        double xip = xi <= 1 ? xi : 2.0 - xi;
+        double etap = xip == 0 ? 0 : 2.0 * xip * std::pow(0.5*eta/xip + 1.0, std::pow(r, -0.4087)) - xip;
+        
+        double Nr = -0.5326*std::pow(r,2.0) + 1.5307*r + 0.0019;
+        double fXi = xi <= 1 ? 0.2454*std::pow(xi, -1.1452) : 0.2454*std::pow(xi, -0.5203);
+        double gEtaP = std::pow(etap,2.0);
+        double hXi = -0.042*std::pow(xi,2.0) - 0.1602 * xi + 0.4884;
+        
+        double deltastr = sigmaMax * Nr * (fXi * gEtaP + hXi);
+        
+        int i = 1;
+        if (slops[0] == slops[1] || EBs[0] == EBs[1]){ //one of the dists is symmetric
+            if (sigmanL == EBs[0] || sigmaL == slops[1]){
+                i = 1;
+            } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
+                i = -1;
+            }
+            
+            delta_n = i * deltastr;
+            
+        } else if ((sigmaL == slops[1] && sigmanL == EBs[0]) || (sigmaL = slops[0] && sigmanL == EBs[1])){ //both asymm first case
+            if (sigmaMax == EBs[0] || sigmaMax == slops[1]){
+                i = 1;
+            } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
+                i = -1;
+            }
+            
+            delta_n = i * deltastr;
+            
+        } else if ((sigmaL == slops[0] && sigmanL == EBs[0]) || (sigmaL = slops[1] && sigmanL == EBs[1])){ //both asymm second case
+            if (sigmaMax == EBs[0] || sigmaMax == slops[1]){
+                i = 1;
+            } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
+                i = -1;
+            }
+            
+            double pwr = eta <= 1 ? 0.7413 : -0.1268;
+            delta_n = i * deltastr * std::sin(PI/2.0 * etap/xip) * std::pow(eta, pwr);
+        }
+        
+        return delta_n;
+    }
+
 
     std::vector <double> TRK::Asymmetric::getAsymSigs2(std::vector <double> allparams, int n){
         std::vector <double> Sigs2(4, 0.0);

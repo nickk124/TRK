@@ -84,6 +84,10 @@ double rvc2Slope1(std::vector <double> params);
 double rvc2Intercept2(std::vector <double> params);
 double rvc2Slope2(std::vector <double> params);
 
+
+// x0/gamma
+double x0gam(double c2, std::vector <double> params);
+
 // COVID-19 MODELS
 static bool covid_fitInLogSpace = false;
 
