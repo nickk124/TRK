@@ -778,6 +778,26 @@ namespace TRKLib {
                     printf("\t");
                 }
                 std::cout << std::endl << std::endl;
+                
+                if (asymmetric.hasAsymSlop){
+                    printf("\nASYMMETRIC (NEGATIVE) SLOP UNCERTAINTIES: (- 1 2 3, + 1 2 3): \n");
+                    if (!settings.do1DFit){
+                        for (int j = 0; j < 2; j++) {
+                            for (int i = 0; i < 3; i++) {
+                                printf("%.3e ", results.slopX_minus_123Sigmas[j][i]);
+                            }
+                            printf("\t");
+                        }
+                        std::cout << std::endl;
+                    }
+                    for (int j = 0; j < 2; j++) {
+                        for (int i = 0; i < 3; i++) {
+                            printf("%.3e ", results.slopY_minus_123Sigmas[j][i]);
+                        }
+                        printf("\t");
+                    }
+                    std::cout << std::endl << std::endl;
+                }
             }
             
             printf("\nFITNESS:\nchisquared = %.3e\n\n", results.fitness);
@@ -3609,7 +3629,16 @@ namespace TRKLib {
             // finally, combine them all
             allparam_samples = combineLinearAndNonLinearSamples(all_linearparam_samples, nonlinear_allparam_samples, fixed_allparams_flags_linear, fixed_allparams_flags_nonlinear);
         } else {
-            std::vector <bool> fixed_allparams_flags_default(trk.bigM, false); // none fixed
+            int m = 0;
+            if (trk.asymmetric.hasAsymSlop){
+                if (trk.settings.do1DFit){
+                    m = 1;
+                } else {
+                    m = 2;
+                }
+            }
+            
+            std::vector <bool> fixed_allparams_flags_default(trk.bigM + m, false); // none fixed
             
             allparam_samples = samplePosterior(R, burncount, allparams_sigmas_guess, fixed_allparams_flags_default);
         }
@@ -3865,8 +3894,17 @@ namespace TRKLib {
             AIES_param_width_estimates.clear();
             
             // default values
+            
+            int m = 0;
+            if (trk.asymmetric.hasAsymSlop){
+                if (trk.settings.do1DFit){
+                    m = 1;
+                } else {
+                    m = 2;
+                }
+            }
         
-            for (int j = 0; j < trk.bigM; j++){
+            for (int j = 0; j < trk.bigM + m; j++){
                 AIES_param_width_estimates.push_back(std::abs(trk.allparams_guess[j] != 0 ? trk.allparams_guess[j] * AIES_initial_scaling : 0.1));
             }
             
@@ -3876,7 +3914,7 @@ namespace TRKLib {
                 
                 std::vector < std::vector <double> > allparam_samples = trk.mcmc.samplePosterior(starting_width_estimate_samplesize, burncount, trk.mcmc.allparams_sigmas_guess, fixed_allparams_flags_default);
                 
-                for (int j = 0; j < trk.bigM; j++){
+                for (int j = 0; j < trk.bigM + m; j++){
                     std::vector <double> param_sample;
                     for (int i = 0; i < allparam_samples.size(); i++) {
                         param_sample.push_back(allparam_samples[i][j]);
@@ -3920,7 +3958,7 @@ namespace TRKLib {
         useLogPosterior = true;
 
         // n is number of free params
-        unsigned long n = std::count(fixed_allparams_flags.begin(), fixed_allparams_flags.end(), false); // trk.bigM;
+        unsigned long n = std::count(fixed_allparams_flags.begin(), fixed_allparams_flags.end(), false); // trk.bigM + asymmetries;
         
         std::vector < std::vector <double > > result, result_final;
         
