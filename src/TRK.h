@@ -128,6 +128,7 @@ namespace TRKLib {
                     //      1D
                     double regularChiSquaredWSlopAsym(std::vector <double> allparams, double s);
                     double likelihood1DAsym(std::vector <double> allparams);
+                    bool useLogLikelihood1D = true;
                     //      2D
                     double modifiedChiSquaredAsym(std::vector <double> allparams, double s);
                     double likelihoodAsym(std::vector <double> allparams);

@@ -517,8 +517,12 @@ namespace TRKLib {
             results.bestFitParams.push_back(allparams_s[j]);
         }
 
-        results.slop_x = allparams_s[M];
-        results.slop_y = allparams_s[M + 1];
+        if (!settings.do1DFit){
+            results.slop_x = allparams_s[M];
+            results.slop_y = allparams_s[M + 1];
+        } else {
+            results.slop_y = allparams_s[M];
+        }
         
         if (asymmetric.hasAsymSlop){
             if (settings.do1DFit){
@@ -560,8 +564,12 @@ namespace TRKLib {
             results.bestFitParams.push_back(allparams_s[j]);
         }
         
-        results.slop_x = allparams_s[M];
-        results.slop_y = allparams_s[M + 1];
+        if (!settings.do1DFit){
+            results.slop_x = allparams_s[M];
+            results.slop_y = allparams_s[M + 1];
+        } else {
+            results.slop_y = allparams_s[M];
+        }
         
         if (asymmetric.hasAsymSlop){
             if (settings.do1DFit){
@@ -602,8 +610,12 @@ namespace TRKLib {
             results.bestFitParams.push_back(allparams_s[j]);
         }
         
-        results.slop_x = allparams_s[M];
-        results.slop_y = allparams_s[M + 1];
+        if (!settings.do1DFit){
+            results.slop_x = allparams_s[M];
+            results.slop_y = allparams_s[M + 1];
+        } else {
+            results.slop_y = allparams_s[M];
+        }
         
         if (asymmetric.hasAsymSlop){
             if (settings.do1DFit){
@@ -719,13 +731,21 @@ namespace TRKLib {
 
             printf("BEST FIT MODEL PARAMETERS:\n");
             for (int k = 0; k < params_guess.size(); k++) {
-                printf("%.3e ", results.bestFitParams[k]);
+                printf("%.5e ", results.bestFitParams[k]);
             }
             printf("\n\nBEST FIT SLOP (EXTRINSIC SCATTER) PARAMETERS:\n");
-            if (settings.do1DFit){
-                printf("y-slop =  %.3e", results.slop_y);
+            if (asymmetric.hasAsymSlop){
+                if (settings.do1DFit){
+                    printf("y-slop+ =  %.5f y-slop- =  %.5f", results.slop_y, results.slop_y_minus);
+                } else {
+                    printf("x-slop+ =  %.5f y-slop+ = %.5f x-slop- =  %.5f y-slop- = %.5f", results.slop_x, results.slop_y, results.slop_x_minus, results.slop_y_minus);
+                }
             } else {
-                printf("x-slop =  %.3e y-slop = %.3e", results.slop_x, results.slop_y);
+                if (settings.do1DFit){
+                    printf("y-slop =  %.5f", results.slop_y);
+                } else {
+                    printf("x-slop =  %.5f y-slop = %.5f", results.slop_x, results.slop_y);
+                }
             }
             std::cout << std::endl;
             
@@ -1197,7 +1217,7 @@ namespace TRKLib {
 
         for (int i = 0; i < trk.N; i++) {
             l = std::exp(-0.5 * trk.w[i]* std::pow((trk.yc(trk.x[i], params) - trk.y[i])/std::sqrt(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0)), 2.0)) / std::pow(std::pow(trk.sy[i], 2.0) + std::pow(sigma, 2.0), trk.w[i]/2.0);
-            if (trk.mcmc.useLogPosterior){
+            if (trk.statistics.useLogLikelihood1D){
                 L += std::log(l);
             } else {
                 L *= l;
@@ -1213,11 +1233,7 @@ namespace TRKLib {
     double TRK::Statistics::likelihood1DAsym(std::vector <double> allparams) {
     //    printf("Notice: 1D likelihood (for testing) not currently configured to work with weights.\n");
         
-        double L = 1.0;
-        
-        if (trk.mcmc.useLogPosterior){
-            L = 0.0;
-        }
+        double lnL = 0.0;
         
         double sigmap = allparams[trk.M];
         double sigmam = allparams[trk.M + 1];
@@ -1230,42 +1246,34 @@ namespace TRKLib {
         
         double l;
         double delta_i; // asymmetric shift
-        double Sigmap, Sigmam, prefactor, postfactor, ymodel, Sigmapostfactor; // capital sigma +, - (convolved uncertainties)
+        double Sigmap, Sigmam, ymodel, Sigmapostfactor; // capital sigma +, - (convolved uncertainties)
 
         for (int i = 0; i < trk.N; i++) {
             delta_i = trk.asymmetric.getAsymShift1D(allparams, i);
             Sigmap = std::sqrt(std::pow(sigmam, 2.0) + std::pow(trk.sy[i], 2.0));
             Sigmam = std::sqrt(std::pow(sigmap, 2.0) + std::pow(trk.asymmetric.sy_minus[i], 2.0));
-            prefactor = 2.0 / (std::sqrt(2.0 * PI) * std::pow(Sigmap + Sigmam, trk.w[i]));
             ymodel = trk.yc(trk.x[i], params);
             
             Sigmapostfactor = trk.y[i] + delta_i >= ymodel ? Sigmap : Sigmam;
-            postfactor = std::exp(-0.5 * trk.w[i] * std::pow((trk.y[i] + delta_i - ymodel) / Sigmapostfactor, 2.0));
             
-            l = prefactor * postfactor;
+            l = -1.0 * trk.w[i] * (std::log(Sigmap + Sigmam) + 0.5 * std::pow((trk.y[i] + delta_i - ymodel) / Sigmapostfactor, 2.0));
             
-            if (trk.mcmc.useLogPosterior){
-                L += std::log(l);
-            } else {
-                L *= l;
-            }
+            
+//            printf("%f\n", l);
+//
+//            if (l == 0.0){
+//                printf("test\n");
+//            }
+            lnL += l;
         }
     //    printf("%.3e\n",L);
-        return L; // returns log L = logL1 + logL2 + ... given L = L1*L2*L3... if useLogPosterior == true
+        return lnL;
     }
 
     double TRK::Statistics::regularChiSquaredWSlopAsym(std::vector <double> allparams, double s) {
-        double chi2;
-        
-        double L = likelihood1DAsym(allparams);
-        
-        if (trk.mcmc.useLogPosterior){
-            chi2 = -2.0 * L;
-        } else {
-            chi2 = -2.0 * std::log(L);
-        }
-        
-        return chi2;
+        double lnL = likelihood1DAsym(allparams);
+
+        return -2.0 * lnL;
     }
 
     // 2D
