@@ -90,6 +90,8 @@ namespace TRKLib {
                     // constructors/destructor
                     Statistics(TRK &trk);
                     ~Statistics();
+                
+//                    double regularChiSquaredWSlopAsym(std::vector <double> allparams, double s);
 
                 private:
                     // function pointers
@@ -492,6 +494,7 @@ namespace TRKLib {
                     // settings
                     bool hasAsymEB = false;
                     bool hasAsymSlop = false;
+                    bool use_new_1D_shift_code = false;
                     bool verbose = false; // show info/steps about asymmetric uncertainty fitting
                 
                     // tools

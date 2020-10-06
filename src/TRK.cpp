@@ -476,7 +476,7 @@ namespace TRKLib {
         
         optimization.getBetterGuess(); // once before pivot point optimization, once after
         
-        correlationRemoval.getPivotGuess();
+        correlationRemoval.getPivotGuess(); // guesses pivots if no guess provided
         
         scaleOptimization.optimizeScale();
 
@@ -503,7 +503,7 @@ namespace TRKLib {
         
         optimization.getBetterGuess();
         
-        correlationRemoval.getPivotGuess();
+        correlationRemoval.getPivotGuess(); // guesses pivots if no guess provided
 
         correlationRemoval.findPivots();
 
@@ -548,7 +548,7 @@ namespace TRKLib {
         
         optimization.getBetterGuess();
         
-        correlationRemoval.getPivotGuess();
+        correlationRemoval.getPivotGuess(); // guesses pivots if no guess provided
         
         scaleOptimization.optimizeScale(); // (stores results in TRK.results)
 
@@ -596,7 +596,7 @@ namespace TRKLib {
         
         optimization.getBetterGuess();
 
-        correlationRemoval.getPivotGuess();
+        correlationRemoval.getPivotGuess(); // guesses pivots if no guess provided
 
         correlationRemoval.findPivots();
 
@@ -800,7 +800,7 @@ namespace TRKLib {
                 }
             }
             
-            printf("\nFITNESS:\nchisquared = %.3e\n\n", results.fitness);
+            printf("\nFITNESS:\nchisquared = %f\n\n", results.fitness);
         }
         
         
@@ -1270,13 +1270,15 @@ namespace TRKLib {
 
         for (int i = 0; i < trk.N; i++) {
             delta_i = trk.asymmetric.getAsymShift1D(allparams, i);
+//            Sigmap = std::sqrt(std::pow(sigmap, 2.0) + std::pow(trk.sy[i], 2.0));
+//            Sigmam = std::sqrt(std::pow(sigmam, 2.0) + std::pow(trk.asymmetric.sy_minus[i], 2.0));
             Sigmap = std::sqrt(std::pow(sigmam, 2.0) + std::pow(trk.sy[i], 2.0));
             Sigmam = std::sqrt(std::pow(sigmap, 2.0) + std::pow(trk.asymmetric.sy_minus[i], 2.0));
             ymodel = trk.yc(trk.x[i], params);
             
             Sigmapostfactor = trk.y[i] + delta_i >= ymodel ? Sigmap : Sigmam;
             
-            l = -1.0 * trk.w[i] * (std::log(Sigmap + Sigmam) + 0.5 * std::pow((trk.y[i] + delta_i - ymodel) / Sigmapostfactor, 2.0));
+            l = -1.0 * (trk.w[i] * (std::log(Sigmap + Sigmam) + 0.5 * std::pow((trk.y[i] + delta_i - ymodel) / Sigmapostfactor, 2.0)) - 0.5 * std::log(2.0/PI));
             
             
 //            printf("%f\n", l);
@@ -1994,6 +1996,10 @@ namespace TRKLib {
     // downhill simplex/ nelder mead method customized for fitting
     std::vector <double> TRK::Optimization::downhillSimplex_Fit(double(TRK::Statistics::*f)(std::vector <double> , double), std::vector <double> allparams_guess, double s, bool show_steps) {
         
+        if (s == 0.0625){
+            printf("test\n");
+        }
+        
         double prev_fitness = DBL_MAX;
 
         unsigned long n = trk.bigM; //number of model parameters plus two slop parameters
@@ -2266,16 +2272,7 @@ namespace TRKLib {
 
     std::vector <double> TRK::Optimization::pegToZeroSlop(std::vector <double> vertex){
         double pegToZeroTol = trk.scaleOptimization.pegToZeroTol;
-        if (trk.settings.do1DFit){
-            if (std::abs(vertex[trk.M]) <= pegToZeroTol) {
-                vertex[trk.M] = 0;
-            }
-            if (trk.asymmetric.hasAsymSlop){
-                if (std::abs(vertex[trk.M+1]) <= pegToZeroTol) {
-                    vertex[trk.M+1] = 0;
-                }
-            }
-        } else {
+        if (!trk.settings.do1DFit){ // no scale optimization on 1D fits
             if (std::abs(vertex[trk.M]) <= pegToZeroTol){//} && std::abs(vertex[trk.M+1]) > pegToZeroTol) {
                 vertex[trk.M] = 0;
             }
@@ -2367,6 +2364,8 @@ namespace TRKLib {
     }
 
     void TRK::Optimization::getBetterGuess(){
+        // re-fitting is done at beginning of scale optimization for 2D case
+        
         if (trk.settings.do1DFit){ // re-fitting is done at beginning of scale optimization for 2D case
             trk.results.bestFitParams.clear();
 
@@ -2401,7 +2400,7 @@ namespace TRKLib {
                 printf("Better parameter guess found to be:\n");
                 printVector(trk.allparams_guess);
             }
-        } // re-fitting is done at beginning of scale optimization for 2D case
+        }
 
         //        else {  // re-fitting is done at beginning of scale optimization for 2D case
 //            trk.allparams_guess[trk.M] = trk.results.slop_x;
@@ -2971,7 +2970,7 @@ namespace TRKLib {
         left = a;
         right = b;
 
-        double c, f_c;
+        double f_c, c = -1.0;
         double tol_bisect = 1e-4;
         double tol_brackets = 1e-3;
         
@@ -5580,6 +5579,9 @@ namespace TRKLib {
     }
 
     std::vector <double> TRK::Asymmetric::getAsymShifts(std::vector <double> allparams, int n){
+        
+        // TO DO: modify this to use old code (see getAsymShift1D)
+        
         double deltayn = 0.0;
         double deltaxn = 0.0;
         
@@ -5728,77 +5730,239 @@ namespace TRKLib {
     double TRK::Asymmetric::getAsymShift1D(std::vector <double> allparams, int n){
         double delta_n = 0.0;
         
-        std::vector <double> slops = {allparams[trk.M]}; // +, -
-        std::vector <double> EBs = {trk.sy[n]};
+        if (use_new_1D_shift_code){
+            std::vector <double> slops = {allparams[trk.M]}; // +, -
+            std::vector <double> EBs = {trk.sy[n]};
+            
+            if (hasAsymSlop && !hasAsymEB){
+                slops.push_back(allparams[trk.M+1]);
+                EBs = concat(EBs, EBs);
+            } else if (!hasAsymSlop && hasAsymEB){
+                slops = concat(slops, slops);
+                EBs.push_back(sy_minus[n]);
+            } else if (hasAsymSlop && hasAsymEB){
+                slops.push_back(allparams[trk.M+1]);
+                EBs.push_back(trk.asymmetric.sy_minus[n]);
+            }
+            
+            std::vector <double> sigma_vec = slops;
+            std::vector <double> sigman_vec = EBs;
         
-        if (hasAsymSlop && !hasAsymEB){
-            slops.push_back(allparams[trk.M+1]);
-            EBs = concat(EBs, EBs);
-        } else if (!hasAsymSlop && hasAsymEB){
-            slops = concat(slops, slops);
-            EBs.push_back(sy_minus[n]);
-        } else if (hasAsymSlop && hasAsymEB){
-            slops.push_back(allparams[trk.M+1]);
-            EBs.push_back(trk.asymmetric.sy_minus[n]);
+            // SHIFT
+            double sigmaL = minMax(sigma_vec)[1];
+            double sigmaS = minMax(sigma_vec)[0];
+            double sigmanL = minMax(sigman_vec)[1];
+            double sigmanS = minMax(sigman_vec)[0];
+            
+            std::vector <double> sigmaMax_vec = {sigmaL, sigmanL};
+            double sigmaMax = minMax(sigmaMax_vec)[1];
+            
+            
+            double xi = (sigmaS/sigmaL) + (sigmanS / sigmanL);
+            double eta = sigmanL < sigmaL ? (sigmanS/sigmanL) - (sigmaS/sigmaL) : (sigmaS/sigmaL) - (sigmanS/sigmanL);
+            double r = minMax(sigmaMax_vec)[0] / minMax(sigmaMax_vec)[1];
+            
+            double xip = xi <= 1 ? xi : 2.0 - xi;
+            double etap = xip == 0.0 ? 0.0 : 2.0 * xip * std::pow(0.5*(eta/xip) + 1.0, std::pow(r, -0.4087)) - xip;
+            
+            
+    //        if (xi == 0.0 || xip == 0.0){
+    //            printf("xi = %f \t xi==0.0: %s\n", xi, xi == 0.0 ? "true" : "false");
+    //            printf("xip = %f \t xip==0.0: %s\n\n", xip, xip == 0.0 ? "true" : "false");
+    //        }
+            
+            double Nr = -0.5326*std::pow(r,2.0) + 1.5307*r + 0.0019;
+            
+            double fXi;
+            if (xi == 0.0){
+                fXi = 0.0;
+            } else if ( xi <= 1 ){
+                fXi = 0.2454*std::pow(xi, -1.1452);
+            } else {
+                fXi = 0.2454*std::pow(xi, -0.5203);
+            }
+            
+            double gEtaP = std::pow(etap,2.0);
+            double hXi = -0.042*std::pow(xi,2.0) - 0.1602 * xi + 0.4884;
+            
+            double deltastr = sigmaMax * Nr * (fXi * gEtaP + hXi);
+            
+            int i = 1;
+            if (slops[0] == slops[1] || EBs[0] == EBs[1]){ //one of the dists is symmetric
+                if (sigmanL == EBs[0] || sigmaL == slops[1]){
+                    i = 1;
+                } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
+                    i = -1;
+                }
+                
+                delta_n = i * deltastr;
+                
+            } else if ((sigmaL == slops[1] && sigmanL == EBs[0]) || (sigmaL = slops[0] && sigmanL == EBs[1])){ //both asymm first case
+                if (sigmaMax == EBs[0] || sigmaMax == slops[1]){
+                    i = 1;
+                } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
+                    i = -1;
+                }
+                
+                delta_n = i * deltastr;
+                
+            } else if ((sigmaL == slops[0] && sigmanL == EBs[0]) || (sigmaL = slops[1] && sigmanL == EBs[1])){ //both asymm second case
+                if (sigmaMax == EBs[0] || sigmaMax == slops[1]){
+                    i = 1;
+                } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
+                    i = -1;
+                }
+                
+                double pwr = eta <= 1 ? 0.7413 : -0.1268;
+                delta_n = i * deltastr * std::sin((PI/2.0) * (etap/xip)) * std::pow(eta, pwr);
+            }
+        } else {
+            double sigL,sigS,signL,signS,sigmax,x,y,f,xi,eta,nf,normf,delplus;
+            double sigp = 0.0, sigm = 0.0, signp = 0.0, signm = 0.0;
+            double pi = 3.1415926536;
+            double delta;
+            int idir;
+            
+            if (hasAsymSlop && !hasAsymEB){
+//                slops.push_back(allparams[trk.M+1]);
+//                EBs = concat(EBs, EBs);
+                
+                sigp = allparams[trk.M];
+                sigm = allparams[trk.M + 1];
+                signp = trk.sy[n];
+                signm = trk.sy[n];
+            } else if (!hasAsymSlop && hasAsymEB){
+//                slops = concat(slops, slops);
+//                EBs.push_back(sy_minus[n]);
+                
+                sigp = allparams[trk.M];
+                sigm = allparams[trk.M];
+                signp = trk.sy[n];
+                signm = sy_minus[n];
+            } else if (hasAsymSlop && hasAsymEB){
+//                slops.push_back(allparams[trk.M+1]);
+//                EBs.push_back(trk.asymmetric.sy_minus[n]);
+                
+                sigp = allparams[trk.M];
+                sigm = allparams[trk.M + 1];
+                signp = trk.sy[n];
+                signm = sy_minus[n];
+            }
+            
+            // SWITCH SLOP SIGMAS (testing)
+
+            double sigpold = sigp;
+            double sigmold = sigm;
+            sigm = sigpold;
+            sigp = sigmold;
+            
+            //For a given asymmetric Gaussian, "L" indicates the larger sigma and "S" indicates the smaller sigma
+            sigL = minMax({sigp,sigm})[1];
+            sigS = minMax({sigp,sigm})[0];
+            signL = minMax({signp,signm})[1];
+            signS = minMax({signp,signm})[0];
+            sigmax = minMax({sigL,signL})[1];
+
+            //The direction of the shift is determined by the direction of the maximum of all four sigmas
+            //(but is not necessarily in the same direction...the model below can give negative delta in certain cases)
+            if (sigmax == sigp || sigmax == signp)
+            {
+                idir = 1;
+            }
+            else
+            {
+                idir = -1;
+            }
+            
+            //Model deltas were derived from fits to surfaces in y=sigS/sigL vs x=signS/signL space, where signL=signmax=signp=1.
+            //If sigmax=sigL instead of signL, x=sigS/sigL and y=signS/signL.
+            //The model gives delta(x,y)/sigmax for different values of f=min(sigL,signL)/max(sigL,signL).
+            if (signL >= sigL)
+            {
+                x = signS/signL;
+                y = sigS/sigL;
+            }
+            else
+            {
+                x = sigS/sigL;
+                y = signS/signL;
+            }
+            //When sigL and signL are in the same direction, the model is of the form
+            //delta(x,y,f)=N(f)*[f(xi)g(eta)+h(xi)], where xi=(y+x) and eta is a *transformed* value of (y-x).
+            //The eta transformation was chosen so as to ensure delta->0 at appropriate points in the x-y plane for different values of f,
+            //when sigL and signL are in opposite directions.
+            //See Adam Trotter or Dan Reichart for details.
+            f = minMax({sigL,signL})[0]/sigmax;
+            if (f == 0.0)
+            {
+                nf = 0.0;
+            }
+            else
+            {
+                nf = pow(f,-0.4087);
+            }
+            
+            xi = x+y;
+            if (xi == 0.0 || xi == 2.0)
+            {
+                eta = 0.0;
+            }
+            else if (xi <= 1.0)
+            {
+                eta = 2.0*xi*pow(0.5*((y-x)/xi+1.0),nf)-xi;
+            }
+            else
+            {
+                if (x == 1.0)
+                    eta = -(2.0-xi);
+                else
+                    eta = 2.0*(2.0-xi)*pow(0.5*((y-x)/(2.0-xi)+1.0),nf)-(2.0-xi);
+            }
+            
+            normf = -0.5326*f*f+1.5307*f+0.0019;
+            if (xi == 0.0)
+            {
+                delplus = normf*0.4884;
+            }
+            else if (xi <= 1.0)
+            {
+                delplus = normf*(0.2454*pow(xi,-1.1452)*eta*eta-0.042*xi*xi-0.1602*xi+0.4884);
+            }
+            else
+            {
+                delplus = normf*(0.2454*pow(xi,-0.5203)*eta*eta-0.042*xi*xi-0.1602*xi+0.4884);
+            }
+
+            //Case of sigL and signL in same direction
+            if ((sigL == sigp && signL == signp) || (sigL == sigm && signL == signm))
+            {
+                delta = delplus;
+            }
+            else
+            //Case of sigL and signL in opposite directions: the above model is multiplied by a sinusoidal (odd) function in eta.
+            {
+                if (xi == 0.0 || xi == 2.0)
+                {
+                    delta = 0.0;
+                }
+                else if (xi <= 1.0)
+                {
+                    delta = delplus*pow(xi,0.7413)*sin(pi/2.0*eta/xi);
+                }
+                else
+                {
+                    delta = delplus*pow(xi,-0.1268)*sin(pi/2.0*eta/(2.0-xi));
+                }
+            }
+            //cout << "(sigp,sigm) = (" << sigp << ", " << sigm << "), (signp,signm) = (" << signp << ", " << signm << ")" << endl;
+            //cout << "f = " << f << " x = " << x << " y = " << y << " xi = " << xi << " eta = " << eta << " delta = " << delta << endl;
+            
+            //Scale the model delta by sigmax, and flip its direction if sigmax is in the negative direction
+            delta_n = delta*idir*sigmax;
         }
         
-        // SHIFT
-        std::vector <double> sigma_vec = slops;
-        std::vector <double> sigman_vec = EBs;
-        
-        double sigmaL = minMax(sigma_vec)[1];
-        double sigmaS = minMax(sigma_vec)[0];
-        double sigmanL = minMax(sigman_vec)[1];
-        double sigmanS = minMax(sigman_vec)[0];
-        
-        std::vector <double> sigmaMax_vec = {sigmaL, sigmanL};
-        double sigmaMax = minMax(sigmaMax_vec)[1];
-        
-        
-        double xi = sigmaS/sigmaL + sigmanS / sigmanL;
-        double eta = sigmanL < sigmaL ? sigmanS/sigmanL - sigmaS/sigmaL : sigmaS/sigmaL - sigmanS/sigmanL;
-        double r = minMax(sigmaMax_vec)[0] / minMax(sigmaMax_vec)[1];
-        
-        double xip = xi <= 1 ? xi : 2.0 - xi;
-        double etap = xip == 0 ? 0 : 2.0 * xip * std::pow(0.5*eta/xip + 1.0, std::pow(r, -0.4087)) - xip;
-        
-        double Nr = -0.5326*std::pow(r,2.0) + 1.5307*r + 0.0019;
-        double fXi = xi <= 1 ? 0.2454*std::pow(xi, -1.1452) : 0.2454*std::pow(xi, -0.5203);
-        double gEtaP = std::pow(etap,2.0);
-        double hXi = -0.042*std::pow(xi,2.0) - 0.1602 * xi + 0.4884;
-        
-        double deltastr = sigmaMax * Nr * (fXi * gEtaP + hXi);
-        
-        int i = 1;
-        if (slops[0] == slops[1] || EBs[0] == EBs[1]){ //one of the dists is symmetric
-            if (sigmanL == EBs[0] || sigmaL == slops[1]){
-                i = 1;
-            } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
-                i = -1;
-            }
-            
-            delta_n = i * deltastr;
-            
-        } else if ((sigmaL == slops[1] && sigmanL == EBs[0]) || (sigmaL = slops[0] && sigmanL == EBs[1])){ //both asymm first case
-            if (sigmaMax == EBs[0] || sigmaMax == slops[1]){
-                i = 1;
-            } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
-                i = -1;
-            }
-            
-            delta_n = i * deltastr;
-            
-        } else if ((sigmaL == slops[0] && sigmanL == EBs[0]) || (sigmaL = slops[1] && sigmanL == EBs[1])){ //both asymm second case
-            if (sigmaMax == EBs[0] || sigmaMax == slops[1]){
-                i = 1;
-            } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
-                i = -1;
-            }
-            
-            double pwr = eta <= 1 ? 0.7413 : -0.1268;
-            delta_n = i * deltastr * std::sin(PI/2.0 * etap/xip) * std::pow(eta, pwr);
-        }
-        
+//        delta_n = 1000;
+//        printf("%f\n", delta_n);
         return delta_n;
     }
 
