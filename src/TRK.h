@@ -175,6 +175,10 @@ namespace TRKLib {
                     double downhillSimplex_1DWrapper(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters);
                     // downhill simplex method customized for minimizing goodness of fit
                     std::vector <double> downhillSimplex_Fit(double(Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s, bool show_steps);
+                
+                    // fitting with some params fixed
+                    std::vector <double> getFullallparams(std::vector <double> allparams_free, std::vector <double> fixed_param_vals, std::vector <bool> fixed_allparams_flags);
+                    std::vector <double> downhillSimplex_Fit_Fixed(double(Statistics::*f)(std::vector <double> , double), std::vector <double> allparams_free_guess, double s, bool show_steps, std::vector <bool> fixed_allparam_flags, std::vector <double> fixed_allparam_vals);
                     
                     // downhill simplex tools
                     double evalWPriors(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> vertex, double s);
@@ -301,6 +305,7 @@ namespace TRKLib {
                     int R = 50000; // MCMC sample size (excluding burn-in)
                     int burncount = 1000; // MCMC "burn in" count . . . currently set to 1000 insteead of 50000 because burnin shouldn't be needed if using simplex best fit as guess
                     bool verbose = false; // print MCMC steps
+                    bool printAIESWalkerEvolution = false;
                 
                 private:
                     // settings
@@ -326,7 +331,7 @@ namespace TRKLib {
                     std::vector <double> getMCMCStartingPoint(std::vector <bool> fixed_allparams_flags);
                     
                     // Affine Invariant Ensemble Sampler (AIES)
-                    bool printAIESWalkerEvolution = false;
+//                    bool printAIESWalkerEvolution = false;
                     bool initializeAIESWalkersNaively = true;
                     std::vector <double> AIES_param_width_estimates;
                     int amt_walkers = 2; // number of walkers is amt_walkers * (number of parameters sampled)
@@ -426,6 +431,9 @@ namespace TRKLib {
                     double correlation_tol = 1e-1;
                     double pruneWidth = 10.0;
                 
+                    // testing
+                    bool findPivotsManually = true;
+                
                     // combinations
                     std::vector < std::vector <double> > NDcombination;
                     std::vector < std::vector <std::vector <double > > > NDcombos;
@@ -454,7 +462,9 @@ namespace TRKLib {
                     // find pivots using the correlation of intercepts and slopes
                     int max_corr_simplex_iters = 5;
                     std::vector <double> max_pivots_brackets, min_pivots_brackets;
-                    
+                
+                    // TESTING ONLY: find pivots "manually":
+                    void optimizePivots_Manual();
                 
                     void optimizePivots_Correlation();
                     void optimizePivots_Correlation_CPP11();

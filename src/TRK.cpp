@@ -1996,9 +1996,9 @@ namespace TRKLib {
     // downhill simplex/ nelder mead method customized for fitting
     std::vector <double> TRK::Optimization::downhillSimplex_Fit(double(TRK::Statistics::*f)(std::vector <double> , double), std::vector <double> allparams_guess, double s, bool show_steps) {
         
-        if (s == 0.0625){
-            printf("test\n");
-        }
+//        if (s == 0.0625){
+//            printf("test\n");
+//        }
         
         double prev_fitness = DBL_MAX;
 
@@ -2252,7 +2252,293 @@ namespace TRKLib {
         return fitted_params;
     }
 
+    std::vector <double> TRK::Optimization::getFullallparams(std::vector <double> allparams_free, std::vector <double> fixed_param_vals, std::vector <bool> fixed_allparams_flags){
+        std::vector <double> allparams_full;
+            // takes vector of free params and adds values from fixed params
+            
+        unsigned int count_free = 0, count_fixed = 0;
+        for (int j = 0; j < fixed_allparams_flags.size(); j++){
+                if (!fixed_allparams_flags[j]){  // free
+                    allparams_full.push_back(allparams_free[count_free]);
+                    count_free++;
+                } else { // fixed
+                    allparams_full.push_back(fixed_param_vals[count_fixed]);
+                    count_fixed++;
+                }
+            }
+            return allparams_full;
+        }
 
+    std::vector <double> TRK::Optimization::downhillSimplex_Fit_Fixed(double(TRK::Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_free_guess, double s, bool show_steps, std::vector <bool> fixed_allparam_flags, std::vector <double> fixed_allparam_vals){
+        double prev_fitness = DBL_MAX;
+
+            unsigned long n = trk.bigM; //number of model parameters plus two slop parameters
+            
+            if (trk.asymmetric.hasAsymSlop){
+                if (trk.settings.do1DFit){
+                    n++;
+                } else {
+                    n += 2;
+                }
+            }
+        
+        
+            // parse through fixed params
+            n -= fixed_allparam_vals.size();
+
+            double rho = 1.0; //reflection
+            double chi = 2.0; //expansion
+            double gamma = 0.5; //contraction
+            double sigma = 0.5; //shrinkage
+            
+            double tol = simplexTol;// * std::sqrt(n);
+            
+            // simplex initialization
+
+            std::vector <double> init_point = allparams_free_guess;
+
+            std::vector <std::vector <double> > vertices(n + 1, init_point);
+            std::vector <double> fitted_params, full_vertex;
+
+            int i = 0;
+            for (int j = 1; j < n + 1; j++) { //for each simplex node
+
+                vertices[j][i] = init_point[i] != 0 ? init_point[i] + simplex_size*init_point[i] : 0.1; //add initial "step size"
+                i += 1;
+            }
+
+            std::vector <double> result;
+            int it = 0;
+            while (true) {
+                while (true) {
+                    // order
+
+                    std::vector <int> orderedindices;
+                    std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
+                    for (int i = 0; i < n + 1; i++) {
+                        full_vertex = getFullallparams(vertices[i], fixed_allparam_vals, fixed_allparam_flags);
+                        unorderedEvals.push_back(evalWPriors(f, full_vertex, s));
+                    }
+                    orderedindices = getSortedIndices(unorderedEvals);
+
+                    std::vector <std::vector <double> > orderedvertices = { vertices[orderedindices[0]] };
+                    for (int i = 1; i < n + 1; i++) {
+                        orderedvertices.push_back(vertices[orderedindices[i]]);
+                    }
+
+                    vertices = orderedvertices;
+
+                    // reflect
+                    std::vector <double> refpoint;
+                    std::vector <std::vector <double> > nvertices(n, std::vector<double>());
+                    for (int i = 0; i < n; i++) {
+                        nvertices[i] = vertices[i];
+                    }
+
+                    std::vector <double> centroid = findCentroid(nvertices);
+
+                    for (int i = 0; i < n; i++) {
+                        refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
+                    }
+
+                    full_vertex = getFullallparams(refpoint, fixed_allparam_vals, fixed_allparam_flags);
+                    double fr = evalWPriors(f, full_vertex, s);
+                    
+                    full_vertex = getFullallparams(vertices[0], fixed_allparam_vals, fixed_allparam_flags);
+                    double f1 = evalWPriors(f, full_vertex, s);
+                    
+                    full_vertex = getFullallparams(vertices[n - 1], fixed_allparam_vals, fixed_allparam_flags);
+                    double fn = evalWPriors(f, full_vertex, s);
+
+                    if (f1 <= fr && fr < fn) {
+                        result = refpoint;
+                        break;
+                    }
+
+                    //expand
+                    if (fr < f1) {
+                        std::vector <double> exppoint;
+
+                        for (int i = 0; i < n; i++) {
+                            exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
+                        }
+
+                        full_vertex = getFullallparams(exppoint, fixed_allparam_vals, fixed_allparam_flags);
+                        double fe = evalWPriors(f, full_vertex, s);
+
+
+                        if (fe < fr) {
+                            result = exppoint;
+                            break;
+                        }
+                        else if (fe >= fr) {
+                            result = refpoint;
+                            break;
+                        }
+                    }
+
+                    //contract
+
+                    if (fr >= fn) {
+                        //outside
+                        full_vertex = getFullallparams(vertices[n], fixed_allparam_vals, fixed_allparam_flags);
+                        double fnp1 = evalWPriors(f, full_vertex, s);
+
+                        if (fn <= fr && fr < fnp1) {
+                            std::vector <double> cpoint;
+
+                            for (int i = 0; i < n; i++) {
+                                cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
+                            }
+                            
+                            full_vertex = getFullallparams(cpoint, fixed_allparam_vals, fixed_allparam_flags);
+                            double fc = evalWPriors(f, full_vertex, trk.scaleOptimization.s);
+
+                            if (fc <= fr) {
+                                result = cpoint;
+                                break;
+                            }
+                            else {
+                                //shrink
+
+                                std::vector < std::vector <double> > v = { vertices[0] };
+
+                                for (int i = 1; i < n + 1; i++) {
+                                    std::vector <double> vi;
+                                    vi.clear();
+                                    for (int j = 0; j < n; j++) {
+                                        vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+                                    }
+                                    v.push_back(vi);
+                                }
+
+                                vertices = v;
+                            }
+                        }
+                        else if (fr >= fnp1) {
+                            std::vector <double> ccpoint;
+
+                            for (int i = 0; i < n; i++) {
+                                ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
+                            }
+
+                            full_vertex = getFullallparams(ccpoint, fixed_allparam_vals, fixed_allparam_flags);
+                            double fcc = evalWPriors(f, full_vertex, trk.scaleOptimization.s);
+
+                            if (fcc <= fnp1) {
+                                result = ccpoint;
+                                break;
+                            }
+                            else {
+                                //shrink
+
+                                std::vector < std::vector <double> > v = { vertices[0] };
+
+                                for (int i = 1; i < n + 1; i++) {
+                                    std::vector <double> vi;
+                                    vi.clear();
+                                    for (int j = 0; j < n; j++) {
+                                        vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+                                    }
+                                    v.push_back(vi);
+                                }
+
+                                vertices = v;
+                            }
+
+
+                        }
+
+                    }
+
+                    //shrink
+
+                    std::vector < std::vector <double> > v = { vertices[0] };
+
+                    for (int i = 1; i < n + 1; i++) {
+                        std::vector <double> vi;
+                        vi.clear();
+                        for (int j = 0; j < n; j++) {
+                            vi.push_back(vertices[0][j] + sigma * (vertices[i][j] - vertices[0][j]));
+                        }
+                        v.push_back(vi);
+                    }
+
+                    vertices = v;
+                }
+
+                std::vector <std::vector <double> > bettervertices;
+                for (int i = 0; i < n; i++) {
+                    bettervertices.push_back(vertices[i]);
+                }
+
+                //check that new node does not have negative slops (fixes it if it does)
+
+                bettervertices.push_back(result);
+
+                vertices = bettervertices;
+                
+                full_vertex = getFullallparams(result, fixed_allparam_vals, fixed_allparam_flags);
+                double fitness = evalWPriors(f, full_vertex, trk.scaleOptimization.s);
+                
+                if (show_steps){
+                    std::cout << "chi-square parameters at s = " << s << " ";
+                    for (int i = 0; i < result.size(); i++) {
+                        std::cout << result[i] << " ";
+                    }
+                    
+                    std::cout << "fitness = " << fitness << "\n";
+                    
+                }
+                
+                if (trk.scaleOptimization.whichExtrema == S or trk.scaleOptimization.whichExtrema == ANY){
+                    full_vertex = getFullallparams(result, fixed_allparam_vals, fixed_allparam_flags);
+                    double fitness_res = evalWPriors(f, full_vertex, trk.scaleOptimization.s);
+                    trk.results.fitness = fitness_res;
+        //            printf("\n\nfinal fitness = %.3e\n\n", fitness);
+                }
+                
+                
+                //test for termination
+
+                std::vector <double> evals;
+                for (int i = 0; i < n + 1; i++) {
+                    full_vertex = getFullallparams(vertices[i], fixed_allparam_vals, fixed_allparam_flags);
+                    evals.push_back(evalWPriors(f, full_vertex, s));
+                }
+
+                if (simplex_terminate_stdev){
+                    if (trk.statistics.stDevUnweighted(evals) < tol) {
+                        break;
+                    }
+                } else {
+                    if (std::abs(fitness - prev_fitness) < tol){
+                        break;
+                    }
+                }
+                
+                prev_fitness = fitness;
+                
+                if (it >= max_simplex_iters){
+                    if (trk.settings.verbose){
+                        printf("Downhill simplex exceeded %i iterations; halting...\n", max_simplex_iters);
+                    }
+                    break;
+                }
+                
+                if (it % 100 == 0 && show_steps){printf("simplex iteration: %i\n", it);};
+        //
+                it++;
+            }
+
+            fitted_params = getFullallparams(vertices[n], fixed_allparam_vals, fixed_allparam_flags);
+
+            fitted_params = pegToZeroSlop(fitted_params);
+            fitted_params = avoidNegativeSlop(fitted_params, n);
+
+            return fitted_params;
+    }
+    
     // downhill simplex tools
     std::vector <double> TRK::Optimization::findCentroid(std::vector < std::vector <double> > nvertices) {
         unsigned long n = nvertices.size();
@@ -4116,7 +4402,7 @@ namespace TRKLib {
                         
                         if (printAIESWalkerEvolution){
                             for (int k = 0; k < L; k++){
-                                printf("%0.3f ", all_walkers[k][0]);
+                                printf("%f ", all_walkers[k][0]);
                             }
                             printf("\n");
                         }
@@ -4427,6 +4713,11 @@ namespace TRKLib {
         if (findPivotPoints) {
             if (verbose){
                 printf("Finding pivot point(s)...\n\n");
+            }
+            
+            if (findPivotsManually){
+                optimizePivots_Manual();
+                return;
             }
             
             switch (thisPivotMethod){
@@ -4768,7 +5059,7 @@ namespace TRKLib {
             }
             
             if (writePivots){
-                std::string filename = std::string("/Users/nickk124/research/reichart/TRK/TRKrepo_public/diagnostics/") + std::string("TRKpivots") + (getCombosFromSampleDirectly ? "1" : "0") + (weightPivots ? "1_" : "0_") + std::to_string(iter) + std::string("_") + std::to_string(finalPivots[0]) + std::string(".txt");
+                std::string filename = trk.settings.outputPath + std::string("/TRKpivots") + std::to_string(iter) + std::string("_") + std::to_string(finalPivots[0]) + std::string(".txt");
 
                 std::ofstream myfile(filename, std::ofstream::trunc);
                 if (myfile.is_open())
@@ -5285,6 +5576,54 @@ namespace TRKLib {
 
     double TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper(std::vector <double> new_pivot, int p){
         return getAbsCorrFromNewPivot(new_pivot[0], p);
+    }
+
+    // MANUAL method (for testing only)
+    void TRK::CorrelationRemoval::optimizePivots_Manual(){
+        printf("FINDING PIVOTS MANUALLY!!!\n");
+        
+        // fix to best fit
+        std::vector <double> fixed_allparam_vals, allparams_new, allparams_best_free_0  = {4.793e+00, 2.836e+00, -3.151e-01, 1.797e-01, 3.358e-01};
+        double s_best = 1.506;
+        trk.scaleOptimization.s = s_best;
+        pivots = {
+            -6.372e-02,
+            1.421e+00
+        };
+        
+        std::vector <bool> fixed_allparam_flags(trk.bigM, false);
+        fixed_allparam_flags[1] = true;
+        
+        
+        double b, m, theta = 1.575e+00, delta_theta = 1.0E-4;
+        int total_iter = 100, iter_count = 0;
+        
+        while (iter_count <= total_iter){
+            
+            theta += delta_theta;
+            
+            fixed_allparam_vals = {theta};
+            
+            //refit with new theta
+            trk.scaleOptimization.whichExtrema = S;
+            allparams_new = trk.optimization.downhillSimplex_Fit_Fixed(
+                                                                     trk.statistics.selectedChiSq,
+                                                                     allparams_best_free_0,
+                                                                     s_best,
+                                                                     trk.optimization.showFittingSteps,
+                                                                     fixed_allparam_flags,
+                                                                     fixed_allparam_vals
+                                                                 );
+            trk.scaleOptimization.whichExtrema = ANY;
+            
+            
+            m = std::tan(theta);
+            b = allparams_new[0];
+            
+            printf("%f\t%f\t%f\t%f\n", b, m, toDeg(theta), -b / m);
+            
+            iter_count++;
+        }
     }
 
 

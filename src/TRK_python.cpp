@@ -33,6 +33,7 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
         .export_values();
 
     // CLASSES
+
     // parameter prior probability distributions
     py::class_<Priors>(m, "Priors", R"mydelimiter(
             *class*. Class that encapsulates probabalistic priors to beß applied to model parameters when using model-fitting/functional form RCR (see :ref:`priors` for an example).
@@ -81,43 +82,42 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
             *function*. A custom joint prior probability function, i.e. it takes an argument of a vector of the model params (including slop, last), and returns the joint prior probability density (float).
         )mydelimiter");
 
-        // fit results
-        py::class_<Results>(m, "Results", "Results from running TRK fit algorithms.")
-            .def_readwrite("slop_x", &Results::slop_x, R"mydelimiter(
+    // fit results
+    py::class_<Results>(m, "Results", "Results from running TRK fit algorithms.")
+        .def_readwrite("slop_x", &Results::slop_x, R"mydelimiter(
+            *float*. Best fit extrinsic scatter/sample variance :math:`\sigma_x`, or *slop*, of the model along the :math:`x` direction. (Uncertainty in the dataset that cannot soleley be accounted for by the :math:`x` error bars).
+        )mydelimiter")
 
-            )mydelimiter")
+        .def_readwrite("slop_y", &Results::slop_y, R"mydelimiter(
+            *float*. Best fit extrinsic scatter/sample variance :math:`\sigma_y`, or *slop*, of the model along the :math:`y` direction. (Uncertainty in the dataset that cannot soleley be accounted for by the :math:`y` error bars).
+        )mydelimiter")
 
-            .def_readwrite("slop_y", &Results::slop_y, R"mydelimiter(
+        .def_readwrite("optimum_scale", &Results::optimumScale, R"mydelimiter(
+            *float*. The determined global optimal fitting scale :math:`s_0` for the model/dataset, where :math:`s_0` is a factor to multiply the `y`-axis of the data by.
+        )mydelimiter")
 
-            )mydelimiter")
+        .def_readwrite("minimum_scale", &Results::minimumScale, R"mydelimiter(
+            *float*. The determined minimum fitting scale :math:`a` for the model/dataset, where :math:`a` is the fitting scale where the :math:`x`-slop :math:`\sigma_x` goes to zero.
+        )mydelimiter")
 
-            .def_readwrite("optimum_scale", &Results::optimumScale, R"mydelimiter(
+        .def_readwrite("maximum_scale", &Results::maximumScale, R"mydelimiter(
+            *float*. The determined maximum fitting scale :math:`b` for the model/dataset, where :math:`b` is the fitting scale where the :math:`y`-slop :math:`\sigma_y` goes to zero.
+        )mydelimiter")
 
-            )mydelimiter")
+        .def_readwrite("fitness", &Results::fitness, R"mydelimiter(
+            *float*. The relative fitness :math:`-2\ln\mathcal{L}^\text{TRK}` of the best fit, analogous to a :math:`\chi^2` statistic, where :math:`\mathcal{L}^\text{TRK}` is the TRK likelihood function. Useful for comparing different fits obtained for the same model, or possibly model comparison.
+        )mydelimiter")
 
-            .def_readwrite("minimum_scale", &Results::minimumScale, R"mydelimiter(
+        .def_readwrite("pivots", &Results::pivots, R"mydelimiter(
+            *1D list/array_like of floats*. The pivot points :math:`x_p^i` of the linearized segments of the model, that are optimized to minimize the correlations between the slope and intercept of each segment.
+        )mydelimiter")
 
-            )mydelimiter")
+        .def_readwrite("model_parameters", &Results::bestFitParams, R"mydelimiter(
+            *1D list/array_like of floats*. The best fit parameters :math:`\vartheta_m` for the model (that minimize :math:`-2\ln\mathcal{L}^\text{TRK}`, where :math:`\mathcal{L}^\text{TRK}` is the TRK likelihood function).
+        )mydelimiter")
 
-            .def_readwrite("maximum_scale", &Results::maximumScale, R"mydelimiter(
-
-            )mydelimiter")
-
-            .def_readwrite("fitness", &Results::fitness, R"mydelimiter(
-
-            )mydelimiter")
-
-            .def_readwrite("pivots", &Results::pivots, R"mydelimiter(
-
-            )mydelimiter")
-
-            .def_readwrite("model_parameters", &Results::bestFitParams, R"mydelimiter(
-
-            )mydelimiter")
-
-
-            .def_readwrite("model_parameters", &Results::bestFitParams, R"mydelimiter(
-
-            )mydelimiter")
+        .def_readwrite("model_parameter_uncertainties", &Results::bestFitParamUncertainties, R"mydelimiter(
+            *2D list/array_like of floats*. The (possibly asymmetric) :math:`(+, -)1\sigma` widths/uncertainties of the best fit model parameters :math:`\vartheta_m`. Array organized as :math:`\left[(\sigma_{\vartheta_1,-}, \sigma_{\vartheta_1,+}), \ldots\right]`. 
+        )mydelimiter");
 
 }
