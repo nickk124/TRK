@@ -432,7 +432,7 @@ namespace TRKLib {
                     double pruneWidth = 10.0;
                 
                     // testing
-                    bool findPivotsManually = true;
+                    bool findPivotsManually = false;
                 
                     // combinations
                     std::vector < std::vector <double> > NDcombination;
