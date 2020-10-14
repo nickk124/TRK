@@ -5583,20 +5583,21 @@ namespace TRKLib {
         printf("FINDING PIVOTS MANUALLY!!!\n");
         
         // fix to best fit
-        std::vector <double> fixed_allparam_vals, allparams_new, allparams_best_free_0  = {4.793e+00, 2.836e+00, -3.151e-01, 1.797e-01, 3.358e-01};
-        double s_best = 1.506;
+        std::vector <double> fixed_allparam_vals, allparams_new, allparams_best_free_0  = {4.57967e+00, 2.75141e+00, -2.73964e-08,  0.26191, 0.31028};
+        double s_best = 8.677e-01;
         trk.scaleOptimization.s = s_best;
         pivots = {
-            -6.372e-02,
-            1.421e+00
+            9.9015E-02, 1.8249E+00
         };
         
         std::vector <bool> fixed_allparam_flags(trk.bigM, false);
         fixed_allparam_flags[1] = true;
         
         
-        double b, m, theta = 1.575e+00, delta_theta = 1.0E-4;
-        int total_iter = 100, iter_count = 0;
+        double b, m, theta = 1.72665e+00, delta_theta = 1.0E-5;
+        int total_iter = 20, iter_count = 0;
+        
+        theta -= (total_iter / 2) * delta_theta;
         
         while (iter_count <= total_iter){
             
@@ -5618,9 +5619,9 @@ namespace TRKLib {
             
             
             m = std::tan(theta);
-            b = allparams_new[0];
+            b = allparams_new[2];
             
-            printf("%f\t%f\t%f\t%f\n", b, m, toDeg(theta), -b / m);
+            printf("%.10f\t%.10f\n", b, m);
             
             iter_count++;
         }

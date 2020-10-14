@@ -67,7 +67,7 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
 
         // members
         .def_readwrite("priorType", &Priors::priorType, R"mydelimiter(
-            ``rcr.priorsTypes`` *object*. The type of priors that you're applying to your model (see :class:`rcr.priorsTypes` and :ref:`priorstypes`).
+            ``rcr.priorsTypes`` *object*. The type of priors that you're applying to your model (see :class:`trk.priorsTypes` and :ref:`priorstypes`).
         )mydelimiter")
         .def_readwrite("gaussianParams", &Priors::gaussianParams, R"mydelimiter(
             *2D list/array_like of floats*. A list that contains lists of mu and sigma for the Gaussian prior of each param. If no prior, then just use NaNs (see :ref:`priors` for an example).
@@ -119,5 +119,117 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
         .def_readwrite("model_parameter_uncertainties", &Results::bestFitParamUncertainties, R"mydelimiter(
             *2D list/array_like of floats*. The (possibly asymmetric) :math:`(+, -)1\sigma` widths/uncertainties of the best fit model parameters :math:`\vartheta_m`. Array organized as :math:`\left[(\sigma_{\vartheta_1,-}, \sigma_{\vartheta_1,+}), \ldots\right]`. 
         )mydelimiter");
+
+        // main class
+        py::class_<TRK>(m, "TRK", R"mydelimiter(
+                *class*. Master class used to initialize and run TRK fitting procedures.
+
+                Constructor arguments:
+
+                Parameters
+                ----------
+                f : function
+                    Model function :math:`y(x|\vec{\theta})` to fit to data, where :math:`x` is the independent variable (float) and :math:`\vec{\theta}` is an
+                    :math:`M`-dimensional list/array_like of model parameters. Arguments for ``f`` must follow this prototype:
+
+                    Parameters
+                    ----------
+                    x : float
+                        Independent variable of model
+                    params : list/array_like, 1D
+                        Parameters of model
+
+                    Returns
+                    -------
+                    y : float
+                        Model evaluated at the corresponding values of ``x`` and ``params``.
+
+                df : function
+                    First derivative of the model function, :math:`\frac{dy(x|\vec{\theta})}{dx}`, with respect to the independent variable :math:`x`,  where :math:`x` is the independent variable (float) and :math:`\vec{\theta}` is an
+                    :math:`M`-dimensional list/array_like of model parameters. Arguments for ``df`` must follow this prototype:
+
+                    Parameters
+                    ----------
+                    x : float
+                        Independent variable of model
+                    params : list/array_like, 1D
+                        Parameters of model
+
+                    Returns
+                    -------
+                    dy : float
+                        First :math:`x`-derivative of the model evaluated at the corresponding values of ``x`` and ``params``.
+
+                ddf : function
+                    Second derivative of the model function, :math:`\frac{d^2y(x|\vec{\theta})}{dx^2}`, with respect to the independent variable :math:`x`,  where :math:`x` is the independent variable (float) and :math:`\vec{\theta}` is an
+                    :math:`M`-dimensional list/array_like of model parameters. Arguments for ``ddf`` must follow this prototype:
+
+                    Parameters
+                    ----------
+                    x : float
+                        Independent variable of model
+                    params : list/array_like, 1D
+                        Parameters of model
+
+                    Returns
+                    -------
+                    ddy : float
+                        Second :math:`x`-derivative of the model evaluated at the corresponding values of ``x`` and ``params``.
+
+                xdata : list/array_like, 1D
+                    Independent variable data to fit model to.
+
+                ydata : list/array_like, 1D
+                    Dependent variable (model function evaluation) data to fit model to.
+
+                error_x : list/array_like, 1D
+                    Error bars/:math:`x`-uncertainties to be applied to dataset (see :ref:`errorbars`).
+
+                error_y : list/array_like, 1D
+                    Error bars/:math:`y`-uncertainties to be applied to dataset (see :ref:`errorbars`).
+
+                guess : list/array_like, 1D
+                    Guess for best fit values of model parameters :math:`\vec{\theta}` (for the fitting algorithm).
+
+                weights : list/array_like, optional, 1D
+                    Optional weights to be applied to dataset (see :ref:`weighting`).
+
+
+                tol : float, optional
+                    Default: ``1e-6``. Convergence tolerance of modified Gauss-Newton fitting algorithm.
+
+                has_priors : bool, optional
+                    Default: ``False``. Set to ``True`` if you're going to apply statistical priors to your model parameters 
+                    (see :ref:`priors`; you'll also need to create an instance of :class:`rcr.Priors` and set the ``priors`` attribute of this instance of ``FunctionalForm`` equal to it).
+
+                pivot_function : function, optional
+                    Default: ``None``. Function that returns the pivot point of some linearized model (see :ref:`pivots`). Must be of the form/prototype of:
+
+                    Parameters
+                    ----------
+                    xdata : list/array_like, 1D or 2D
+                        :math:`n`-dimensional independent variable data to fit model to; same as above``xdata``.
+                    weights : list/array_like, optional, 1D
+                        Optional weights to be applied to dataset (see :ref:`weighting`).
+                    f : function
+                        Model function; same as above ``f``.
+                    params : list/array_like, 1D
+                        Parameters of model
+
+                    Returns
+                    -------
+                    pivot : float or 1D list/array_like
+                        Pivot point(s) of the model; (``float`` if you're using a one-dimensional model/independent variable, ``list/array_like`` if :math:`n`-dimensional.)
+
+                    However, note that all arguments need to be actually used for the pivot point computation. For example,
+                    a simple linear model :math:`y(x|b,m) = b + m(x-x_p)` has a pivot point found by :math:`x_p=\sum_iw_ix_i/\sum_iw_i`, where
+                    :math:`w_i` are the weights of the datapoints.
+                
+                pivot_guess : float or 1D list/array_like, optional
+                    Initial guess for the pivot point(s) of the model (``float`` if you're using a one-dimensional model/independent variable, ``list/array_like`` if :math:`n`-dimensional; see :ref:`pivots`).
+            )mydelimiter")
+            // constructors
+            .def(py::init(&getTRKObject))
+            .def(py::init<>())
 
 }

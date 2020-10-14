@@ -399,6 +399,10 @@ namespace TRKLib {
                     bool sampleOnlyLinearParams_pivots = true; // for pivot point analysis only
                     bool sampleLinearParams_seperately = true; // for final uncertainty estimation
                 
+                    int max_corr_simplex_iters = 5;
+                    int sample_burnIn = 5000;
+                    int sample_R = 5000;
+                
                 private:
                     // core
                     std::vector <double> final_pivots; // temporary container for iteratively updating pivots
@@ -422,17 +426,17 @@ namespace TRKLib {
                     bool mustProvideLinearParamIndices = true;
                 
                     int P = 0; // number of pivot points
-                    int sample_R = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
+//                    int sample_R = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
                     int randomSampleCount = 450;
                     int maxCombos = 10000; // 50,000 seems sufficient, but 100,000 works for sure
-                    int sample_burnIn = 5000;
+//                    int sample_burnIn = 5000;
                 
                     double pivot_tol = 1e-3;
                     double correlation_tol = 1e-1;
                     double pruneWidth = 10.0;
                 
                     // testing
-                    bool findPivotsManually = false;
+                    bool findPivotsManually = true;
                 
                     // combinations
                     std::vector < std::vector <double> > NDcombination;
@@ -460,7 +464,7 @@ namespace TRKLib {
                 
                 
                     // find pivots using the correlation of intercepts and slopes
-                    int max_corr_simplex_iters = 5;
+//                    int max_corr_simplex_iters = 5;
                     std::vector <double> max_pivots_brackets, min_pivots_brackets;
                 
                     // TESTING ONLY: find pivots "manually":

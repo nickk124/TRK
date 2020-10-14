@@ -106,3 +106,6 @@ trk
 .. toctree::
    :maxdepth: 2
    :caption: Tutorials
+
+   tutorials/priors
+   tutorials/errorbars

@@ -19,6 +19,9 @@ testdata/covidoutput.txt
 testdata/extinctionfits/x0_data_old.csv
 testdata/extinctionfits/gamma_data_old.csv
 
+# documentation
+docs/build
+
 # misc
 src/trk.cpython-37m-darwin.so
 .clang_complete
