@@ -1751,11 +1751,14 @@ namespace TRKLib {
     // OPTIMIZATION ##############################################################################################################
 
     // general downhill simplex/ nelder mead method (ND case)
-    std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters){
+    std::vector <double> TRK::Optimization::downhillSimplex(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters, bool save_evals){
         double tol = tolerance;
+        
+        // empty saved evals
+        saved_vertices.clear();
+        saved_evals.clear();
 
         unsigned long n = (int) guess.size(); // dimensionality
-
 
         double rho = 1.0; //reflection
         double chi = 2.0; //expansion
@@ -1785,7 +1788,8 @@ namespace TRKLib {
                 std::vector <int> orderedindices;
                 std::vector <double> unorderedEvals; // ( f(x_1), f(x_2), ... f(x_n+1)
                 for (int i = 0; i < n + 1; i++) {
-                    unorderedEvals.push_back(func(vertices[i]));
+//                    unorderedEvals.push_back(func(vertices[i]));
+                    unorderedEvals.push_back(downhillSimplex_func_SaveEvals(func, vertices[i], save_evals));
                 }
                 orderedindices = getSortedIndices(unorderedEvals);
 
@@ -1809,9 +1813,13 @@ namespace TRKLib {
                     refpoint.push_back(centroid[i] + rho * (centroid[i] - vertices[n][i]));
                 }
 
-                double fr = func(refpoint);
-                double f1 = func(vertices[0]);
-                double fn = func(vertices[n - 1]);
+//                double fr = func(refpoint);
+//                double f1 = func(vertices[0]);
+//                double fn = func(vertices[n - 1]);
+                
+                double fr = downhillSimplex_func_SaveEvals(func, refpoint, save_evals);
+                double f1 = downhillSimplex_func_SaveEvals(func, vertices[0], save_evals);
+                double fn = downhillSimplex_func_SaveEvals(func, vertices[n - 1], save_evals);
 
                 if (f1 <= fr && fr < fn) {
                     result = refpoint;
@@ -1826,7 +1834,8 @@ namespace TRKLib {
                         exppoint.push_back(centroid[i] + chi * (refpoint[i] - centroid[i]));
                     }
 
-                    double fe = func(exppoint);
+//                    double fe = func(exppoint);
+                    double fe = downhillSimplex_func_SaveEvals(func, exppoint, save_evals);
 
 
                     if (fe < fr) {
@@ -1843,7 +1852,8 @@ namespace TRKLib {
 
                 if (fr >= fn) {
                     //outside
-                    double fnp1 = func(vertices[n]);
+//                    double fnp1 = func(vertices[n]);
+                    double fnp1 = downhillSimplex_func_SaveEvals(func, vertices[n], save_evals);
 
                     if (fn <= fr && fr < fnp1) {
                         std::vector <double> cpoint;
@@ -1852,7 +1862,8 @@ namespace TRKLib {
                             cpoint.push_back(centroid[i] + gamma * (refpoint[i] - centroid[i]));
                         }
 
-                        double fc = func(cpoint);
+//                        double fc = func(cpoint);
+                        double fc = downhillSimplex_func_SaveEvals(func, cpoint, save_evals);
 
                         if (fc <= fr) {
                             result = cpoint;
@@ -1882,7 +1893,8 @@ namespace TRKLib {
                             ccpoint.push_back(centroid[i] - gamma * (centroid[i] - vertices[n][i]));
                         }
 
-                        double fcc = func(ccpoint);
+//                        double fcc = func(ccpoint);
+                        double fcc = downhillSimplex_func_SaveEvals(func, ccpoint, save_evals);
 
                         if (fcc <= fnp1) {
                             result = ccpoint;
@@ -1943,7 +1955,8 @@ namespace TRKLib {
                     std::cout << result[i] << " ";
                 }
                 
-                double eval = func(result);
+//                double eval = func(result);
+                double eval = downhillSimplex_func_SaveEvals(func, result, save_evals);
                 std::cout << "\tfunc = " << eval << "\n";
                 
             }
@@ -1955,7 +1968,7 @@ namespace TRKLib {
 
             std::vector <double> evals;
             for (int i = 0; i < n + 1; i++) {
-                evals.push_back(func(vertices[i]));
+                evals.push_back(downhillSimplex_func_SaveEvals(func, vertices[i], save_evals));
             }
             
             if (show_steps){
@@ -1988,9 +2001,41 @@ namespace TRKLib {
         
     }
 
+    double TRK::Optimization::downhillSimplex_func_SaveEvals(std::function <double(std::vector <double> )> func, std::vector <double> vertex, bool save_evals){
+        double eval = NAN;
+        
+        if (save_evals){
+            // check to see if stored eval
+            for (int i = 0; i < saved_evals.size(); i++){
+                bool isEqual = true;
+                for (int j = 0; j < vertex.size(); j++){
+                    if (vertex[j] != saved_vertices[i][j]){
+                        isEqual = false;
+                    }
+                }
+                if (isEqual){
+                    eval = saved_evals[i];
+                }
+                break;
+            }
+            
+            if (std::isnan(eval)){ // not stored; find eval and store it
+                eval = func(vertex);
+                
+                saved_evals.push_back(eval);
+                saved_vertices.push_back(vertex);
+            }
+            
+        } else {
+            eval = func(vertex);
+        }
+        
+        return eval;
+    }
+
     double TRK::Optimization::downhillSimplex_1DWrapper(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters){
         
-        return downhillSimplex(func, guess, tolerance, show_steps, max_iters)[0];
+        return downhillSimplex(func, guess, tolerance, show_steps, max_iters, trk.correlationRemoval.save_simplex_correlation_evals)[0];
     }
 
     // downhill simplex/ nelder mead method customized for fitting
@@ -5409,7 +5454,7 @@ namespace TRKLib {
                     std::function <double(std::vector <double> )> correlation_func = std::bind(&TRK::CorrelationRemoval::getAbsCorrFromNewPivot_Wrapper, this, std::placeholders::_1, p);
                     
                     std::vector <double> pivot_vec = {pivots[p]};
-                    final_pivots[p] = trk.optimization.downhillSimplex(correlation_func, pivot_vec, correlation_tol, showSimplexSteps, max_corr_simplex_iters)[0];
+                    final_pivots[p] = trk.optimization.downhillSimplex(correlation_func, pivot_vec, correlation_tol, showSimplexSteps, max_corr_simplex_iters, save_simplex_correlation_evals)[0];
                     break;
                 }
                 default : {
@@ -5583,18 +5628,18 @@ namespace TRKLib {
         printf("FINDING PIVOTS MANUALLY!!!\n");
         
         // fix to best fit
-        std::vector <double> fixed_allparam_vals, allparams_new, allparams_best_free_0  = {4.57967e+00, 2.75141e+00, -2.73964e-08,  0.26191, 0.31028};
+        std::vector <double> fixed_allparam_vals, allparams_new, allparams_best_free_0  = {4.14979e+00, 1.72651e+00, 2.75165e+00, 0.26189, 0.31024};
         double s_best = 8.677e-01;
         trk.scaleOptimization.s = s_best;
         pivots = {
-            9.9015E-02, 1.8249E+00
+            1.6636E-01, 1.4205
         };
         
         std::vector <bool> fixed_allparam_flags(trk.bigM, false);
-        fixed_allparam_flags[1] = true;
+        fixed_allparam_flags[3] = true;
         
         
-        double b, m, theta = 1.72665e+00, delta_theta = 1.0E-5;
+        double b, m, theta = -6.91534e-04, delta_theta = 1.0E-6;
         int total_iter = 20, iter_count = 0;
         
         theta -= (total_iter / 2) * delta_theta;
@@ -5621,10 +5666,12 @@ namespace TRKLib {
             m = std::tan(theta);
             b = allparams_new[2];
             
-            printf("%.10f\t%.10f\n", b, m);
+            printf("%.20f\t%.20f\n", b, m);
             
             iter_count++;
         }
+        
+        return;
     }
 
 

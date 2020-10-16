@@ -85,11 +85,11 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
     // fit results
     py::class_<Results>(m, "Results", "Results from running TRK fit algorithms.")
         .def_readwrite("slop_x", &Results::slop_x, R"mydelimiter(
-            *float*. Best fit extrinsic scatter/sample variance :math:`\sigma_x`, or *slop*, of the model along the :math:`x` direction. (Uncertainty in the dataset that cannot soleley be accounted for by the :math:`x` error bars).
+            *float*. Best fit extrinsic scatter/sample variance :math:`\sigma_x`, or *slop*, of the model along the :math:`x` direction. (Uncertainty in the dataset that cannot solely be accounted for by the :math:`x` error bars).
         )mydelimiter")
 
         .def_readwrite("slop_y", &Results::slop_y, R"mydelimiter(
-            *float*. Best fit extrinsic scatter/sample variance :math:`\sigma_y`, or *slop*, of the model along the :math:`y` direction. (Uncertainty in the dataset that cannot soleley be accounted for by the :math:`y` error bars).
+            *float*. Best fit extrinsic scatter/sample variance :math:`\sigma_y`, or *slop*, of the model along the :math:`y` direction. (Uncertainty in the dataset that cannot solely be accounted for by the :math:`y` error bars).
         )mydelimiter")
 
         .def_readwrite("optimum_scale", &Results::optimumScale, R"mydelimiter(
@@ -189,47 +189,26 @@ PYBIND11_MODULE(trk, m) { // trk is module name, m is docstring instance
                     Error bars/:math:`y`-uncertainties to be applied to dataset (see :ref:`errorbars`).
 
                 guess : list/array_like, 1D
-                    Guess for best fit values of model parameters :math:`\vec{\theta}` (for the fitting algorithm).
+                    Guess for the best fit values of model parameters :math:`\vec{\theta}` (for the fitting algorithm).
+
+                slop_x_guess : float
+                    Guess for the best fit value of the :math:`x`-extrinsic scatter/sample variance/slop parameter :math:`\sigma_x` of the model, i.e. the uncertainty in the dataset that cannot solely be accounted for by the :math:`x` error bars (see :ref:`slop`).
 
                 weights : list/array_like, optional, 1D
                     Optional weights to be applied to dataset (see :ref:`weighting`).
 
-
-                tol : float, optional
-                    Default: ``1e-6``. Convergence tolerance of modified Gauss-Newton fitting algorithm.
-
                 has_priors : bool, optional
-                    Default: ``False``. Set to ``True`` if you're going to apply statistical priors to your model parameters 
-                    (see :ref:`priors`; you'll also need to create an instance of :class:`rcr.Priors` and set the ``priors`` attribute of this instance of ``FunctionalForm`` equal to it).
+                    Default: ``False``. Set to ``True`` if you're going to apply statistical priors to your model parameters (see :ref:`priors`; you'll also need to create an instance of :class:`trk.Priors` and set the ``statistics.priors`` attribute of this instance of ``TRK`` equal to it).
 
-                pivot_function : function, optional
-                    Default: ``None``. Function that returns the pivot point of some linearized model (see :ref:`pivots`). Must be of the form/prototype of:
-
-                    Parameters
-                    ----------
-                    xdata : list/array_like, 1D or 2D
-                        :math:`n`-dimensional independent variable data to fit model to; same as above``xdata``.
-                    weights : list/array_like, optional, 1D
-                        Optional weights to be applied to dataset (see :ref:`weighting`).
-                    f : function
-                        Model function; same as above ``f``.
-                    params : list/array_like, 1D
-                        Parameters of model
-
-                    Returns
-                    -------
-                    pivot : float or 1D list/array_like
-                        Pivot point(s) of the model; (``float`` if you're using a one-dimensional model/independent variable, ``list/array_like`` if :math:`n`-dimensional.)
-
-                    However, note that all arguments need to be actually used for the pivot point computation. For example,
-                    a simple linear model :math:`y(x|b,m) = b + m(x-x_p)` has a pivot point found by :math:`x_p=\sum_iw_ix_i/\sum_iw_i`, where
-                    :math:`w_i` are the weights of the datapoints.
-                
-                pivot_guess : float or 1D list/array_like, optional
-                    Initial guess for the pivot point(s) of the model (``float`` if you're using a one-dimensional model/independent variable, ``list/array_like`` if :math:`n`-dimensional; see :ref:`pivots`).
             )mydelimiter")
             // constructors
             .def(py::init(&getTRKObject))
             .def(py::init<>())
+
+            // member subclasses
+
+            // nonclass members
+            .def_readwrite("statistics", &TRK::statistics::priorsObject, R"mydelimiter()mydelimiter");
+
 
 }

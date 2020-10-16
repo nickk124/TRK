@@ -90,7 +90,9 @@ namespace TRKLib {
                     // constructors/destructor
                     Statistics(TRK &trk);
                     ~Statistics();
-                
+
+                    // priors
+                    Priors priorsObject;
 //                    double regularChiSquaredWSlopAsym(std::vector <double> allparams, double s);
 
                 private:
@@ -100,7 +102,6 @@ namespace TRKLib {
 
                     // priors
                     bool hasPriors;
-                    Priors priorsObject;
                     double priors(std::vector <double> allparams);
 
                     // regression
@@ -171,7 +172,7 @@ namespace TRKLib {
                 
                 private:
                     // downhill simplex method (general) for minimizing some ND function
-                    std::vector <double> downhillSimplex(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters);
+                    std::vector <double> downhillSimplex(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters, bool save_evals);
                     double downhillSimplex_1DWrapper(std::function <double(std::vector <double> )> func, std::vector <double> guess, double tolerance, bool show_steps, int max_iters);
                     // downhill simplex method customized for minimizing goodness of fit
                     std::vector <double> downhillSimplex_Fit(double(Statistics::*f)(std::vector <double>, double), std::vector <double> allparams_guess, double s, bool show_steps);
@@ -186,6 +187,11 @@ namespace TRKLib {
                     std::vector <double> pegToZeroSlop(std::vector <double> vertex);
                     std::vector <double> findCentroid(std::vector <std::vector <double> > vertices);
                     void getBetterGuess();
+                        // saving function evals
+                    std::vector <std::vector <double> > saved_vertices;
+                    std::vector <double> saved_evals; // ordered the same
+                    double downhillSimplex_func_SaveEvals(std::function <double(std::vector <double> )> func, std::vector <double> vertex, bool save_evals);
+                
                 
                     // golden section search: finds the x_min that minimizes some f(x)
                     double goldenSectionSearch(std::function <double(double)> func, double min_bracket, double max_bracket, double tolerance);
@@ -399,8 +405,8 @@ namespace TRKLib {
                     bool sampleOnlyLinearParams_pivots = true; // for pivot point analysis only
                     bool sampleLinearParams_seperately = true; // for final uncertainty estimation
                 
-                    int max_corr_simplex_iters = 5;
-                    int sample_burnIn = 5000;
+                    int max_corr_simplex_iters = 20;
+                    int sample_burnIn = 10;
                     int sample_R = 5000;
                 
                 private:
@@ -425,6 +431,8 @@ namespace TRKLib {
                     bool pivotPointActive = false;
                     bool mustProvideLinearParamIndices = true;
                 
+                    bool save_simplex_correlation_evals = true;
+                
                     int P = 0; // number of pivot points
 //                    int sample_R = 5000; //1000 too low; 5000 seems sufficient, but 10,000 works for sure
                     int randomSampleCount = 450;
@@ -436,7 +444,7 @@ namespace TRKLib {
                     double pruneWidth = 10.0;
                 
                     // testing
-                    bool findPivotsManually = true;
+                    bool findPivotsManually = false;
                 
                     // combinations
                     std::vector < std::vector <double> > NDcombination;
