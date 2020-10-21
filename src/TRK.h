@@ -537,6 +537,7 @@ namespace TRKLib {
                 
                     // 1D
                     double getAsymShift1D(std::vector <double> allparams, int n);
+                    double getAsymShift1D_old(std::vector <double> allparams, int n);
             };
 
             class Settings
