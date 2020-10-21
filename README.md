@@ -17,7 +17,7 @@ This statistic, originally introduced in [Trotter 2011](https://cdr.lib.unc.edu/
 **2.** Probability distribution generation, correlation removal and custom priors for model parameters; 
 **3.** asymmetric 2D uncertainties in the data and/or model, and more.
 
-We also have built a web-based fitting calculator ([here](https://skynet.unc.edu/rcr/calculator/trk))through which the algorithm can be used easily, but generally, with a high degree of customizability.
+We also have built a web-based fitting calculator ([here](https://skynet.unc.edu/rcr/calculator/trk)) through which the algorithm can be used easily, but generally, with a high degree of customizability.
 
 The most recent/current documentation and rigorous/thorough introduction of the statistic/the TRK suite is given in Konz 2020, (in this repo), in preparation. A separate, standalone documentation for the source code itself is also given in the `documentation` folder.
 
