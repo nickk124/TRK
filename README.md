@@ -12,12 +12,12 @@ datapoint and model curve/distribution, from [Trotter 2011](https://cdr.lib.unc.
 ellipse described by the widths (&Sigma;<sub>x,n</sub>,&Sigma;<sub>y,n</sub>) that combines the intrinsic 2D uncertainty of the datapoint with the extrinsic 2D uncertainty of the model/dataset in general. The model curve y<sub>c</sub>(x; &theta;) is tangent to the error ellipse at tangent point (x<sub>t,n</sub>, y<sub>t,n</sub>) (point T), and the red line is the linear approximation of the model curve. The blue line indicates the rotated coordinate axis u<sub>n</sub> for the TRK statistic (see Konz 2020, in this repo).)*
 
 # How to Use the TRK Statistical Suite
-This statistic, originally introduced in [Trotter 2011](https://cdr.lib.unc.edu/concern/dissertations/1544bq461) is now implemented as a suite of fitting algorithms in C++ that comes equipped with many capabilities, including: 
+This statistic, originally introduced in [Trotter 2011](https://cdr.lib.unc.edu/concern/dissertations/1544bq461) is now implemented as a suite of fitting algorithms in C++ that comes equipped with many capabilities, including: 
 **1.** Support for any nonlinear model; 
 **2.** Probability distribution generation, correlation removal and custom priors for model parameters; 
 **3.** asymmetric 2D uncertainties in the data and/or model, and more.
 
-We also have built a web-based fitting calculator ([here](https://skynet.unc.edu/rcr/calculator/trk))through which the algorithm can be used easily, but generally, with a high degree of customizability.
+We also have built a web-based fitting calculator ([here](https://skynet.unc.edu/rcr/calculator/trk)) through which the algorithm can be used easily, but generally, with a high degree of customizability.
 
 The most recent/current documentation and rigorous/thorough introduction of the statistic/the TRK suite is given in Konz 2020, (in this repo), in preparation. A separate, standalone documentation for the source code itself is also given in the `documentation` folder.
 
