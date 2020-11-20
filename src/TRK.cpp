@@ -5996,6 +5996,9 @@ namespace TRKLib {
 
     std::vector <double> TRK::Asymmetric::getAsymShifts(std::vector <double> allparams, int n){
         
+        // NOTE:
+        // Make sure to update this function following edits to getAsymShift1D
+        
         // TO DO: modify this to use old code (see getAsymShift1D)
         
         double deltayn = 0.0;
@@ -6177,11 +6180,18 @@ namespace TRKLib {
         }
         
         // SWITCH SLOP SIGMAS (testing)
-
+//        printf("NOTICE: removed slop switch\n\n\n\n");
         double sigpold = sigp;
         double sigmold = sigm;
         sigm = sigpold;
         sigp = sigmold;
+        
+//        printf("TESTING SIGMA VALUES FOR 1D ASYM SHIFT.\n\n\n\n");
+//        sigp = 10.0 * sigp;
+//        sigm = 10.0 * sigm;
+        
+        
+//        printf("old code: sigp = %f\t sigm = %f\t signp = %f\t signm = %f\n\n", sigp, sigm, signp, signm);
         
         //For a given asymmetric Gaussian, "L" indicates the larger sigma and "S" indicates the smaller sigma
         sigL = minMax({sigp,sigm})[1];
@@ -6190,7 +6200,7 @@ namespace TRKLib {
         signS = minMax({signp,signm})[0];
         sigmax = minMax({sigL,signL})[1];
         
-        printf("\n\n\n\n%f\t%f\t%f\t%f\t%f\n", sigL, sigS, signL, signS, sigmax);
+//        printf("\n\n\n\n%f\t%f\t%f\t%f\t%f\n", sigL, sigS, signL, signS, sigmax);
 
         //The direction of the shift is determined by the direction of the maximum of all four sigmas
         //(but is not necessarily in the same direction...the model below can give negative delta in certain cases)
@@ -6233,7 +6243,7 @@ namespace TRKLib {
         
         xi = x+y;
         
-        printf("%f\n", xi);
+//        printf("%f\n", xi);
         
         if (xi == 0.0 || xi == 2.0)
         {
@@ -6245,13 +6255,15 @@ namespace TRKLib {
         }
         else
         {
-            if (x == 1.0)
+            if (x == 1.0){
                 eta = -(2.0-xi);
-            else
+            } else
+            {
                 eta = 2.0*(2.0-xi)*std::pow(0.5*((y-x)/(2.0-xi)+1.0),nf)-(2.0-xi);
+            }
         }
         
-        printf("%f\n", eta);
+//        printf("%f\n", eta);
         
         normf = -0.5326*f*f+1.5307*f+0.0019;
         if (xi == 0.0)
@@ -6301,127 +6313,141 @@ namespace TRKLib {
         double delta_n = 0.0;
         
 //        if (use_new_1D_shift_code){
-            std::vector <double> slops = {allparams[trk.M]}; // +, -
-            std::vector <double> EBs = {trk.sy[n]};
-            
-            if (hasAsymSlop && !hasAsymEB){
-                slops.push_back(allparams[trk.M+1]);
-                EBs = concat(EBs, EBs);
-            } else if (!hasAsymSlop && hasAsymEB){
-                slops = concat(slops, slops);
-                EBs.push_back(sy_minus[n]);
-            } else if (hasAsymSlop && hasAsymEB){
-                slops.push_back(allparams[trk.M+1]);
-                EBs.push_back(trk.asymmetric.sy_minus[n]);
-            }
-            
-            std::vector <double> sigma_vec = slops;
-            std::vector <double> sigman_vec = EBs;
+        std::vector <double> slops = {allparams[trk.M]}; // +, -
+        std::vector <double> EBs = {trk.sy[n]};
+        
+        if (hasAsymSlop && !hasAsymEB){
+            slops.push_back(allparams[trk.M+1]);
+            EBs = concat(EBs, EBs);
+        } else if (!hasAsymSlop && hasAsymEB){
+            slops = concat(slops, slops);
+            EBs.push_back(sy_minus[n]);
+        } else if (hasAsymSlop && hasAsymEB){
+            slops.push_back(allparams[trk.M+1]);
+            EBs.push_back(trk.asymmetric.sy_minus[n]);
+        }
+        
+        std::vector <double> sigma_vec = slops;
+        std::vector <double> sigman_vec = EBs;
+    
+    
+    
+        // SWITCH SLOP SIGMAS (testing)
+//        printf("NOTICE: removed slop switch\n\n\n\n");
+        sigma_vec = {sigma_vec[1], sigma_vec[0]};
+    
+//        printf("TESTING SIGMA VALUES FOR 1D ASYM SHIFT.\n\n\n\n");
+//        sigma_vec = {10.0 * sigma_vec[0], 10.0 * sigma_vec[1]};
+        
+//        printf("new code: sigp = %f\t sigm = %f\t signp = %f\t signm = %f\n\n", sigma_vec[0], sigma_vec[1], sigman_vec[0], sigman_vec[1]);
+        
+        // SHIFT
+        double sigmaL = minMax(sigma_vec)[1];
+        double sigmaS = minMax(sigma_vec)[0];
+        double sigmanL = minMax(sigman_vec)[1];
+        double sigmanS = minMax(sigman_vec)[0];
+        
+        std::vector <double> sigmaMax_vec = {sigmaL, sigmanL};
+        double sigmaMax = minMax(sigmaMax_vec)[1];
         
         
-            // SWITCH SLOP SIGMAS (testing)
-            slops = {slops[1], slops[0]};
+        int i = -1;
         
-            // SHIFT
-            double sigmaL = minMax(sigma_vec)[1];
-            double sigmaS = minMax(sigma_vec)[0];
-            double sigmanL = minMax(sigman_vec)[1];
-            double sigmanS = minMax(sigman_vec)[0];
-            
-            std::vector <double> sigmaMax_vec = {sigmaL, sigmanL};
-            double sigmaMax = minMax(sigmaMax_vec)[1];
+        if (sigmaMax == sigma_vec[0] || sigmaMax == sigman_vec[0])
+        {
+            i = 1;
+        }
+    
+    
+//            printf("\n\n\n\n%f\t%f\t%f\t%f\t%f\n", sigmaL, sigmaS, sigmanL, sigmanS, sigmaMax);
         
         
-            printf("\n\n\n\n%f\t%f\t%f\t%f\t%f\n", sigmaL, sigmaS, sigmanL, sigmanS, sigmaMax);
-            
-            
-            double xi = (sigmaS/sigmaL) + (sigmanS / sigmanL);
-            double r = minMax(sigmaMax_vec)[0] / minMax(sigmaMax_vec)[1];
-            double eta;
+        double xi = (sigmaS/sigmaL) + (sigmanS / sigmanL);
+        double r = minMax(sigmaMax_vec)[0] / minMax(sigmaMax_vec)[1];
+        double eta;
+    
+        if (sigmanL < sigmaL){
+            eta = (sigmanS/sigmanL) - (sigmaS/sigmaL);
+        } else {
+            eta = (sigmaS/sigmaL) - (sigmanS/sigmanL);
+        }
+    
+//            printf("%f\n", xi);
         
-            if (sigmanL < sigmaL){
-                eta = (sigmanS/sigmanL) - (sigmaS/sigmaL);
-            } else {
-                eta = (sigmaS/sigmaL) - (sigmanS/sigmanL);
-            }
-        
-            printf("%f\n", xi);
-            
-            double xip;
-            double etap;
-            if (xi <= 1){
-                xip = xi;
-            } else {
-                xip = 2.0 - xi;
-            }
-        
-            if (xip == 0.0){
-                etap = 0.0;
-            } else {
-                etap = 2.0 * xip * std::pow(0.5*(eta/xip) + 1.0, std::pow(r, -0.4087)) - xip;
-            }
+        double xip;
+        double etap;
+        if (xi <= 1){
+            xip = xi;
+        } else {
+            xip = 2.0 - xi;
+        }
+    
+        if (xip == 0.0){
+            etap = 0.0;
+        } else {
+            etap = 2.0 * xip * std::pow(0.5*((eta/xip) + 1.0), std::pow(r, -0.4087)) - xip;
+        }
+    
+    
+//            printf("%f\n", etap);
         
         
-            printf("%f\n", etap);
+//        if (xi == 0.0 || xip == 0.0){
+//            printf("xi = %f \t xi==0.0: %s\n", xi, xi == 0.0 ? "true" : "false");
+//            printf("xip = %f \t xip==0.0: %s\n\n", xip, xip == 0.0 ? "true" : "false");
+//        }
+        
+        double Nr = -0.5326*std::pow(r,2.0) + 1.5307*r + 0.0019;
+        
+        double fXi;
+        if (xi == 0.0){
+            fXi = 0.0;
+        } else if ( xi <= 1 ){
+            fXi = 0.2454*std::pow(xi, -1.1452);
+        } else {
+            fXi = 0.2454*std::pow(xi, -0.5203);
+        }
+        
+        double gEtaP = std::pow(etap,2.0);
+        double hXi = -0.042*std::pow(xi,2.0) - 0.1602 * xi + 0.4884;
+        
+        double deltastr = sigmaMax * Nr * (fXi * gEtaP + hXi);
+    
+        if (sigma_vec[0] == sigma_vec[1] || sigman_vec[0] == sigman_vec[1]){ //one of the dists is symmetric
+//            if (sigmanL == sigman_vec[0] || sigmaL == sigma_vec[1]){
+//                i = 1;
+//            } else if (sigmaMax == sigman_vec[1] || sigmaMax == sigma_vec[0]){
+//                i = -1;
+//            }
             
+            delta_n = i * deltastr;
             
-    //        if (xi == 0.0 || xip == 0.0){
-    //            printf("xi = %f \t xi==0.0: %s\n", xi, xi == 0.0 ? "true" : "false");
-    //            printf("xip = %f \t xip==0.0: %s\n\n", xip, xip == 0.0 ? "true" : "false");
-    //        }
+        } else if ((sigmaL == sigma_vec[1] && sigmanL == sigman_vec[0]) || (sigmaL = sigma_vec[0] && sigmanL == sigman_vec[1])){ //both asymm first case
+//            if (sigmaMax == sigman_vec[0] || sigmaMax == sigma_vec[1]){
+//                i = 1;
+//            } else if (sigmaMax == sigman_vec[1] || sigmaMax == sigma_vec[0]){
+//                i = -1;
+//            }
             
-            double Nr = -0.5326*std::pow(r,2.0) + 1.5307*r + 0.0019;
+            delta_n = i * deltastr;
             
-            double fXi;
-            if (xi == 0.0){
-                fXi = 0.0;
-            } else if ( xi <= 1 ){
-                fXi = 0.2454*std::pow(xi, -1.1452);
-            } else {
-                fXi = 0.2454*std::pow(xi, -0.5203);
-            }
+        } else if ((sigmaL == sigma_vec[0] && sigmanL == sigman_vec[0]) || (sigmaL = sigma_vec[1] && sigmanL == sigman_vec[1])){ //both asymm second case
+//            if (sigmaMax == sigman_vec[0] || sigmaMax == sigma_vec[1]){
+//                i = 1;
+//            } else if (sigmaMax == sigman_vec[1] || sigmaMax == sigma_vec[0]){
+//                i = -1;
+//            }
             
-            double gEtaP = std::pow(etap,2.0);
-            double hXi = -0.042*std::pow(xi,2.0) - 0.1602 * xi + 0.4884;
-            
-            double deltastr = sigmaMax * Nr * (fXi * gEtaP + hXi);
-            
-            int i = 1;
-            if (slops[0] == slops[1] || EBs[0] == EBs[1]){ //one of the dists is symmetric
-                if (sigmanL == EBs[0] || sigmaL == slops[1]){
-                    i = 1;
-                } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
-                    i = -1;
-                }
-                
-                delta_n = i * deltastr;
-                
-            } else if ((sigmaL == slops[1] && sigmanL == EBs[0]) || (sigmaL = slops[0] && sigmanL == EBs[1])){ //both asymm first case
-                if (sigmaMax == EBs[0] || sigmaMax == slops[1]){
-                    i = 1;
-                } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
-                    i = -1;
-                }
-                
-                delta_n = i * deltastr;
-                
-            } else if ((sigmaL == slops[0] && sigmanL == EBs[0]) || (sigmaL = slops[1] && sigmanL == EBs[1])){ //both asymm second case
-                if (sigmaMax == EBs[0] || sigmaMax == slops[1]){
-                    i = 1;
-                } else if (sigmaMax == EBs[1] || sigmaMax == slops[0]){
-                    i = -1;
-                }
-                
-                double pwr = eta <= 1 ? 0.7413 : -0.1268;
-                delta_n = i * deltastr * std::sin((PI/2.0) * (etap/xip)) * std::pow(eta, pwr);
-            }
+            double pwr = eta <= 1 ? 0.7413 : -0.1268;
+            delta_n = i * deltastr * std::sin((PI/2.0) * (etap/xip)) * std::pow(eta, pwr);
+        }
 //        } else {
-        
-        
-            double delta_old = getAsymShift1D_old(allparams, n);
+    
+    
+        double delta_old = getAsymShift1D_old(allparams, n);
             
 //        }
-        printf("delta_n = %f\t delta_old = %f\n", delta_n, delta_old);
+//        printf("delta_n = %f\t delta_old = %f\n", delta_n, delta_old);
         
 //        delta_n = 1000;
 //        printf("%f\n", delta_n);
