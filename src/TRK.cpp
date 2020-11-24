@@ -1255,47 +1255,137 @@ namespace TRKLib {
         
         double lnL = 0.0;
         
-        double sigmap = allparams[trk.M];
-        double sigmam = allparams[trk.M + 1];
-        
-        std::vector <double> params;
+        if (trk.asymmetric.use_analytic_1D_asym_likelihood){
+            double sigmap = allparams[trk.M];
+            double sigmam = allparams[trk.M + 1];
+            
+            std::vector <double> params;
 
-        for (int i = 0; i < trk.M; i++) {
-            params.push_back(allparams[i]);
-        }
-        
-        double l;
-        double delta_i; // asymmetric shift
-        double Sigmap, Sigmam, ymodel, Sigmapostfactor; // capital sigma +, - (convolved uncertainties)
+            for (int i = 0; i < trk.M; i++) {
+                params.push_back(allparams[i]);
+            }
+            
+            double l;
+            double delta_i; // asymmetric shift
+            double Sigmap, Sigmam, ymodel, Sigmapostfactor; // capital sigma +, - (convolved uncertainties)
 
-        for (int i = 0; i < trk.N; i++) {
-            delta_i = trk.asymmetric.getAsymShift1D(allparams, i);
-//            Sigmap = std::sqrt(std::pow(sigmap, 2.0) + std::pow(trk.sy[i], 2.0));
-//            Sigmam = std::sqrt(std::pow(sigmam, 2.0) + std::pow(trk.asymmetric.sy_minus[i], 2.0));
-            Sigmap = std::sqrt(std::pow(sigmam, 2.0) + std::pow(trk.sy[i], 2.0));
-            Sigmam = std::sqrt(std::pow(sigmap, 2.0) + std::pow(trk.asymmetric.sy_minus[i], 2.0));
-            ymodel = trk.yc(trk.x[i], params);
+            for (int i = 0; i < trk.N; i++) {
+                delta_i = trk.asymmetric.getAsymShift1D(allparams, i);
+    //            Sigmap = std::sqrt(std::pow(sigmap, 2.0) + std::pow(trk.sy[i], 2.0));
+    //            Sigmam = std::sqrt(std::pow(sigmam, 2.0) + std::pow(trk.asymmetric.sy_minus[i], 2.0));
+                Sigmap = std::sqrt(std::pow(sigmam, 2.0) + std::pow(trk.sy[i], 2.0));
+                Sigmam = std::sqrt(std::pow(sigmap, 2.0) + std::pow(trk.asymmetric.sy_minus[i], 2.0));
+                ymodel = trk.yc(trk.x[i], params);
+                
+                Sigmapostfactor = trk.y[i] + delta_i >= ymodel ? Sigmap : Sigmam;
+                
+                l = -1.0 * (trk.w[i] * (std::log(Sigmap + Sigmam) + 0.5 * std::pow((trk.y[i] + delta_i - ymodel) / Sigmapostfactor, 2.0)) - 0.5 * std::log(2.0/PI));
+                
+                
+    //            printf("%f\n", l);
+    //
+    //            if (l == 0.0){
+    //                printf("test\n");
+    //            }
+                lnL += l;
+            }
+        //    printf("%.3e\n",L);
+        } else {
+            // all this for constant model case
             
-            Sigmapostfactor = trk.y[i] + delta_i >= ymodel ? Sigmap : Sigmam;
+            double syp,sym;
+            double prob;
+            double pi=3.1415926535898;
+            double xn,yn,sigyplus,sigyminus; // error bars (last 2)
+            double b; // model "curve"
+            double p1,p2;
+            double deltay,weight,sigp,sigm; // asym slop components (last 2)
             
-            l = -1.0 * (trk.w[i] * (std::log(Sigmap + Sigmam) + 0.5 * std::pow((trk.y[i] + delta_i - ymodel) / Sigmapostfactor, 2.0)) - 0.5 * std::log(2.0/PI));
+            std::vector <double> params;
             
+            for (int i = 0; i < trk.M; i++) {
+                params.push_back(allparams[i]);
+            }
             
-//            printf("%f\n", l);
-//
-//            if (l == 0.0){
-//                printf("test\n");
-//            }
-            lnL += l;
+            // slop
+            syp = allparams[trk.M];
+            sym = syp;
+            if (trk.asymmetric.hasAsymSlop){
+                sym = allparams[trk.M+1];
+            }
+            
+            // switch (?)
+            double sypold = syp;
+            double symold = sym;
+            sym = sypold;
+            syp = symold;
+            
+            for (int i = 0; i < trk.N; i++) {
+                b = trk.yc(trk.x[i], params);
+                // xn,yn = x,y quoted values for data point n
+                xn = trk.x[i];
+                yn = trk.y[i];
+                
+                // errorbars:
+                sigyplus = trk.sy[i];
+                sigyminus = trk.asymmetric.sy_minus[i];
+                weight = trk.w[i];
+                
+                deltay = trk.asymmetric.getAsymShift1D(allparams, i);
+                yn = yn + deltay; // add delta shift to yn
+
+                sigp = sqrt(syp*syp+sigyplus*sigyplus);
+                sigm = sqrt(sym*sym+sigyminus*sigyminus);
+                
+                // computation of contribution to likelihood
+                double normaldist_factor1, normaldist_factor2, x;
+                if (sigyplus != 0)
+                {
+                    x = syp*(b-yn)/sigyplus/sigp;
+                    normaldist_factor1 = (1.0 + std::erf(x/std::sqrt(2.0)))  / 2.0;
+                    
+                    p1 = 1/sqrt(2.0*pi)/sigp*exp(-(b-yn)*(b-yn)/2.0/sigp/sigp)*2.0*syp/(sym+syp)*normaldist_factor1;
+                    
+                    x = sym*(b-yn)/sigyplus/sigm;
+                    normaldist_factor2 = (1.0 + std::erf(x/std::sqrt(2.0))) / 2.0;
+                    
+                    p2 = 1/sqrt(2.0*pi)/sigm*exp(-(b-yn)*(b-yn)/2.0/sigm/sigm)*2.0*sym/(sym+syp)*(1.0-normaldist_factor2);
+                    prob = p1+p2; // contribution to the likelihood function
+                }
+                else // if symmetric intrinsic errorbar = 0
+                {
+                    if (yn <= b)
+                    {
+                        prob = 1/sqrt(2.0*pi)*exp(-(b-yn)*(b-yn)/sigp/sigp/2.0)*2.0/(sym+syp);
+                    }
+                    else
+                    {
+                        prob = 1/sqrt(2.0*pi)*exp(-(b-yn)*(b-yn)/sigm/sigm/2.0)*2.0/(sym+syp);
+                    }
+                }
+                
+    //            if (yn <= b)
+    //            {
+    //                z = sqrt((b-yn)*(b-yn)/sigp/sigp);
+    //            }
+    //            else
+    //            {
+    //                z = sqrt((b-yn)*(b-yn)/sigm/sigm);
+    //            }
+                
+                lnL += weight*log(prob);
+            }
         }
-    //    printf("%.3e\n",L);
         return lnL;
     }
 
     double TRK::Statistics::regularChiSquaredWSlopAsym(std::vector <double> allparams, double s) {
+        double chi2;
+        
         double lnL = likelihood1DAsym(allparams);
-
-        return -2.0 * lnL;
+        chi2 = -2.0 * lnL;
+        
+        return chi2;
     }
 
     // 2D
@@ -6443,8 +6533,9 @@ namespace TRKLib {
         }
 //        } else {
     
-    
-        double delta_old = getAsymShift1D_old(allparams, n);
+        if (!use_new_1D_shift_code){
+            delta_n = getAsymShift1D_old(allparams, n);
+        }
             
 //        }
 //        printf("delta_n = %f\t delta_old = %f\n", delta_n, delta_old);

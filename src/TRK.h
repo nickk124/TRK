@@ -93,7 +93,7 @@ namespace TRKLib {
 
                     // priors
                     Priors priorsObject;
-//                    double regularChiSquaredWSlopAsym(std::vector <double> allparams, double s);
+                    double regularChiSquaredWSlopAsym(std::vector <double> allparams, double s);
 
                 private:
                     // function pointers
@@ -129,7 +129,7 @@ namespace TRKLib {
 
                     // likelihoods and posteriors with asymmetric uncertainties
                     //      1D
-                    double regularChiSquaredWSlopAsym(std::vector <double> allparams, double s);
+//                    double regularChiSquaredWSlopAsym(std::vector <double> allparams, double s);
                     double likelihood1DAsym(std::vector <double> allparams);
                     bool useLogLikelihood1D = true;
                     //      2D
@@ -516,8 +516,11 @@ namespace TRKLib {
                     // settings
                     bool hasAsymEB = false;
                     bool hasAsymSlop = false;
-                    bool use_new_1D_shift_code = false;
+                    bool use_new_1D_shift_code = true;
                     bool verbose = false; // show info/steps about asymmetric uncertainty fitting
+                
+                    // testing
+                    bool use_analytic_1D_asym_likelihood = false;
                 
                     // tools
                     void checkAsym();
