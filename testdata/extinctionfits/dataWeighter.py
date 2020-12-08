@@ -57,4 +57,5 @@ def main(filename):
 
     data.to_csv(filename)
 
-main('newData.csv')
+# main('newData.csv')
+main('/Users/nickk124/research/reichart/TRK/extinctionfitting/milkyway_data_new_unweighted.csv')

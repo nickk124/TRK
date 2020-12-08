@@ -563,20 +563,30 @@ namespace TRKLib {
         for (int j = 0; j < M; j++) {
             results.bestFitParams.push_back(allparams_s[j]);
         }
-        
+    
         if (!settings.do1DFit){
+            
             results.slop_x = allparams_s[M];
             results.slop_y = allparams_s[M + 1];
         } else {
             results.slop_y = allparams_s[M];
         }
         
+        // note: true def of asym slop signs inconsistent thru code,
+        // but trust this:
         if (asymmetric.hasAsymSlop){
             if (settings.do1DFit){
-                results.slop_y_minus = allparams_s[M + 1];
+                results.slop_y = allparams_s[M + 1];
+                results.slop_y_minus = allparams_s[M];
             } else {
-                results.slop_x_minus = allparams_s[M + 2];
-                results.slop_y_minus = allparams_s[M + 3];
+                // but the above note isn't implemented yet for
+                // the following 2D asym case, as the likelihood/
+                // delta shift code needs to be updated analogously
+                // to the 1D case.
+                results.slop_y = allparams_s[M + 2];
+                results.slop_y_minus = allparams_s[M];
+                results.slop_x = allparams_s[M + 3];
+                results.slop_x_minus = allparams_s[M + 1];
             }
         }
         
@@ -1259,6 +1269,14 @@ namespace TRKLib {
             double sigmap = allparams[trk.M];
             double sigmam = allparams[trk.M + 1];
             
+            // switching
+            double sigmapold = sigmap;
+            double sigmamold = sigmam;
+            sigmam = sigmapold;
+            sigmap = sigmamold;
+            
+//            printf("%f\t%f\n", sigmap, sigmam);
+            
             std::vector <double> params;
 
             for (int i = 0; i < trk.M; i++) {
@@ -1289,6 +1307,9 @@ namespace TRKLib {
     //            }
                 lnL += l;
             }
+            
+            
+//            printf("%f\t%f\n", sigmap, sigmam);
         //    printf("%.3e\n",L);
         } else {
             // all this for constant model case
@@ -1315,10 +1336,12 @@ namespace TRKLib {
             }
             
             // switch (?)
-            double sypold = syp;
-            double symold = sym;
-            sym = sypold;
-            syp = symold;
+//            double sypold = syp;
+//            double symold = sym;
+//            sym = sypold;
+//            syp = symold;
+            
+//            printf("%f\t%f\n", syp, sym);
             
             for (int i = 0; i < trk.N; i++) {
                 b = trk.yc(trk.x[i], params);
@@ -1331,8 +1354,8 @@ namespace TRKLib {
                 sigyminus = trk.asymmetric.sy_minus[i];
                 weight = trk.w[i];
                 
-                deltay = trk.asymmetric.getAsymShift1D(allparams, i);
-                yn = yn + deltay; // add delta shift to yn
+//                deltay = trk.asymmetric.getAsymShift1D(allparams, i);
+//                yn = yn + deltay; // add delta shift to yn
 
                 sigp = sqrt(syp*syp+sigyplus*sigyplus);
                 sigm = sqrt(sym*sym+sigyminus*sigyminus);
