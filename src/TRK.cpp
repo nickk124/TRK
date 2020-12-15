@@ -518,16 +518,26 @@ namespace TRKLib {
         }
 
         if (!settings.do1DFit){
+            
             results.slop_x = allparams_s[M];
             results.slop_y = allparams_s[M + 1];
         } else {
             results.slop_y = allparams_s[M];
         }
         
+        // note: true def of asym slop signs inconsistent thru code,
+        // but trust this:
         if (asymmetric.hasAsymSlop){
             if (settings.do1DFit){
+                results.slop_y = allparams_s[M];
                 results.slop_y_minus = allparams_s[M + 1];
             } else {
+                // but the above note isn't implemented yet for
+                // the following 2D asym case, as the likelihood/
+                // delta shift code needs to be updated analogously
+                // to the 1D case.
+                results.slop_x = allparams_s[M];
+                results.slop_y = allparams_s[M + 1];
                 results.slop_x_minus = allparams_s[M + 2];
                 results.slop_y_minus = allparams_s[M + 3];
             }
@@ -576,17 +586,17 @@ namespace TRKLib {
         // but trust this:
         if (asymmetric.hasAsymSlop){
             if (settings.do1DFit){
-                results.slop_y = allparams_s[M + 1];
-                results.slop_y_minus = allparams_s[M];
+                results.slop_y = allparams_s[M];
+                results.slop_y_minus = allparams_s[M + 1];
             } else {
                 // but the above note isn't implemented yet for
                 // the following 2D asym case, as the likelihood/
                 // delta shift code needs to be updated analogously
                 // to the 1D case.
-                results.slop_y = allparams_s[M + 2];
-                results.slop_y_minus = allparams_s[M];
-                results.slop_x = allparams_s[M + 3];
-                results.slop_x_minus = allparams_s[M + 1];
+                results.slop_x = allparams_s[M];
+                results.slop_y = allparams_s[M + 1];
+                results.slop_x_minus = allparams_s[M + 2];
+                results.slop_y_minus = allparams_s[M + 3];
             }
         }
         
@@ -621,16 +631,26 @@ namespace TRKLib {
         }
         
         if (!settings.do1DFit){
+            
             results.slop_x = allparams_s[M];
             results.slop_y = allparams_s[M + 1];
         } else {
             results.slop_y = allparams_s[M];
         }
         
+        // note: true def of asym slop signs inconsistent thru code,
+        // but trust this:
         if (asymmetric.hasAsymSlop){
             if (settings.do1DFit){
+                results.slop_y = allparams_s[M];
                 results.slop_y_minus = allparams_s[M + 1];
             } else {
+                // but the above note isn't implemented yet for
+                // the following 2D asym case, as the likelihood/
+                // delta shift code needs to be updated analogously
+                // to the 1D case.
+                results.slop_x = allparams_s[M];
+                results.slop_y = allparams_s[M + 1];
                 results.slop_x_minus = allparams_s[M + 2];
                 results.slop_y_minus = allparams_s[M + 3];
             }
@@ -1270,10 +1290,10 @@ namespace TRKLib {
             double sigmam = allparams[trk.M + 1];
             
             // switching
-            double sigmapold = sigmap;
-            double sigmamold = sigmam;
-            sigmam = sigmapold;
-            sigmap = sigmamold;
+//            double sigmapold = sigmap;
+//            double sigmamold = sigmam;
+//            sigmam = sigmapold;
+//            sigmap = sigmamold;
             
 //            printf("%f\t%f\n", sigmap, sigmam);
             
@@ -1335,11 +1355,11 @@ namespace TRKLib {
                 sym = allparams[trk.M+1];
             }
             
-            // switch (?)
-//            double sypold = syp;
-//            double symold = sym;
-//            sym = sypold;
-//            syp = symold;
+            // switch signs of slops, due to convention of Capital sigmas
+            double sypold = syp;
+            double symold = sym;
+            sym = sypold;
+            syp = symold;
             
 //            printf("%f\t%f\n", syp, sym);
             
@@ -1355,7 +1375,7 @@ namespace TRKLib {
                 weight = trk.w[i];
                 
 //                deltay = trk.asymmetric.getAsymShift1D(allparams, i);
-//                yn = yn + deltay; // add delta shift to yn
+//                yn = yn + deltay; // add delta shift to yn (incorrect)
 
                 sigp = sqrt(syp*syp+sigyplus*sigyplus);
                 sigm = sqrt(sym*sym+sigyminus*sigyminus);

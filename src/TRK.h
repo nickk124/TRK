@@ -520,7 +520,7 @@ namespace TRKLib {
                     bool verbose = false; // show info/steps about asymmetric uncertainty fitting
                 
                     // testing
-                    bool use_analytic_1D_asym_likelihood = false;
+                    bool use_analytic_1D_asym_likelihood = true;
                 
                     // tools
                     void checkAsym();
