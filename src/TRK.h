@@ -537,7 +537,7 @@ namespace TRKLib {
                     double findBestTangentAsym(std::vector <double> params, double xn_shifted, double yn_shifted, std::vector <double> Sigs2, std::vector <double> x_tn_vec, int quadSig_xn2Ind, int quadSig_yn2Ind, std::vector <double> shifts, double s, double wn);
                     std::vector <double> getAsymShifts(std::vector <double> allparams, int n);
                     std::vector <double> getAsymSigs2(std::vector <double> allparams, int n);
-                
+                    double getAsymShiftSingle(std::vector <double> slops_1D, std::vector <double> errorbars_1D);
                     // 1D
                     double getAsymShift1D(std::vector <double> allparams, int n);
                     double getAsymShift1D_old(std::vector <double> allparams, int n);
