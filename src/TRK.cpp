@@ -6637,7 +6637,7 @@ double TRK::Asymmetric::getAsymShiftSingle(std::vector <double> slops_1D, std::v
         Sigs2[0] = std::pow(slopxminus, 2.0) + std::pow(EBxplus, 2.0);
         Sigs2[1] = std::pow(slopyminus, 2.0) + std::pow(EByplus, 2.0);
         Sigs2[2] = std::pow(slopxplus, 2.0) + std::pow(EBxminus, 2.0);
-        Sigs2[3] = std::pow(slopxplus, 2.0) + std::pow(EBxminus, 2.0);
+        Sigs2[3] = std::pow(slopyplus, 2.0) + std::pow(EByminus, 2.0);
         
         return Sigs2; // Sigx+, Sigy+, Sigx-, Sigy-
     }
