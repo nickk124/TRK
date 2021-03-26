@@ -161,7 +161,7 @@ namespace TRKLib {
                     ~Optimization();
                 
                     // settings
-                    double simplexTol = 1e-3;  // downhill simplex fitting tolerance
+                    double simplexTol = 1e-6;  // downhill simplex fitting tolerance
                     int max_simplex_iters = 10000;   // default value for maximum number of iterations for downhill simplex
                     bool showFittingSteps = false;
                     
@@ -511,13 +511,15 @@ namespace TRKLib {
                     double slop_x_minus_guess = -1.0;  // negative asymmetric slop
                     double slop_y_minus_guess = -1.0;
                 
+                    // settings
+                    bool verbose;  // show info/steps about asymmetric uncertainty fitting
+                
                 
                 private:
                     // settings
                     bool hasAsymEB = false;
                     bool hasAsymSlop = false;
                     bool use_new_1D_shift_code = true;
-                    bool verbose = false; // show info/steps about asymmetric uncertainty fitting
                 
                     // testing
                     bool use_analytic_1D_asym_likelihood = true;
@@ -859,7 +861,7 @@ namespace TRKLib {
 
     double toDeg(double rad);
 
-    std::vector <std::vector <double > > getData(std::string fileName, int dataSize);
+    std::vector <std::vector <double > > getData(std::string fileName, int dataSize, int numcols);
 
-    std::vector <std::vector <double > > getData(std::string fileName);
+    std::vector <std::vector <double > > getData(std::string fileName, int numcols);
 }

@@ -2817,6 +2817,11 @@ namespace TRKLib {
                     break;
             }
         }
+//        
+//        if (vertex[vertex.size() - 1] < 0 || vertex[vertex.size() - 2] < 0){
+//            printf("bandaid fix for negative asym slop issue active\n");
+//            return DBL_MAX;
+//        }
         
         double ret = (trk.statistics.*f)(vertex, s);
     //
@@ -6455,7 +6460,7 @@ double TRK::Asymmetric::getAsymShiftSingle(std::vector <double> slops_1D, std::v
     std::vector <double> sigma_vec = slops_1D;
     std::vector <double> sigman_vec = errorbars_1D;
     
-    sigma_vec = {sigma_vec[1], sigma_vec[0]};
+    sigma_vec = {std::abs(sigma_vec[1]), std::abs(sigma_vec[0])};
 
 //        printf("TESTING SIGMA VALUES FOR 1D ASYM SHIFT.\n\n\n\n");
 //        sigma_vec = {10.0 * sigma_vec[0], 10.0 * sigma_vec[1]};
@@ -6563,6 +6568,10 @@ double TRK::Asymmetric::getAsymShiftSingle(std::vector <double> slops_1D, std::v
         delta_n = i * deltastr * std::sin((PI/2.0) * (etap/xip)) * std::pow(eta, pwr);
     }
     
+    if (std::abs(delta_n) >= 10000){
+        printf("Error: asym shift huge\n");
+    }
+    
     return delta_n;
 }
 
@@ -6596,39 +6605,41 @@ double TRK::Asymmetric::getAsymShiftSingle(std::vector <double> slops_1D, std::v
         
 //        delta_n = 1000;
 //        printf("%f\n", delta_n);
+        
+        
         return delta_n;
     }
 
 
     std::vector <double> TRK::Asymmetric::getAsymSigs2(std::vector <double> allparams, int n){
         std::vector <double> Sigs2(4, 0.0);
-        std::vector <double> slops = {allparams[trk.M], allparams[trk.M+1]};
-        std::vector <double> EBs = {trk.sx[n], trk.sy[n]};
-        std::vector <double> allparams_vec = {allparams[trk.M+2], allparams[trk.M+3]};
+        double slopxplus = allparams[trk.M], slopyplus = allparams[trk.M+1]; // slop x, slop y, both positive
+        double EBxplus = trk.sx[n], EByplus = trk.sy[n]; // same for error bars
+        
+        double slopxminus = slopxplus, slopyminus = slopyplus; // default symmetric case
+        double EBxminus = EBxplus, EByminus = EByplus;
         
         if (hasAsymSlop && !hasAsymEB){
-            slops = concat(allparams_vec , slops);
-            
-            EBs = concat(EBs, EBs);
-            
+            slopxminus = allparams[trk.M + 2];
+            slopyminus = allparams[trk.M + 3];
         } else if (!hasAsymSlop && hasAsymEB){
-            slops = concat(slops, slops);
-            
-            EBs.push_back(sx_minus[n]);
-            EBs.push_back(sy_minus[n]);
+            EBxminus = sx_minus[n];
+            EByminus = sy_minus[n];
             
         } else if (hasAsymSlop && hasAsymEB){
-            slops = concat(allparams_vec, slops);
+            slopxminus = allparams[trk.M + 2];
+            slopyminus = allparams[trk.M + 3];
             
-            EBs.push_back(sx_minus[n]);
-            EBs.push_back(sy_minus[n]);
+            EBxminus = sx_minus[n];
+            EByminus = sy_minus[n];
         }
         
-        for (int i = 0; i < 4; i++){
-            Sigs2[i] = std::pow(slops[i], 2.0) + std::pow(EBs[i], 2.0);
-        }
-            
-        return Sigs2;
+        Sigs2[0] = std::pow(slopxminus, 2.0) + std::pow(EBxplus, 2.0);
+        Sigs2[1] = std::pow(slopyminus, 2.0) + std::pow(EByplus, 2.0);
+        Sigs2[2] = std::pow(slopxplus, 2.0) + std::pow(EBxminus, 2.0);
+        Sigs2[3] = std::pow(slopxplus, 2.0) + std::pow(EBxminus, 2.0);
+        
+        return Sigs2; // Sigx+, Sigy+, Sigx-, Sigy-
     }
 
     std::vector <double> TRK::Asymmetric::tangentParallelAsym(std::vector <double> allparams, int n, double s) {
@@ -6989,15 +7000,15 @@ double TRK::Asymmetric::getAsymShiftSingle(std::vector <double> slops_1D, std::v
         return rad * (180 / PI);
     }
 
-    std::vector <std::vector <double > > getData(std::string fileName, int dataSize) {
+    std::vector <std::vector <double > > getData(std::string fileName, int dataSize, int numcols) {
         
         std::ifstream readFile;
         readFile.open(fileName);
         
-        int columns = 5;
+        int columns = numcols;
         int rows = dataSize;
         std::vector <double> innerData(dataSize, 0.0);
-        std::vector<std::vector<double>> rawData(5, innerData);
+        std::vector<std::vector<double>> rawData(numcols, innerData);
         
         for (int row = 0; row < rows; ++row)
         {
@@ -7023,15 +7034,15 @@ double TRK::Asymmetric::getAsymShiftSingle(std::vector <double> slops_1D, std::v
         return rawData;
     }
 
-    std::vector <std::vector <double > > getData(std::string fileName) {
+    std::vector <std::vector <double > > getData(std::string fileName, int numcols) {
         
         std::ifstream readFile;
         readFile.open(fileName);
         
-        int columns = 5;
+        int columns = numcols;
         int rows = 441;
         std::vector <double> innerData(441, 0.0);
-        std::vector<std::vector<double>> rawData(5, innerData);
+        std::vector<std::vector<double>> rawData(numcols, innerData);
         
         for (int row = 0; row < rows; ++row)
         {
